@@ -4,7 +4,8 @@
   "description": "a discord/twitch bot for integrating discord chat with twitch chat",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,11 @@
   "bugs": {
     "url": "https://github.com/GypsyDangerous/DisTwitchChat/issues"
   },
-  "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme"
+  "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme",
+  "dependencies": {
+    "discord.js": "^12.2.0",
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.3",
+    "tmi.js": "^1.5.0"
+  }
 }
