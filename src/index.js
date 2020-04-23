@@ -12,6 +12,7 @@ const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REA
 // DiscordClient.commands = new discord.Collection()
 
 
+// TODO: fix
 // const Twitchclient = new tmi.Client({
 //     options: { debug: true },
 //     connection: {
@@ -19,7 +20,7 @@ const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REA
 //         reconnect: true
 //     },
 //     identity: {
-//         username: 'DisTwitchChat', 
+//         username: 'distwitchchat', 
 //         password: process.env.TWITH_OAUTH_TOKEN
 //     },
 //     channels: ['dav1dsnyder404']
@@ -43,3 +44,8 @@ DiscordClient.once("ready", async () => {
 })
 
 DiscordClient.login(process.env.BOT_TOKEN) 
+
+DiscordClient.on("message", async msg => {
+    if(msg.author.bot) return
+    await msg.channel.send(msg.content)
+})
