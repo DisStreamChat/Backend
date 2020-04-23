@@ -1,0 +1,24 @@
+{
+  "name": "distwitchchat",
+  "version": "1.0.0",
+  "description": "a discord/twitch bot for integrating discord chat with twitch chat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GypsyDangerous/DisTwitchChat.git"
+  },
+  "keywords": [
+    "discord",
+    "twitch",
+    "bot"
+  ],
+  "author": "David Snyder",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GypsyDangerous/DisTwitchChat/issues"
+  },
+  "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme"
+}
