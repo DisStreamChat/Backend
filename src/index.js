@@ -1,7 +1,7 @@
 const discord = require("discord.js")
 const tmi = require("tmi.js")
 require("dotenv").config()
-
+require("./api")
 const fs = require("fs")
 const path = require("path")
 
