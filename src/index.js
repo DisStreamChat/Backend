@@ -5,10 +5,30 @@ require("dotenv").config()
 const fs = require("fs")
 const path = require("path")
 
+const AntiSpam = require('discord-anti-spam');
+const antiSpam = new AntiSpam({
+    warnThreshold: 3, // Amount of messages sent in a row that will cause a warning.
+    kickThreshold: 7, // Amount of messages sent in a row that will cause a ban.
+    banThreshold: 15, // Amount of messages sent in a row that will cause a ban.
+    maxInterval: 2000, // Amount of time (in milliseconds) in which messages are considered spam.
+    warnMessage: '{@user}, Please stop spamming.', // Message that will be sent in chat upon warning a user.
+    kickMessage: '**{user_tag}** has been kicked for spamming.', // Message that will be sent in chat upon kicking a user.
+    banMessage: '**{user_tag}** has been banned for spamming.', // Message that will be sent in chat upon banning a user.
+    maxDuplicatesWarning: 2, // Amount of duplicate messages that trigger a warning.
+    maxDuplicatesKick: 10, // Amount of duplicate messages that trigger a kick.
+    maxDuplicatesBan: 12, // Amount of duplicate messages that trigger a ban.
+    exemptPermissions: ['ADMINISTRATOR', "MANAGE SERVER"], // Bypass users with any of these permissions.
+    ignoreBots: true, // Ignore bot messages.
+    verbose: true, // Extended Logs from module.
+    ignoredUsers: [], // Array of User IDs that get ignored.
+});
+
+
 const configFile = require("../config.json")
 // const configPath = path.join(__dirname, "..", "..", "config.json")
 
 const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
+
 // DiscordClient.config = require("../config.json")
 // DiscordClient.commands = new discord.Collection()
 
@@ -44,6 +64,7 @@ Twitchclient.connect();
 
 DiscordClient.once("ready", async () => {
     console.log("bot ready")
+    console.log(`Logged in as ${DiscordClient.user.tag}.`)
     // loadCommands(DiscordClient)
 })
 
@@ -54,25 +75,33 @@ const urlRegex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9
 
 DiscordClient.on("message", async msg => {
     if(msg.author.bot) return
+
+    
     const senderName = msg.member.displayName
     const guildConfig = configFile.channels[msg.guild.id]
     const codeRegex = /[`]{1,3}[\w]*/gm
-
-    // Strip off mentions, links and backticks because backticks act weird on twitch
+    const customEmojiRegex = /<:([\w]+):[\d]+>/gm
+    
+    
+    // Strip off mentions, backticks because backticks act weird on twitch
     const messageBody = msg.content
-                        .replace(mentionRegex, "")
-                        .replace(urlRegex, "<link>")
-                        .replace(codeRegex, "")
-
-
+    .replace(mentionRegex, "")
+    .replace(codeRegex, "")
+    .replace(customEmojiRegex, ":$1:")
+    
+    
     // TODO add getting mention username, currently just strips mentions
     // const mentions = (mentionRegex.exec(msg.content) || []).slice(1)
-
+    
+    // TODO add in a way to send the name of custom emojis because you can't send thme directly
+    
+    
     if(messageBody.length > 500){
         return await msg.channel.send(`The Twitch chat Character max is 500, your message is ${messageBody.length} characters long. please shorten your message`)
     }
     
     if (msg.channel.id === guildConfig.livechatId && messageBody.length > 0){
-       await Twitchclient.say(guildConfig.twitch, `${senderName} on discord says: ${messageBody}`);
+        antiSpam.message(msg)
+        await Twitchclient.say(guildConfig.twitch, `${senderName} on discord says: ${messageBody}`);
     }
 })
