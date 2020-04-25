@@ -29,7 +29,7 @@ app.post("/addChannel", (req, res) => {
 })
 
 app.get("/makecoffee", (req, res) => {
-    res.status(418).send()
+    res.status(418).json({error: "418", message: "I am a teapot"})
 })
 
 app.listen(PORT, () => {

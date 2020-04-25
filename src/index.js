@@ -1,3 +1,6 @@
+const app = require('express')();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 const discord = require("discord.js")
 const tmi = require("tmi.js")
 require("dotenv").config()
@@ -23,18 +26,16 @@ const antiSpam = new AntiSpam({
     ignoredUsers: [], // Array of User IDs that get ignored.
 });
 
+const sockets = new Set()
 
 const configFile = require("../config.json")
-// const configPath = path.join(__dirname, "..", "..", "config.json")
 
 const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
 
-// DiscordClient.config = require("../config.json")
-// DiscordClient.commands = new discord.Collection()
 
 const allChannels = (Object.entries(configFile.channels).map(([id, info]) => info.twitch.slice(1)))
 
-// TODO: fix
+
 const Twitchclient = new tmi.Client({
     options: { debug: true },
     connection: {
@@ -51,57 +52,93 @@ const Twitchclient = new tmi.Client({
 Twitchclient.connect();
 
 // TODO add uptime command to twitch side of bot
-// Twitchclient.on('message', (channel, tags, message, self) => {
-//     // Ignore echoed messages.
-//     if (self) return;
-
-//     if (message.toLowerCase() === '!hello') {
-//         // "@alca, heya!"
-//         console.log(channel)
-//         Twitchclient.say(channel, `@${tags.username}, heya!`);
-//     }
-// });
 
 DiscordClient.once("ready", async () => {
     console.log("bot ready")
-    console.log(`Logged in as ${DiscordClient.user.tag}.`)
-    // loadCommands(DiscordClient)
+    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "Live Chat" } })
 })
 
 DiscordClient.login(process.env.BOT_TOKEN) 
 
-const mentionRegex = /<@[\W\S]([\d]+)>/gm
 const urlRegex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm
+const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
+const channelMentionRegex = /<#(\d+)>/gm
+const mentionRegex = /<@([\W\S])([\d]+)>/gm
+
+const replaceMentions = async msg => {
+    const guild = msg.guild
+    const {members, roles} = guild
+    const mentions = [...msg.content.matchAll(mentionRegex)].map(match => ({prefix: match[1], id: match[2]}))
+    for (const {prefix, id} of mentions){
+        if(prefix === "!"){
+            const username = (await members.fetch(id)).user.username
+            msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@"+username)
+        }else if(prefix === "&"){
+            const name = (await roles.fetch(id)).name
+            msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@"+name)
+        }
+    }
+    return msg
+}
+
+const replaceChannelMentions = async msg => {
+    const guild = msg.guild
+    const { channels } = guild
+    const mentions = [...msg.content.matchAll(channelMentionRegex)].map(match => match[1])
+    for (const id of mentions){
+        const name = (await channels.resolve(id)).name
+        msg.content = msg.content.replace(new RegExp(`<#${id}>`, "g"), "#" + name)
+    }
+    return msg
+}
+
 
 DiscordClient.on("message", async msg => {
     if(msg.author.bot) return
 
-    
     const senderName = msg.member.displayName
     const guildConfig = configFile.channels[msg.guild.id]
-    const codeRegex = /[`]{1,3}[\w]*/gm
-    const customEmojiRegex = /<:([\w]+):[\d]+>/gm
-    
-    
-    // Strip off mentions, backticks because backticks act weird on twitch
-    const messageBody = msg.content
-    .replace(mentionRegex, "")
-    .replace(codeRegex, "")
-    .replace(customEmojiRegex, ":$1:")
-    
-    
-    // TODO add getting mention username, currently just strips mentions
-    // const mentions = (mentionRegex.exec(msg.content) || []).slice(1)
-    
-    // TODO add in a way to send the name of custom emojis because you can't send thme directly
-    
-    
-    if(messageBody.length > 500){
-        return await msg.channel.send(`The Twitch chat Character max is 500, your message is ${messageBody.length} characters long. please shorten your message`)
-    }
-    
-    if (msg.channel.id === guildConfig.livechatId && messageBody.length > 0){
-        antiSpam.message(msg)
-        await Twitchclient.say(guildConfig.twitch, `${senderName} on discord says: ${messageBody}`);
+    try{
+        if(guildConfig === undefined){
+            return await msg.channel.send("It apears your server has not yet been configured, if you have the `Manage server` permission you can configure it at `website` ")
+        }
+
+        // msg = await replaceMentions(msg)
+        // msg = await replaceChannelMentions(msg)
+
+        const messageBody = msg.cleanContent.replace(customEmojiRegex, "$1")
+
+        if (msg.channel.id === guildConfig.livechatId && messageBody.length > 0){
+            antiSpam.message(msg)
+
+            const msgObject = {
+                displayName: senderName,
+                avatar: msg.author.displayAvatarURL(),
+                body: messageBody
+            }
+
+            console.log(msgObject)
+
+            await Twitchclient.say(guildConfig.twitch, `${messageBody}`);
+        }
+    }catch(err){
+        console.log(err)
     }
 })
+
+io.on('connection', (socket) => {
+    sockets.add(socket)
+
+    // TODO have socket receive message from frontend giving it the discord guildID, also convert sockets from a set to an object
+
+    console.log('a user connected');
+    socket.on("disconnect", () => {
+        console.log('a user disconnected');
+        sockets.delete(socket)
+    });
+});
+
+
+http.listen(3200, () => {
+    console.log('listening on *:3000');
+});
