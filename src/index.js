@@ -26,7 +26,7 @@ const antiSpam = new AntiSpam({
     ignoredUsers: [], // Array of User IDs that get ignored.
 });
 
-const sockets = new Set()
+const sockets = {}
 
 const configFile = require("../config.json")
 
@@ -49,7 +49,7 @@ const Twitchclient = new tmi.Client({
     channels: allChannels
 });
 
-Twitchclient.connect();
+// Twitchclient.connect();
 
 // TODO add uptime command to twitch side of bot
 
@@ -114,12 +114,16 @@ DiscordClient.on("message", async msg => {
             const msgObject = {
                 displayName: senderName,
                 avatar: msg.author.displayAvatarURL(),
-                body: messageBody
+                body: messageBody,
+                platform: "discord"
             }
 
             console.log(msgObject)
 
-            await Twitchclient.say(guildConfig.twitch, `${messageBody}`);
+            // await Twitchclient.say(guildConfig.twitch, `${messageBody}`);
+            if(sockets.hasOwnProperty(msg.guild.id)){
+                sockets[msg.guild.id].emit("discordmessage", msgObject)
+            }
         }
     }catch(err){
         console.log(err)
@@ -127,18 +131,20 @@ DiscordClient.on("message", async msg => {
 })
 
 io.on('connection', (socket) => {
-    sockets.add(socket)
 
     // TODO have socket receive message from frontend giving it the discord guildID, also convert sockets from a set to an object
-
+    socket.on("addme", msg => {
+        socket.guildId = msg.guildId
+        sockets[msg.guildId] = socket;
+    })
     console.log('a user connected');
     socket.on("disconnect", () => {
         console.log('a user disconnected');
-        sockets.delete(socket)
+        sockets[socket.guildId] = null
     });
 });
 
 
 http.listen(3200, () => {
-    console.log('listening on *:3000');
+    console.log('listening on *:3200');
 });
