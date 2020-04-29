@@ -1,8 +1,0 @@
-{
-    "channels": {
-        "channelID": {
-            "twitch": "#Twitch Channel Name, (#) is required",
-            "livechatId": "Live chat channel ID"
-        }
-    }
-}
