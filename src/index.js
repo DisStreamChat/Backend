@@ -9,30 +9,20 @@ const fs = require("fs")
 const path = require("path")
 const fetch = require("node-fetch")
 
-const AntiSpam = require('discord-anti-spam');
-const antiSpam = new AntiSpam({
-    warnThreshold: 3, // Amount of messages sent in a row that will cause a warning.
-    kickThreshold: 7, // Amount of messages sent in a row that will cause a ban.
-    banThreshold: 15, // Amount of messages sent in a row that will cause a ban.
-    maxInterval: 2000, // Amount of time (in milliseconds) in which messages are considered spam.
-    warnMessage: '{@user}, Please stop spamming.', // Message that will be sent in chat upon warning a user.
-    kickMessage: '**{user_tag}** has been kicked for spamming.', // Message that will be sent in chat upon kicking a user.
-    banMessage: '**{user_tag}** has been banned for spamming.', // Message that will be sent in chat upon banning a user.
-    maxDuplicatesWarning: 2, // Amount of duplicate messages that trigger a warning.
-    maxDuplicatesKick: 10, // Amount of duplicate messages that trigger a kick.
-    maxDuplicatesBan: 12, // Amount of duplicate messages that trigger a ban.
-    exemptPermissions: ['ADMINISTRATOR', "MANAGE SERVER"], // Bypass users with any of these permissions.
-    ignoreBots: true, // Ignore bot messages.
-    verbose: true, // Extended Logs from module.
-    ignoredUsers: [], // Array of User IDs that get ignored.
-});
+const {replaceMentions, replaceChannelMentions} = require("../utils/messageManipulation")
 
 const sockets = {}
 
-
+// initialize the discord client
 const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
+DiscordClient.login(process.env.BOT_TOKEN) 
 
+DiscordClient.once("ready", async () => {
+    console.log("bot ready")
+    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "Live Chat" } })
+})
 
+// initialize the twitch client
 const Twitchclient = new tmi.Client({
     options: { debug: true },
     connection: {
@@ -47,6 +37,7 @@ const Twitchclient = new tmi.Client({
 });
 Twitchclient.connect()
 
+// get emotes from bttv and ffz by pinging the api's and saving the regexs
 const bttvEmotes = {};
 let bttvRegex;
 const ffzEmotes = {};
@@ -90,126 +81,83 @@ async function getFfzEmotes() {
 getBttvEmotes();
 getFfzEmotes();
 
-// use client.join(channel)
 
-// TODO add uptime command to twitch side of bot
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TWITCH
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
     if (self) return;
     
+    // ping the twitch api for user data, currently only used for profile picture
     const apiURL = "https://api.twitch.tv/helix/users?login"
-
     const response = await fetch(apiURL + "=" + tags.username, {
         headers: {
             "Client-ID": process.env.TWITCH_API_TOKEN
         }
     })
-
+    const data = (await response.json())?.data[0]
     
-    const data = (await response.json()).data[0]
+    // replace the regular emotes with the images from twitch
     if(tags.emotes){
-        const [lastIndex, result] = Object.entries(tags.emotes).reduce(
-            ([lastIndex, result], [id, indices]) => {
-                indices.map(index => {
-                    const [start, end] = index.split('-').map(Number);
-                    result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`;
-                    lastIndex = end + 1;
-                });
-
-                return [lastIndex, result];
-            },
-            [0, ''],
+    const [lastIndex, result] = Object.entries(tags.emotes).reduce(
+        ([lastIndex, result], [id, indices]) => {
+            indices.map(index => {
+                const [start, end] = index.split('-').map(Number);
+                result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`;
+                lastIndex = end + 1;
+            });
+            
+            return [lastIndex, result];
+        },
+        [0, ''],
         );
         message = result + message.slice(lastIndex)
     }
-        
-
-
-
+    
+    // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
     message = message.replace(bttvRegex, (name) => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`);
     message = message.replace(ffzRegex, (name) => `<img src="${ffzEmotes[name]}#emote" class="emote">`);
-
+    
+    
+    // this is all the data that gets sent to the frontend
     const msgObject = {
         displayName: tags.username,
         avatar: data.profile_image_url,
         body: message,
         platform: "twitch"
     }
+    
+    // remove the "#" form the begginning of the channel name
     c = channel.slice(1)
+    
+    // send the message object to all overlays and applications connected to this channel
     if (sockets.hasOwnProperty(c)) {
         [...sockets[c]].forEach(async s => await s.emit("chatmessage", msgObject))
     }
 });
-
-DiscordClient.once("ready", async () => {
-    console.log("bot ready")
-    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "Live Chat" } })
-})
-
-DiscordClient.login(process.env.BOT_TOKEN) 
-
-const urlRegex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm
-const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
-const channelMentionRegex = /<#(\d+)>/gm
-const mentionRegex = /<@([\W\S])([\d]+)>/gm
-
-const replaceMentions = async msg => {
-    const guild = msg.guild
-    const {members, roles} = guild
-    const mentions = [...msg.content.matchAll(mentionRegex)].map(match => ({prefix: match[1], id: match[2]}))
-    for (const {prefix, id} of mentions){
-        if(prefix === "!"){
-            const username = (await members.fetch(id)).user.username
-            msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@"+username)
-        }else if(prefix === "&"){
-            const name = (await roles.fetch(id)).name
-            msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@"+name)
-        }
-    }
-    return msg
-}
-
-const replaceChannelMentions = async msg => {
-    const guild = msg.guild
-    const { channels } = guild
-    const mentions = [...msg.content.matchAll(channelMentionRegex)].map(match => match[1])
-    for (const id of mentions){
-        const name = (await channels.resolve(id)).name
-        msg.content = msg.content.replace(new RegExp(`<#${id}>`, "g"), "#" + name)
-    }
-    return msg
-}
-
-
+    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// DISCORD MESSAGE HANDLING
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
 DiscordClient.on("message", async msg => {
     if(msg.author.bot) return
-
+    
     const senderName = msg.member.displayName
     try{
-        // if(guildConfig === undefined){
-        //     return await msg.channel.send("It apears your server has not yet been configured, if you have the `Manage server` permission you can configure it at `website` ")
-        // }
-
-        // msg = await replaceMentions(msg)
-        // msg = await replaceChannelMentions(msg)
-
         const messageBody = msg.cleanContent.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
-
+        
         if (messageBody.length > 0){
-            // antiSpam.message(msg)
-
             const msgObject = {
                 displayName: senderName,
                 avatar: msg.author.displayAvatarURL(),
                 body: messageBody,
                 platform: "discord"
             }
-
-            // await Twitchclient.say(guildConfig.twitch, `${messageBody}`);
             
             if(sockets.hasOwnProperty(msg.guild.id)){
-                
                 [...sockets[msg.guild.id]].forEach(async s => await s.emit("chatmessage", msgObject))
             }
         }
@@ -218,6 +166,7 @@ DiscordClient.on("message", async msg => {
     }
 })
 
+// add a socket to a set at set id (key)
 const addSocket = (socket, id) => {
     if (sockets[id]) {
         sockets[id].add(socket);
@@ -226,39 +175,37 @@ const addSocket = (socket, id) => {
     }
 }
 
-io.on('connection', (socket) => {
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SOCKET CONNECTION HANDLING
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO have socket receive message from frontend giving it the discord guildID, also convert sockets from a set to an object
+io.on('connection', (socket) => {
     socket.on("addme", msg => {
         const {
             TwitchName,
             guildId
         } = msg
-        socket.guildId = guildId
         socket.userInfo = msg
         addSocket(socket, guildId)
         addSocket(socket, TwitchName)
-        
+        // TODO use client.join(channel)
     })
     console.log('a user connected');
     socket.on("disconnect", () => {
         console.log('a user disconnected');
         try {
-        const {
-            TwitchName,
-            guildId
-        } = socket.userInfo
-        
-        
+            const {
+                TwitchName,
+                guildId
+            } = socket.userInfo
+            
             sockets[guildId].remove(socket)
             sockets[TwitchName].remove(socket)
         }catch(e){
-
-            
+            // its possible that the socket doesn't have a guild id, 
         }
     });
 });
-
 
 http.listen(3200, () => {
     console.log('listening on *:3200');
