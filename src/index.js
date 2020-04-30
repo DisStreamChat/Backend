@@ -9,7 +9,7 @@ const fs = require("fs")
 const path = require("path")
 const fetch = require("node-fetch")
 
-const {replaceMentions, replaceChannelMentions} = require("../utils/messageManipulation")
+const { replaceMentions, replaceChannelMentions, channelMentionRegex} = require("../utils/messageManipulation")
 
 const sockets = {}
 

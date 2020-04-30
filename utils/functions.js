@@ -20,7 +20,6 @@ const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0)
 
 const hasPermsission = (member, perms) => ArrayAny(member.permissions.toArray(), perms)
 
-
 const modWare = async (msg, args, client, config, cb) => {
     if (hasPermsission(msg.member, client.config[msg.guild.id].modPerms)) {
         await cb(msg, args, client, config)
