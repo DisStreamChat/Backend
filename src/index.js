@@ -4,7 +4,7 @@ const io = require('socket.io')(http);
 const discord = require("discord.js")
 const tmi = require("tmi.js")
 require("dotenv").config()
-require("./api")
+
 const fs = require("fs")
 const path = require("path")
 const fetch = require("node-fetch")
@@ -97,7 +97,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
             "Client-ID": process.env.TWITCH_API_TOKEN
         }
     })
-    const data = (await response.json())?.data[0]
+    const data = (await response.json()).data[0]
     
     // replace the regular emotes with the images from twitch
     if(tags.emotes){
