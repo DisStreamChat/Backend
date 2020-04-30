@@ -109,33 +109,26 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     
     const data = (await response.json()).data[0]
     if(tags.emotes){
-        const names = []
+        const [lastIndex, result] = Object.entries(tags.emotes).reduce(
+            ([lastIndex, result], [id, indices]) => {
+                indices.map(index => {
+                    const [start, end] = index.split('-').map(Number);
+                    result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`;
+                    lastIndex = end + 1;
+                });
 
-        for( const [id, locations] of Object.entries(tags.emotes)){
-
-            const first = locations.map(l => l.split("-"))[0].map(v => +v)
-
-            const name = message.split("").splice(first[0], first[1]+1).join("")
-                        
-            names.push([name, id])
-
-        }
-        for(const [name, id] of names){
-
-            message = message.replace(new RegExp(name, "g"), `![](https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0)`)
-        }
-        console.log(message);
-        
-
-        
-
-
-        // later on in twitch code on recieve message:
-        
-        
+                return [lastIndex, result];
+            },
+            [0, ''],
+        );
+        message = result + message.slice(lastIndex)
     }
-    message = message.replace(bttvRegex, (name) => `![${name}](https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote)`);
-    message = message.replace(ffzRegex, (name) => `![](${ffzEmotes[name]}#emote)`);
+        
+
+
+
+    message = message.replace(bttvRegex, (name) => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`);
+    message = message.replace(ffzRegex, (name) => `<img src="${ffzEmotes[name]}#emote" class="emote">`);
 
     const msgObject = {
         displayName: tags.username,
@@ -201,10 +194,10 @@ DiscordClient.on("message", async msg => {
         // msg = await replaceMentions(msg)
         // msg = await replaceChannelMentions(msg)
 
-        const messageBody = msg.cleanContent.replace(customEmojiRegex, "$1")
+        const messageBody = msg.cleanContent.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
 
         if (messageBody.length > 0){
-            antiSpam.message(msg)
+            // antiSpam.message(msg)
 
             const msgObject = {
                 displayName: senderName,
