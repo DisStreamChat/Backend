@@ -4,6 +4,7 @@ const io = require('socket.io')(http);
 const discord = require("discord.js")
 const tmi = require("tmi.js")
 require("dotenv").config()
+const uuidv1 = require('uuidv1')
 
 const fs = require("fs")
 const path = require("path")
@@ -56,8 +57,8 @@ async function getBttvEmotes() {
         regexStr += code.replace(/\(/, '\\(').replace(/\)/, '\\)') + (i === emotes.length - 1 ? '' : '|');
     });
     bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g');
-    console.log(bttvEmotes);
-    console.log(bttvRegex);
+    // console.log(bttvEmotes);
+    // console.log(bttvRegex);
 }
 
 async function getFfzEmotes() {
@@ -74,8 +75,8 @@ async function getFfzEmotes() {
     sets[3].emoticons.forEach(appendEmotes);
     channelSets[609613].emoticons.forEach(appendEmotes);
     ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g');
-    console.log(ffzEmotes);
-    console.log(ffzRegex);
+    // console.log(ffzEmotes);
+    // console.log(ffzRegex);
 }
 
 getBttvEmotes();
@@ -88,83 +89,94 @@ getFfzEmotes();
 
 Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
-    if (self) return;
-    
-    // ping the twitch api for user data, currently only used for profile picture
-    const apiURL = "https://api.twitch.tv/helix/users?login"
-    const response = await fetch(apiURL + "=" + tags.username, {
-        headers: {
-            "Client-ID": process.env.TWITCH_API_TOKEN
-        }
-    })
-    const data = (await response.json()).data[0]
-    
+    if (self || message.startsWith("!") || message.startsWith("?")) return;
+        
     // replace the regular emotes with the images from twitch
     if(tags.emotes){
-    const [lastIndex, result] = Object.entries(tags.emotes).reduce(
-        ([lastIndex, result], [id, indices]) => {
-            indices.map(index => {
-                const [start, end] = index.split('-').map(Number);
-                result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`;
-                lastIndex = end + 1;
-            });
-            
-            return [lastIndex, result];
-        },
-        [0, ''],
+        const [lastIndex, result] = Object.entries(tags.emotes).reduce(
+            ([lastIndex, result], [id, indices]) => {
+                indices.map(index => {
+                    const [start, end] = index.split('-').map(Number);
+                    result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`;
+                    lastIndex = end + 1;
+                });
+
+                return [lastIndex, result];
+            },
+            [0, ''],
         );
         message = result + message.slice(lastIndex)
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
-    message = message.replace(bttvRegex, (name) => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`);
-    message = message.replace(ffzRegex, (name) => `<img src="${ffzEmotes[name]}#emote" class="emote">`);
+    message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`);
+    message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`);
     
+    // ping the twitch api for user data, currently only used for profile picture
+    const apiURL = "https://api.twitch.tv/helix/users?login"
+    const response = await fetch(`${apiURL}=${tags.username}`, {
+        headers: {
+            "Client-ID": process.env.TWITCH_API_TOKEN
+        }
+    })
+    const json = await response.json()
+    const data = json.data[0]
+
+    let messageId = tags["msg-id"]
+    if(messageId == undefined){
+        messageId = ""
+    }
     
     // this is all the data that gets sent to the frontend
-    const msgObject = {
+    const messageObject = {
         displayName: tags.username,
         avatar: data.profile_image_url,
         body: message,
-        platform: "twitch"
+        platform: "twitch",
+        messageId: messageId,
+        uuid: uuidv1()
     }
     
     // remove the "#" form the begginning of the channel name
-    c = channel.slice(1)
+    const channelName = channel.slice(1)
     
     // send the message object to all overlays and applications connected to this channel
-    if (sockets.hasOwnProperty(c)) {
-        [...sockets[c]].forEach(async s => await s.emit("chatmessage", msgObject))
-    }
+    if (sockets.hasOwnProperty(channelName)) [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
 });
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD MESSAGE HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-DiscordClient.on("message", async msg => {
-    if(msg.author.bot) return
+DiscordClient.on("message", async message => {
+    // if the message was sent by a bot it should be ignored
+    if (message.author.bot) return
     
-    const senderName = msg.member.displayName
+    const senderName = message.member.displayName
     try{
-        const messageBody = msg.cleanContent.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+        const messageBody = message.cleanContent.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
         
-        if (messageBody.length > 0){
-            const msgObject = {
-                displayName: senderName,
-                avatar: msg.author.displayAvatarURL(),
-                body: messageBody,
-                platform: "discord"
-            }
-            
-            if(sockets.hasOwnProperty(msg.guild.id)){
-                [...sockets[msg.guild.id]].forEach(async s => await s.emit("chatmessage", msgObject))
-            }
+        if (messageBody.length <= 0 || messageBody.startsWith("!") || messageBody.startsWith("?")) return
+        
+        const messageObject = {
+            displayName: senderName,
+            avatar: message.author.displayAvatarURL(),
+            body: messageBody,
+            platform: "discord",
+            messageId: "",
+            uuid: uuidv1()
         }
+        
+        if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
     }catch(err){
         console.log(err)
     }
 })
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SOCKET CONNECTION HANDLING
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // add a socket to a set at set id (key)
 const addSocket = (socket, id) => {
@@ -175,17 +187,14 @@ const addSocket = (socket, id) => {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// SOCKET CONNECTION HANDLING
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 io.on('connection', (socket) => {
-    socket.on("addme", msg => {
+    // the addme event is sent from the frontend on load with the data from the database
+    socket.on("addme", message => {
         const {
             TwitchName,
             guildId
-        } = msg
-        socket.userInfo = msg
+        } = message
+        socket.userInfo = message
         addSocket(socket, guildId)
         addSocket(socket, TwitchName)
         // TODO use client.join(channel)
@@ -193,17 +202,22 @@ io.on('connection', (socket) => {
     console.log('a user connected');
     socket.on("disconnect", () => {
         console.log('a user disconnected');
-        try {
-            const {
-                TwitchName,
-                guildId
-            } = socket.userInfo
-            
-            sockets[guildId].remove(socket)
-            sockets[TwitchName].remove(socket)
-        }catch(e){
-            // its possible that the socket doesn't have a guild id, 
-        }
+
+        // it is possible that the socket doesn't have userinfo if it connected to an invalid user
+        if(socket.userInfo == undefined) return
+
+        // remove the socket from the object
+        const {
+            TwitchName,
+            guildId
+        } = socket.userInfo
+
+        guildSockets = sockets[guildId]
+        channelSockets = sockets[TwitchName]
+        
+        if (guildSockets instanceof Set) guildSockets.delete(socket)
+        if (channelSockets instanceof Set) channelSockets.delete(socket)
+
     });
 });
 
