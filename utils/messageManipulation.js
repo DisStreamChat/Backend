@@ -1,7 +1,8 @@
-const urlRegex = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/gm
+const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?/gm
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
 const channelMentionRegex = /<#(\d+)>/gm
 const mentionRegex = /<@([\W\S])([\d]+)>/gm
+
 
 const replaceMentions = async msg => {
     const guild = msg.guild
@@ -30,9 +31,20 @@ const replaceChannelMentions = async msg => {
     return msg
 }
 
+const checkForClash = (message) => {
+    const urlCheck = [...message.matchAll(urlRegex)][0]
+    const hasUrl = urlCheck != undefined
+    if (!hasUrl) return
+    const fullUrl = urlCheck[0]
+    const codingGameMatch = [...fullUrl.matchAll(/codingame/g)][0]
+    if (codingGameMatch == undefined) return
+    return fullUrl
+}
+
 module.exports = {
     replaceMentions,
     replaceChannelMentions,
+    checkForClash,
     urlRegex,
     customEmojiRegex,
     channelMentionRegex,

@@ -62,6 +62,8 @@ const embedJSON = (obj, title="") => {
     }
 }
 
+// checkCodingGame
+
 module.exports = {
     isNumeric: (value) => {
         return /^-?\d+[.\,]?\d*$/.test(value);
