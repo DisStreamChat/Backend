@@ -87,21 +87,18 @@ getFfzEmotes()
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const customRewards = {
-    "4c9df4fc-7926-429b-bd77-6c615f548e85": "random-language"
-}
-
 Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
     if (self || message.startsWith("!") || message.startsWith("?")) return
         
     // replace the regular emotes with the images from twitch
     if(tags.emotes){
+        const stuff = Array.from(message)
         const [lastIndex, result] = Object.entries(tags.emotes).reduce(
             ([lastIndex, result], [id, indices]) => {
                 indices.map(index => {
                     const [start, end] = index.split('-').map(Number)
-                    result += `${message.slice(lastIndex, start)}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`
+                    result += `${stuff.slice(lastIndex, start).join("")}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`
                     lastIndex = end + 1
                 })
 
@@ -109,7 +106,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
             },
             [0, ''],
         )
-        message = result + message.slice(lastIndex)
+        message = result + (stuff.slice(lastIndex).join(""))
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
@@ -129,13 +126,9 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
    
 
     let messageId = tags["msg-id"]
-    const customReward = tags["custom-reward-id"]
-    if (messageId == undefined && customReward == undefined){
+    if (messageId == undefined){
         messageId = ""
-    }else if (customReward != undefined){
-        messageId = customRewards[customReward] || ""
     }
-
     
 
     // remove the "#" form the begginning of the channel name
