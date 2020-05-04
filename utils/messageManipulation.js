@@ -1,4 +1,4 @@
-const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?/gm
+const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.\S*)?/gm
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
 const channelMentionRegex = /<#(\d+)>/gm
 const mentionRegex = /<@([\W\S])([\d]+)>/gm
@@ -36,7 +36,7 @@ const checkForClash = (message) => {
     const hasUrl = urlCheck != undefined
     if (!hasUrl) return
     const fullUrl = urlCheck[0]
-    const codingGameMatch = [...fullUrl.matchAll(/codingame/g)][0]
+    const codingGameMatch = [...fullUrl.matchAll(/codingame.com\/clashofcode\/clash/g)][0]
     if (codingGameMatch == undefined) return
     return fullUrl
 }

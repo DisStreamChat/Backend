@@ -87,6 +87,10 @@ getFfzEmotes()
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const customRewards = {
+    "4c9df4fc-7926-429b-bd77-6c615f548e85": "random-language"
+}
+
 Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
     if (self || message.startsWith("!") || message.startsWith("?")) return
@@ -125,8 +129,11 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
    
 
     let messageId = tags["msg-id"]
-    if(messageId == undefined){
+    const customReward = tags["custom-reward-id"]
+    if (messageId == undefined && customReward == undefined){
         messageId = ""
+    }else if (customReward != undefined){
+        messageId = customRewards[customReward] || ""
     }
 
     
@@ -144,12 +151,14 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         const guildChannels = connectGuild.channels
 
         const liveChatChannel = guildChannels.resolve(liveChatId)
-
-        liveChatChannel.send(clashUrl)
+        console.log({clashUrl});
         
-
-
+        liveChatChannel.send(clashUrl)
     }
+
+
+    console.log(tags);
+    
 
     // this is all the data that gets sent to the frontend
     const messageObject = {
@@ -219,6 +228,7 @@ io.on('connection', (socket) => {
         socket.userInfo = message
         addSocket(socket, guildId)
         addSocket(socket, TwitchName)
+        Twitchclient.join(TwitchName)
         // TODO use client.join(channel)
     })
     console.log('a user connected')
@@ -239,7 +249,7 @@ io.on('connection', (socket) => {
         
         if (guildSockets instanceof Set) guildSockets.delete(socket)
         if (channelSockets instanceof Set) channelSockets.delete(socket)
-
+        Twitchclient.part(TwitchName)
     })
 })
 
