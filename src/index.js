@@ -93,20 +93,30 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         
     // replace the regular emotes with the images from twitch
     if(tags.emotes){
-        const stuff = Array.from(message)
-        const [lastIndex, result] = Object.entries(tags.emotes).reduce(
-            ([lastIndex, result], [id, indices]) => {
-                indices.map(index => {
-                    const [start, end] = index.split('-').map(Number)
-                    result += `${stuff.slice(lastIndex, start).join("")}<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`
-                    lastIndex = end + 1
-                })
-
-                return [lastIndex, result]
-            },
-            [0, ''],
-        )
-        message = result + (stuff.slice(lastIndex).join(""))
+        let messageWithEmotes = '';
+        const emoteIds = Object.keys(tags.emotes);
+        const emoteStart = emoteIds.reduce((starts, id) => {
+            tags.emotes[id].forEach((startEnd) => {
+                const [start, end] = startEnd.split('-');
+                starts[start] = {
+                    emoteUrl: `![](https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0)`,
+                    end,
+                };
+            });
+            return starts;
+        }, {});
+        const parts = Array.from(message);
+        for (let i = 0; i < parts.length; i++) {
+            const char = parts[i];
+            const emoteInfo = emoteStart[i];
+            if (emoteInfo) {
+                messageWithEmotes += emoteInfo.emoteUrl;
+                i = emoteInfo.end;
+            } else {
+                messageWithEmotes += char;
+            }
+        }
+        message = messageWithEmotes
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
@@ -149,7 +159,6 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         liveChatChannel.send(clashUrl)
     }
 
-
     console.log(tags);
     
 
@@ -160,7 +169,8 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         body: message,
         platform: "twitch",
         messageId: messageId,
-        uuid: uuidv1()
+        uuid: uuidv1(),
+        badges: tags.badges
     }
     
     
@@ -188,7 +198,8 @@ DiscordClient.on("message", async message => {
             body: messageBody,
             platform: "discord",
             messageId: "",
-            uuid: uuidv1()
+            uuid: uuidv1(),
+            badges: {}
         }
         
         if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
