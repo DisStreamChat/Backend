@@ -159,7 +159,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         liveChatChannel.send(clashUrl)
     }
 
-    console.log(tags);
+    console.log(tags.badges, message);
     
 
     // this is all the data that gets sent to the frontend
