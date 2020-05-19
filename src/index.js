@@ -14,29 +14,8 @@ const { checkForClash, customEmojiRegex} = require("../utils/messageManipulation
 
 const sockets = {}
 
-// initialize the discord client
-const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
-DiscordClient.login(process.env.BOT_TOKEN) 
-
-DiscordClient.once("ready", async () => {
-    console.log("bot ready")
-    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "Live Chat" } })
-})
-
-// initialize the twitch client
-const Twitchclient = new tmi.Client({
-    options: { debug: true },
-    connection: {
-        secure: true,
-        reconnect: true
-    },
-    identity: {
-        username: 'distwitchchat', 
-        password: process.env.TWITH_OAUTH_TOKEN
-    },
-    channels: ["dav1dsnyder404"]
-})
-Twitchclient.connect()
+const {DiscordClient, Twitchclient} = require("./initClients")
+const customBadgeSize = 1
 
 // get emotes from bttv and ffz by pinging the api's and saving the regexs
 const bttvEmotes = {}
@@ -57,8 +36,6 @@ async function getBttvEmotes() {
         regexStr += code.replace(/\(/, '\\(').replace(/\)/, '\\)') + (i === emotes.length - 1 ? '' : '|')
     })
     bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
-    // console.log(bttvEmotes)
-    // console.log(bttvRegex)
 }
 
 async function getFfzEmotes() {
@@ -75,8 +52,6 @@ async function getFfzEmotes() {
     sets[3].emoticons.forEach(appendEmotes)
     channelSets[609613].emoticons.forEach(appendEmotes)
     ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
-    // console.log(ffzEmotes)
-    // console.log(ffzRegex)
 }
 
 getBttvEmotes()
@@ -99,7 +74,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
             tags.emotes[id].forEach((startEnd) => {
                 const [start, end] = startEnd.split('-');
                 starts[start] = {
-                    emoteUrl: `![](https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0)`,
+                    emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`,
                     end,
                 };
             });
@@ -128,12 +103,51 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     const response = await fetch(`${apiURL}=${tags.username}`, {
         headers: {
             "Client-ID": process.env.TWITCH_CLIENT_ID,
-            "Authorization": `Bearer ${process.env.TWITCH_API_TOKEN}`
+            "Authorization": `Bearer ${process.env.TWITCH_ACCESS_TOKEN}`
         }
     })
+
+    // get the channel info from the twitch api, used for custom sub and cheer badges
     const json = await response.json()
     const data = json.data[0]
-   
+    const channelResponse = await fetch(`${apiURL}=${channel.slice(1)}`, {
+        headers: {
+            "Client-ID": process.env.TWITCH_CLIENT_ID,
+            "Authorization": `Bearer ${process.env.TWITCH_ACCESS_TOKEN}`
+        }
+    })
+    const channelJson = await channelResponse.json()
+    const channelData = channelJson.data[0]
+    const channelId = channelData.id
+
+    const customBadgeURL = `https://badges.twitch.tv/v1/badges/channels/${channelId}/display`
+    const channelBadgeResponse = await fetch(customBadgeURL)
+    const channelBadgeJSON = (await channelBadgeResponse.json()).badge_sets
+    const badges = {}
+
+    const globalBadgeResponse = await fetch("https://badges.twitch.tv/v1/badges/global/display")
+    const globalBadgeJson = (await globalBadgeResponse.json()).badge_sets
+    for (const [key, value] of Object.entries(tags.badges)) {
+        const badgeInfo = globalBadgeJson[key].versions[value]
+        const badgeImage = badgeInfo[`image_url_${customBadgeSize}x`]
+        const badgeTitle = badgeInfo["title"]
+        badges[key] = { "image": badgeImage, "title": badgeTitle}
+    }
+
+    if (channelBadgeJSON.hasOwnProperty("subscriber") && tags.badges.subscriber != undefined){
+        // do sub badge stuff
+        const customSubBadges = channelBadgeJSON.subscriber.versions
+        const subLevel = tags.badges.subscriber
+        const subBadge = customSubBadges[subLevel][`image_url_${customBadgeSize}x`]
+        badges["subscriber"] = { "image": subBadge, "title": "subscriber" }
+    }
+
+    if (channelBadgeJSON.hasOwnProperty("bits") && tags.badges.bits != undefined){
+        // do cheer badge stuff
+        const customCheerBadges = channelBadgeJSON.bits.versions
+        const cheerLevel = tags.badges.bits
+        // const cheerBadge = 
+    }
 
     let messageId = tags["msg-id"]
     if (messageId == undefined){
@@ -159,9 +173,8 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         liveChatChannel.send(clashUrl)
     }
 
-    console.log(tags.badges, message);
+    // console.log(tags)
     
-
     // this is all the data that gets sent to the frontend
     const messageObject = {
         displayName: tags["display-name"],
@@ -170,9 +183,8 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         platform: "twitch",
         messageId: messageId,
         uuid: uuidv1(),
-        badges: tags.badges
+        badges,
     }
-    
     
     // send the message object to all overlays and applications connected to this channel
     if (sockets.hasOwnProperty(channelName)) [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
@@ -215,10 +227,13 @@ DiscordClient.on("message", async message => {
 
 // add a socket to a set at set id (key)
 const addSocket = (socket, id) => {
-    if (sockets[id]) {
-        sockets[id].add(socket)
-    } else {
-        sockets[id] = new Set([socket])
+    if(id != undefined){
+        id = id.toLowerCase()
+        if (sockets[id]) {
+            sockets[id].add(socket)
+        } else {
+            sockets[id] = new Set([socket])
+        }
     }
 }
 
