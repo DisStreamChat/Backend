@@ -17,6 +17,7 @@ const sockets = {}
 const {DiscordClient, Twitchclient} = require("./initClients")
 const customBadgeSize = 1
 
+
 // get emotes from bttv and ffz by pinging the api's and saving the regexs
 const bttvEmotes = {}
 let bttvRegex
@@ -43,14 +44,16 @@ async function getFfzEmotes() {
     // replace with your channel url
     const ffzChannelResponse = await fetch('https://api.frankerfacez.com/v1/room/codinggarden')
     const { sets } = await ffzResponse.json()
-    const { sets: channelSets } = await ffzChannelResponse.json()
+    const { room, sets: channelSets } = await ffzChannelResponse.json()
     let regexStr = ''
     const appendEmotes = ({ name, urls }, i, emotes) => {
         ffzEmotes[name] = `https:${Object.values(urls).pop()}`
         regexStr += name + (i === emotes.length - 1 ? '' : '|')
     }
     sets[3].emoticons.forEach(appendEmotes)
-    channelSets[609613].emoticons.forEach(appendEmotes)
+    if (channelSets) {
+        channelSets[609613].emoticons.forEach(appendEmotes)
+    }
     ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
 }
 
@@ -124,29 +127,42 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     const channelBadgeResponse = await fetch(customBadgeURL)
     const channelBadgeJSON = (await channelBadgeResponse.json()).badge_sets
     const badges = {}
+    if(tags.badges) {
+        const globalBadgeResponse = await fetch("https://badges.twitch.tv/v1/badges/global/display")
+        const globalBadgeJson = (await globalBadgeResponse.json()).badge_sets
+        for (let [key, value] of Object.entries(tags.badges)) {
+            if(key === "subscriber"){
+                value = Math.min(+value, 1) 
+            }
+            let badgeInfo = globalBadgeJson[key].versions[value]
+            if(badgeInfo){
+                const badgeImage = badgeInfo[`image_url_${customBadgeSize}x`]
+                const badgeTitle = badgeInfo["title"]
+                badges[key] = { "image": badgeImage, "title": badgeTitle}
+            }
+        }
 
-    const globalBadgeResponse = await fetch("https://badges.twitch.tv/v1/badges/global/display")
-    const globalBadgeJson = (await globalBadgeResponse.json()).badge_sets
-    for (const [key, value] of Object.entries(tags.badges)) {
-        const badgeInfo = globalBadgeJson[key].versions[value]
-        const badgeImage = badgeInfo[`image_url_${customBadgeSize}x`]
-        const badgeTitle = badgeInfo["title"]
-        badges[key] = { "image": badgeImage, "title": badgeTitle}
-    }
+        if (channelBadgeJSON.hasOwnProperty("subscriber") && tags.badges.subscriber != undefined){
+            // do sub badge stuff
+            const customSubBadges = channelBadgeJSON.subscriber.versions
+            const subLevel = tags.badges.subscriber
+            if(customSubBadges.hasOwnProperty(subLevel)){
+                const subBadge = customSubBadges[subLevel][`image_url_${customBadgeSize}x`]
+                const subTitle = customSubBadges[subLevel]["title"]
+                badges["subscriber"] = { "image": subBadge, "title": subTitle }
+            }
+        }
 
-    if (channelBadgeJSON.hasOwnProperty("subscriber") && tags.badges.subscriber != undefined){
-        // do sub badge stuff
-        const customSubBadges = channelBadgeJSON.subscriber.versions
-        const subLevel = tags.badges.subscriber
-        const subBadge = customSubBadges[subLevel][`image_url_${customBadgeSize}x`]
-        badges["subscriber"] = { "image": subBadge, "title": "subscriber" }
-    }
-
-    if (channelBadgeJSON.hasOwnProperty("bits") && tags.badges.bits != undefined){
-        // do cheer badge stuff
-        const customCheerBadges = channelBadgeJSON.bits.versions
-        const cheerLevel = tags.badges.bits
-        // const cheerBadge = 
+        if (channelBadgeJSON.hasOwnProperty("bits") && tags.badges.bits != undefined){
+            // do cheer badge stuff
+            const customCheerBadges = channelBadgeJSON.bits.versions
+            const cheerLevel = tags.badges.bits
+            if(customCheerBadges.hasOwnProperty(cheerLevel)){
+                const cheerBadge = customCheerBadges[cheerLevel][`image_url_${customBadgeSize}x`]
+                const customCheerTitle = customCheerBadges[cheerLevel]["title"]
+                badges["bits"] = {"image": cheerBadge, "title": customCheerTitle}
+            }
+        }
     }
 
     let messageId = tags["msg-id"]
