@@ -172,20 +172,16 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     
 
     // remove the "#" form the begginning of the channel name
-    const channelName = channel.slice(1)
+    const channelName = channel.slice(1).toLowerCase()
     
     const clashUrl = checkForClash(message)
-    
     if (clashUrl != undefined && sockets.hasOwnProperty(channelName)){
         const { guildId, liveChatId } = [...sockets[channelName]][0].userInfo
-        // console.log("689872791331405900")
         
         const connectGuild = DiscordClient.guilds.resolve(guildId)
         const guildChannels = connectGuild.channels
 
         const liveChatChannel = guildChannels.resolve(liveChatId)
-        console.log({clashUrl});
-        
         liveChatChannel.send(clashUrl)
     }
 
