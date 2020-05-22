@@ -10,13 +10,15 @@ const fs = require("fs")
 const path = require("path")
 const fetch = require("node-fetch")
 
-const { checkForClash, customEmojiRegex} = require("../utils/messageManipulation")
-
+const { checkForClash, customEmojiRegex } = require("../utils/messageManipulation")
 const sockets = {}
 
-const {DiscordClient, Twitchclient} = require("./initClients")
-const customBadgeSize = 1
-
+const {DiscordClient, Twitchclient} = require("../utils/initClients")
+const TwitchApi = require("../utils/twitchLib.js")
+const Api = new TwitchApi({
+    clientId: process.env.TWITCH_CLIENT_ID,
+    authorizationKey: process.env.TWITCH_ACCESS_TOKEN
+})
 
 // get emotes from bttv and ffz by pinging the api's and saving the regexs
 const bttvEmotes = {}
@@ -69,7 +71,13 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
     if (self || message.startsWith("!") || message.startsWith("?")) return
         
-    // replace the regular emotes with the images from twitch
+    // remove the "#" form the begginning of the channel name
+    const channelName = channel.slice(1).toLowerCase()
+
+    // don't waste time with all the next stuff if there isn't a socket connection to that channel
+    if (!sockets.hasOwnProperty(channelName)) return
+
+    // replace the emote text with the images from twitch
     if(tags.emotes){
         let messageWithEmotes = '';
         const emoteIds = Object.keys(tags.emotes);
@@ -101,79 +109,44 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
     message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
     
-    // ping the twitch api for user data, currently only used for profile picture
-    const apiURL = "https://api.twitch.tv/helix/users?login"
-    const response = await fetch(`${apiURL}=${tags.username}`, {
-        headers: {
-            "Client-ID": process.env.TWITCH_CLIENT_ID,
-            "Authorization": `Bearer ${process.env.TWITCH_ACCESS_TOKEN}`
-        }
-    })
-
-    // get the channel info from the twitch api, used for custom sub and cheer badges
-    const json = await response.json()
-    const data = json.data[0]
-    const channelResponse = await fetch(`${apiURL}=${channel.slice(1)}`, {
-        headers: {
-            "Client-ID": process.env.TWITCH_CLIENT_ID,
-            "Authorization": `Bearer ${process.env.TWITCH_ACCESS_TOKEN}`
-        }
-    })
-    const channelJson = await channelResponse.json()
-    const channelData = channelJson.data[0]
-    const channelId = channelData.id
-
-    const customBadgeURL = `https://badges.twitch.tv/v1/badges/channels/${channelId}/display`
-    const channelBadgeResponse = await fetch(customBadgeURL)
-    const channelBadgeJSON = (await channelBadgeResponse.json()).badge_sets
+    const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
     const badges = {}
     if(tags.badges) {
-        const globalBadgeResponse = await fetch("https://badges.twitch.tv/v1/badges/global/display")
-        const globalBadgeJson = (await globalBadgeResponse.json()).badge_sets
+        const globalBadges = await Api.getGlobalBadges()
         for (let [key, value] of Object.entries(tags.badges)) {
-            if(key === "subscriber"){
-                value = Math.min(+value, 1) 
-            }
-            let badgeInfo = globalBadgeJson[key].versions[value]
+            if(key === "subscriber") value = Math.min(+value, 1) // global subscriber badges only have two keys 0 and 1. 1 is for any subscriber above 1 month
+
+            let badgeInfo = globalBadges[key].versions[value]
             if(badgeInfo){
-                const badgeImage = badgeInfo[`image_url_${customBadgeSize}x`]
+                const badgeImage = badgeInfo[`image_url_1x`]
                 const badgeTitle = badgeInfo["title"]
                 badges[key] = { "image": badgeImage, "title": badgeTitle}
             }
         }
 
         if (channelBadgeJSON.hasOwnProperty("subscriber") && tags.badges.subscriber != undefined){
-            // do sub badge stuff
             const customSubBadges = channelBadgeJSON.subscriber.versions
             const subLevel = tags.badges.subscriber
             if(customSubBadges.hasOwnProperty(subLevel)){
-                const subBadge = customSubBadges[subLevel][`image_url_${customBadgeSize}x`]
+                const subBadge = customSubBadges[subLevel][`image_url_1x`]
                 const subTitle = customSubBadges[subLevel]["title"]
                 badges["subscriber"] = { "image": subBadge, "title": subTitle }
             }
         }
 
         if (channelBadgeJSON.hasOwnProperty("bits") && tags.badges.bits != undefined){
-            // do cheer badge stuff
             const customCheerBadges = channelBadgeJSON.bits.versions
             const cheerLevel = tags.badges.bits
             if(customCheerBadges.hasOwnProperty(cheerLevel)){
-                const cheerBadge = customCheerBadges[cheerLevel][`image_url_${customBadgeSize}x`]
+                const cheerBadge = customCheerBadges[cheerLevel][`image_url_1x`]
                 const customCheerTitle = customCheerBadges[cheerLevel]["title"]
                 badges["bits"] = {"image": cheerBadge, "title": customCheerTitle}
             }
         }
     }
 
-    let messageId = tags["msg-id"]
-    if (messageId == undefined){
-        messageId = ""
-    }
-    
+    let messageId = tags["msg-id"] || ""
 
-    // remove the "#" form the begginning of the channel name
-    const channelName = channel.slice(1).toLowerCase()
-    
     const clashUrl = checkForClash(message)
     if (clashUrl != undefined && sockets.hasOwnProperty(channelName)){
         const { guildId, liveChatId } = [...sockets[channelName]][0].userInfo
@@ -185,12 +158,13 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         liveChatChannel.send(clashUrl)
     }
 
-    // console.log(tags)
+    // ping the twitch api for user data, currently only used for profile picture
+    const userData = await Api.getUserInfo(tags.username)
     
     // this is all the data that gets sent to the frontend
     const messageObject = {
         displayName: tags["display-name"],
-        avatar: data.profile_image_url,
+        avatar: userData.profile_image_url,
         body: message,
         platform: "twitch",
         messageId: messageId,
@@ -199,7 +173,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
     }
     
     // send the message object to all overlays and applications connected to this channel
-    if (sockets.hasOwnProperty(channelName)) [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
+    const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
 })
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -7,7 +7,7 @@ DiscordClient.login(process.env.BOT_TOKEN)
 
 DiscordClient.once("ready", async () => {
     console.log("bot ready")
-    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "Live Chat 🔴" } })
+    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "🔴 Live Chat" } })
 })
 
 // initialize the twitch client
