@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 
-class TwitchApi{
+class TwitchApi {
     constructor({clientId, authorizationKey}){
         this.clientId = clientId
         this.authorizationKey = authorizationKey

@@ -67,8 +67,22 @@ getFfzEmotes()
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+Twitchclient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
+    // remove the "#" form the begginning of the channel name
+    const channelName = channel.slice(1).toLowerCase()
+
+    // don't waste time with all the next stuff if there isn't a socket connection to that channel
+    if (!sockets.hasOwnProperty(channelName)) return
+
+
+    const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]))
+});
+
 Twitchclient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages.
+
+    console.log(tags)
+
     if (self || message.startsWith("!") || message.startsWith("?")) return
         
     // remove the "#" form the begginning of the channel name
@@ -160,7 +174,7 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
 
     // ping the twitch api for user data, currently only used for profile picture
     const userData = await Api.getUserInfo(tags.username)
-    
+    console.log(tags.id)
     // this is all the data that gets sent to the frontend
     const messageObject = {
         displayName: tags["display-name"],
@@ -168,7 +182,8 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
         body: message,
         platform: "twitch",
         messageId: messageId,
-        uuid: uuidv1(),
+        uuid: tags.id,
+        id: tags.id,
         badges,
     }
     
