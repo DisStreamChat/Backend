@@ -168,7 +168,6 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         const liveChatChannel = guildChannels.resolve(liveChatId)
         liveChatChannel.send(clashUrl)
     }
-    console.log(tags)
     // ping the twitch api for user data, currently only used for profile picture
     const userData = await Api.getUserInfo(tags.username)
     // this is all the data that gets sent to the frontend
