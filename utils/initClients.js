@@ -11,7 +11,7 @@ DiscordClient.once("ready", async () => {
 })
 
 // initialize the twitch client
-const Twitchclient = new tmi.Client({
+const TwitchClient = new tmi.Client({
     options: { debug: true },
     connection: {
         secure: true,
@@ -23,9 +23,9 @@ const Twitchclient = new tmi.Client({
     },
     channels: ["dav1dsnyder404"]
 })
-Twitchclient.connect()
+TwitchClient.connect()
 
 module.exports = {
     DiscordClient,
-    Twitchclient
+    TwitchClient
 }

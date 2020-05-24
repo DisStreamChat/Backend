@@ -13,7 +13,7 @@ const fetch = require("node-fetch")
 const { checkForClash, customEmojiRegex } = require("../utils/messageManipulation")
 const sockets = {}
 
-const {DiscordClient, Twitchclient} = require("../utils/initClients")
+const {DiscordClient, TwitchClient} = require("../utils/initClients")
 const TwitchApi = require("../utils/twitchLib.js")
 const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
@@ -67,7 +67,7 @@ getFfzEmotes()
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Twitchclient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
+TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // remove the "#" form the begginning of the channel name
     const channelName = channel.slice(1).toLowerCase()
 
@@ -78,11 +78,8 @@ Twitchclient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]))
 });
 
-Twitchclient.on('message', async (channel, tags, message, self) => {
-    // Ignore echoed messages.
-
-    console.log(tags)
-
+TwitchClient.on('message', async (channel, tags, message, self) => {
+    // Ignore echoed messages and commands.
     if (self || message.startsWith("!") || message.startsWith("?")) return
         
     // remove the "#" form the begginning of the channel name
@@ -174,7 +171,6 @@ Twitchclient.on('message', async (channel, tags, message, self) => {
 
     // ping the twitch api for user data, currently only used for profile picture
     const userData = await Api.getUserInfo(tags.username)
-    console.log(tags.id)
     // this is all the data that gets sent to the frontend
     const messageObject = {
         displayName: tags["display-name"],
@@ -211,16 +207,25 @@ DiscordClient.on("message", async message => {
             body: messageBody,
             platform: "discord",
             messageId: "",
-            uuid: uuidv1(),
+            uuid: message.id,
+            id: message.id,
             badges: {}
         }
         
         if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
     }catch(err){
-        console.log(err)
+        console.log(err.message)
     }
 })
 
+DiscordClient.on("messageDelete", message => {
+    try{
+        if (sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("deletemessage", message.id))
+    }catch(err){
+        console.log(err.message)
+    }
+
+})
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
@@ -246,11 +251,41 @@ io.on('connection', (socket) => {
             guildId
         } = message
         socket.userInfo = message
+        
+
         addSocket(socket, guildId)
         addSocket(socket, TwitchName)
-        Twitchclient.join(TwitchName)
+        TwitchClient.join(TwitchName)
         // TODO use client.join(channel)
     })
+
+    socket.on("deletemsg - discord", async id => {
+        const { guildId, liveChatId } = socket.userInfo
+
+        const connectGuild = DiscordClient.guilds.resolve(guildId)
+        const guildChannels = connectGuild.channels
+
+        const liveChatChannel = guildChannels.resolve(liveChatId)
+        const messageManager = liveChatChannel.messages
+
+        const messageToDelete = await messageManager.fetch(id)
+        try {
+            messageToDelete.delete()
+        } catch (err) {
+            console.log(err.message)
+        }
+    })
+
+    socket.on("deletemsg - twitch", async id => {
+        const { TwitchName } = socket.userInfo
+        try {
+            TwitchClient.deletemessage(TwitchName, id);
+        } catch (err) {
+            console.log(err.message)
+        }
+    })
+    
+
     console.log('a user connected')
     socket.on("disconnect", () => {
         console.log('a user disconnected')
@@ -269,7 +304,7 @@ io.on('connection', (socket) => {
         
         if (guildSockets instanceof Set) guildSockets.delete(socket)
         if (channelSockets instanceof Set) channelSockets.delete(socket)
-        Twitchclient.part(TwitchName)
+        TwitchClient.part(TwitchName)
     })
 })
 
