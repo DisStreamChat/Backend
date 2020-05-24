@@ -168,7 +168,7 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         const liveChatChannel = guildChannels.resolve(liveChatId)
         liveChatChannel.send(clashUrl)
     }
-
+    console.log(tags)
     // ping the twitch api for user data, currently only used for profile picture
     const userData = await Api.getUserInfo(tags.username)
     // this is all the data that gets sent to the frontend
@@ -181,6 +181,7 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         uuid: tags.id,
         id: tags.id,
         badges,
+        sentAt: +tags["tmi-sent-ts"]
     }
     
     // send the message object to all overlays and applications connected to this channel
@@ -209,7 +210,8 @@ DiscordClient.on("message", async message => {
             messageId: "",
             uuid: message.id,
             id: message.id,
-            badges: {}
+            badges: {},
+            sentAt: message.createdAt.getTime()
         }
         
         if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
