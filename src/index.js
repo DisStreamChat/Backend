@@ -310,6 +310,8 @@ io.on('connection', (socket) => {
     })
 })
 
-http.listen(3200, () => {
-    console.log('listening on *:3200')
+const port = process.env.PORT || 3200
+
+http.listen(port, () => {
+    console.log(`listening on port ${port}`)
 })
