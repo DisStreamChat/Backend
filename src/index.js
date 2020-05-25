@@ -10,7 +10,7 @@ const fs = require("fs")
 const path = require("path")
 const fetch = require("node-fetch")
 
-const { checkForClash, customEmojiRegex } = require("../utils/messageManipulation")
+const { checkForClash, customEmojiRegex, HTMLStripRegex } = require("../utils/messageManipulation")
 const sockets = {}
 
 const {DiscordClient, TwitchClient} = require("../utils/initClients")
@@ -117,6 +117,7 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
+    // message = message.replace(HTMLStripRegex, "")
     message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
     message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
     
@@ -197,7 +198,8 @@ DiscordClient.on("message", async message => {
     
     const senderName = message.member.displayName
     try{
-        const messageBody = message.cleanContent.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+        const CleanMessage = message.cleanContent//.replace(HTMLStripRegex, "")
+        const messageBody = CleanMessage.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
         
         if (messageBody.length <= 0 || messageBody.startsWith("!") || messageBody.startsWith("?")) return
         
@@ -212,7 +214,6 @@ DiscordClient.on("message", async message => {
             badges: {},
             sentAt: message.createdAt.getTime()
         }
-        
         if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
     }catch(err){
         console.log(err.message)

@@ -2,6 +2,7 @@ const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
 const channelMentionRegex = /<#(\d+)>/gm
 const mentionRegex = /<@([\W\S])([\d]+)>/gm
+const HTMLStripRegex = /<[^:>]*>/gm
 
 
 const replaceMentions = async msg => {
@@ -48,5 +49,6 @@ module.exports = {
     urlRegex,
     customEmojiRegex,
     channelMentionRegex,
-    mentionRegex
+    mentionRegex,
+    HTMLStripRegex
 }
