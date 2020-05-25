@@ -12,7 +12,7 @@ DiscordClient.once("ready", async () => {
 
 // initialize the twitch client
 const TwitchClient = new tmi.Client({
-    options: { debug: true },
+    options: { debug: process.env.TWITCH_DEBUG == "true" },
     connection: {
         secure: true,
         reconnect: true
@@ -21,7 +21,7 @@ const TwitchClient = new tmi.Client({
         username: 'distwitchchat',
         password: process.env.TWITH_OAUTH_TOKEN
     },
-    channels: ["dav1dsnyder404"]
+    channels: [process.env.DEBUG_CHANNEL || ""]
 })
 TwitchClient.connect()
 
