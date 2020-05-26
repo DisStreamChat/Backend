@@ -195,7 +195,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
 DiscordClient.on("message", async message => {
     // if the message was sent by a bot it should be ignored
     if (message.author.bot) return
-    
+    if (!sockets.hasOwnProperty(message.guild.id)) return
+
+    const { liveChatId } = [...sockets[message.guild.id]][0].userInfo
+    if(message.channel.id != liveChatId) return
     const senderName = message.member.displayName
     try{
         const CleanMessage = message.cleanContent//.replace(HTMLStripRegex, "")
@@ -214,7 +217,7 @@ DiscordClient.on("message", async message => {
             badges: {},
             sentAt: message.createdAt.getTime()
         }
-        if(sockets.hasOwnProperty(message.guild.id)) [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
+        const _ = [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
     }catch(err){
         console.log(err.message)
     }
