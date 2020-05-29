@@ -47,40 +47,40 @@ app.get("/discord", (req, res, next) => {
 
 
 app.get("/token", async (req, res, next) => {
-    const code = req.query.code
-    const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
-    const response = await fetch(apiURL, {
-        method: "POST"
-	})
-	const json = await response.json()
-	const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
-		headers: {
-			Authorization: `OAuth ${json.access_token}`
-		}
-	})
-	const validationJson = await validationResponse.json() 
-	if (!validationResponse.ok) {
-		res.status(validationJson.status)
-		err = new Error(validationJson.message)
-		next(err)
-	}else{
-		const {login, user_id} = validationJson
-		const modApiUrl = `https://modlookup.3v.fi/api/user-v3/${login}`
-		const modResponse = await fetch(modApiUrl)
-		const modJson = await modResponse.json()
-		const channels = modJson.channels
-		const ModChannels = await Promise.all(channels.map(async channel => Api.getUserInfo(channel.name)))
+    try{
+        const code = req.query.code
+        const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
+        const response = await fetch(apiURL, {
+            method: "POST"
+        })
+        const json = await response.json()
+        const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
+            headers: {
+                Authorization: `OAuth ${json.access_token}`
+            }
+        })
+        const validationJson = await validationResponse.json()
+        if (!validationResponse.ok) {
+            res.status(validationJson.status)
+            err = new Error(validationJson.message)
+            next(err)
+        } else {
+            const { login, user_id } = validationJson
+            const ModChannels = await Api.getUserModerationChannels(login)
 
-		const uid = sha1(user_id)
-		const token = await admin.auth().createCustomToken(uid)
-		const userInfo = await Api.getUserInfo(login)
-		res.json({
-			token,
-			displayName: userInfo.display_name,
-			profilePicture: userInfo.profile_image_url,
-			ModChannels
-		})
-	}
+            const uid = sha1(user_id)
+            const token = await admin.auth().createCustomToken(uid)
+            const userInfo = await Api.getUserInfo(login)
+            res.json({
+                token,
+                displayName: userInfo.display_name,
+                profilePicture: userInfo.profile_image_url,
+                ModChannels
+            })
+        }
+    }catch(err){
+        next(err)
+    }
 })
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
