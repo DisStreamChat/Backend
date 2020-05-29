@@ -36,7 +36,7 @@
     "sha1": "^1.1.1",
     "socket.io": "^2.3.0",
     "tmi.js": "^1.5.0",
-    "twitch-lib": "0.0.1",
+    "twitch-lib": "0.0.2",
     "twitchps": "^1.5.0",
     "uuidv1": "^1.6.14"
   }

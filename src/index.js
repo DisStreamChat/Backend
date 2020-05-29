@@ -26,9 +26,8 @@ const {DiscordClient, TwitchClient} = require("../utils/initClients")
 const TwitchApi = require('twitch-lib')
 const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
-    authorizationKey: process.env.TWITCH_ACCESS_TOKEN
+    authorizationToken: process.env.TWITCH_ACCESS_TOKEN
 })
-
 const sockets = {}
 
 
