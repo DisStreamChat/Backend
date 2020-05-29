@@ -22,7 +22,8 @@ app.use(bodyParser.json())
 const { checkForClash, customEmojiRegex, HTMLStripRegex } = require("../utils/messageManipulation")
 
 const {DiscordClient, TwitchClient} = require("../utils/initClients")
-const TwitchApi = require("../utils/twitchLib.js")
+// const TwitchApi = require("../utils/twitchLib.js")
+const TwitchApi = require('twitch-lib')
 const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationKey: process.env.TWITCH_ACCESS_TOKEN
