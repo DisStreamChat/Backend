@@ -1,17 +1,25 @@
 const app = require('express')()
-const http = require('http').createServer(app)
-const io = require('socket.io')(http)
-const discord = require("discord.js")
-const tmi = require("tmi.js")
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
 require("dotenv").config()
-const uuidv1 = require('uuidv1')
-
-const fs = require("fs")
-const path = require("path")
+const cors = require('cors');
+const bodyParser = require('body-parser')
 const fetch = require("node-fetch")
+const admin = require('firebase-admin');
+const sha1 = require('sha1');
+
+const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount)
+})
+
+
+app.use(cors())
+app.use(bodyParser.json())
+
 
 const { checkForClash, customEmojiRegex, HTMLStripRegex } = require("../utils/messageManipulation")
-const sockets = {}
 
 const {DiscordClient, TwitchClient} = require("../utils/initClients")
 const TwitchApi = require("../utils/twitchLib.js")
@@ -19,6 +27,65 @@ const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationKey: process.env.TWITCH_ACCESS_TOKEN
 })
+
+const sockets = {}
+
+
+app.get('/', (req, res) => {
+    res.json({
+        message: '📺 DisTwitchChat API 📺',
+    });
+});
+
+app.get("/invite", (req, res) => {
+    res.redirect("https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&scope=bot")
+})
+
+app.get("/discord", (req, res, next) => {
+    res.redirect("https://discord.gg/sFpMKVX")
+})
+
+
+app.get("/token", async (req, res, next) => {
+    const code = req.query.code
+    const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
+    const response = await fetch(apiURL, {
+        method: "POST"
+	})
+	const json = await response.json()
+	const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
+		headers: {
+			Authorization: `OAuth ${json.access_token}`
+		}
+	})
+	const validationJson = await validationResponse.json() 
+	if (!validationResponse.ok) {
+		res.status(validationJson.status)
+		err = new Error(validationJson.message)
+		next(err)
+	}else{
+		const {login, user_id} = validationJson
+		const modApiUrl = `https://modlookup.3v.fi/api/user-v3/${login}`
+		const modResponse = await fetch(modApiUrl)
+		const modJson = await modResponse.json()
+		const channels = modJson.channels
+		const ModChannels = await Promise.all(channels.map(async channel => Api.getUserInfo(channel.name)))
+
+		const uid = sha1(user_id)
+		const token = await admin.auth().createCustomToken(uid)
+		const userInfo = await Api.getUserInfo(login)
+		res.json({
+			token,
+			displayName: userInfo.display_name,
+			profilePicture: userInfo.profile_image_url,
+			ModChannels
+		})
+	}
+})
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TWITCH
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // get emotes from bttv and ffz by pinging the api's and saving the regexs
 const bttvEmotes = {}
@@ -61,11 +128,6 @@ async function getFfzEmotes() {
 
 getBttvEmotes()
 getFfzEmotes()
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TWITCH
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // remove the "#" form the begginning of the channel name
@@ -315,6 +377,6 @@ io.on('connection', (socket) => {
 
 const port = process.env.PORT || 3200
 
-http.listen(port, () => {
+server.listen(port, () => {
     console.log(`listening on port ${port}`)
 })
