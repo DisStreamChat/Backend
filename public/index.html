@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>distwitchchat</title>
+    <meta name="description" content="entropychat.app">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
+            font-weight: 400;
+            font-size: 16px;
+            background: #290016;
+            color: #dc136c;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        h1 {
+            margin: 1em 0 0 0;
+            font-weight: 300;
+        }
+    </style>
+</head>
+
+<body>
+    <img src="https://i.imgur.com/KQDKLRa.png">
+    <h1 id="info">Logging you in...</h1>
+    <script>
+        (async () => {
+            const codeArray = window.location.search.slice(1).split("&").map(item => item.split("=")).filter(item => item[0] === "code")
+            if (codeArray.length > 0) {
+                try{
+                    const code = codeArray[0][1]
+                    const response = await fetch("http://localhost:3200/token?code=" + code)
+                    const json = await response.json()
+                    if (window.opener && code && response.ok) {
+                        // TODO: dynamically set origin
+                        window.opener.postMessage(json, 'http://localhost:3000');
+                    } else {
+                        info.textContent = 'Go home.';
+                    }
+                }catch(err){
+                    info.textContent = 'Go home.';
+
+                }
+                
+            } else {
+                info.textContent = 'Go home.';
+            }
+
+            window.close();
+        })()
+        
+    </script>
+</body>
+
+</html>

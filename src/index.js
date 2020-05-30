@@ -1,4 +1,5 @@
-const app = require('express')()
+const express = require("express")
+const app = express()
 const server = require('http').Server(app)
 const io = require('socket.io')(server)
 require("dotenv").config()
@@ -30,12 +31,20 @@ const Api = new TwitchApi({
 })
 const sockets = {}
 
+app.use("/oauth/twitch", express.static("public"))
 
 app.get('/', (req, res) => {
     res.json({
         message: '📺 DisTwitchChat API 📺',
     });
 });
+
+app.get("/makecoffee", (req, res) => {
+    res.status(418).json({
+        status: 418,
+        message: "I'm a Teapot ☕"
+    })
+})
 
 app.get("/invite", (req, res) => {
     res.redirect("https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&scope=bot")
