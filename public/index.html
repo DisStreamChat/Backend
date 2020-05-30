@@ -45,6 +45,7 @@
                     const code = codeArray[0][1]
                     const response = await fetch("https://distwitchchat-backend.herokuapp.com/token?code=" + code)
                     const json = await response.json()
+                    console.log(json)
                     if (window.opener && code && response.ok) {
                         // TODO: dynamically set origin
                         window.opener.postMessage(json, 'http://localhost:3000');
