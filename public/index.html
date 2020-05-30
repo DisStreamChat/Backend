@@ -17,8 +17,8 @@
             font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
             font-weight: 400;
             font-size: 16px;
-            background: #290016;
-            color: #dc136c;
+            background: linear-gradient(119.36deg,#17181b 21.35%,#24252a 76.56%);;
+            color: #4693c4;
             width: 100vw;
             height: 100vh;
             display: flex;
@@ -31,11 +31,23 @@
             margin: 1em 0 0 0;
             font-weight: 300;
         }
+
+        #logo{
+            animation: hover 1s infinite alternate ease-in-out
+        }
+
+        @keyframes hover{
+            from{
+                transform: translateY(-15px);
+            }to{
+                transform: translateY(15px);
+            }
+        }
     </style>
 </head>
 
 <body>
-    <img src="https://i.imgur.com/KQDKLRa.png">
+    <img id="logo" src="https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=500&height=500">
     <h1 id="info">Logging you in...</h1>
     <script>
         (async () => {
