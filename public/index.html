@@ -59,8 +59,7 @@
                     const json = await response.json()
                     console.log(json)
                     if (window.opener && code && response.ok) {
-                        // TODO: dynamically set origin
-                        window.opener.postMessage(json, 'http://localhost:3000');
+                        window.opener.postMessage(json, '*');
                     } else {
                         info.textContent = 'Go home.';
                     }
