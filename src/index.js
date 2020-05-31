@@ -7,7 +7,11 @@ const cors = require('cors');
 const bodyParser = require('body-parser')
 const fetch = require("node-fetch")
 const admin = require('firebase-admin');
-const sha1 = require('sha1');
+const badWords = require("bad-words")
+
+const Filter = new badWords({
+    placeHolder: "⭐" 
+})
 
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
 
@@ -15,10 +19,10 @@ admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount)
 })
 
-
 app.use(cors())
 app.use(bodyParser.json())
 
+app.use("/", require("./routes/index"))
 
 const { checkForClash, customEmojiRegex, HTMLStripRegex } = require("../utils/messageManipulation")
 
@@ -31,66 +35,6 @@ const Api = new TwitchApi({
 })
 const sockets = {}
 
-app.use("/oauth/twitch", express.static("public"))
-
-app.get('/', (req, res) => {
-    res.json({
-        message: '📺 DisTwitchChat API 📺',
-    });
-});
-
-app.get("/makecoffee", (req, res) => {
-    res.status(418).json({
-        status: 418,
-        message: "I'm a Teapot ☕"
-    })
-})
-
-app.get("/invite", (req, res) => {
-    res.redirect("https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&scope=bot")
-})
-
-app.get("/discord", (req, res, next) => {
-    res.redirect("https://discord.gg/sFpMKVX")
-})
-
-
-app.get("/token", async (req, res, next) => {
-    try{
-        const code = req.query.code
-        const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`
-        const response = await fetch(apiURL, {
-            method: "POST"
-        })
-        const json = await response.json()
-        const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
-            headers: {
-                Authorization: `OAuth ${json.access_token}`
-            }
-        })
-        const validationJson = await validationResponse.json()
-        if (!validationResponse.ok) {
-            res.status(validationJson.status)
-            err = new Error(validationJson.message)
-            next(err)
-        } else {
-            const { login, user_id } = validationJson
-            const ModChannels = await Api.getUserModerationChannels(login)
-
-            const uid = sha1(user_id)
-            const token = await admin.auth().createCustomToken(uid)
-            const userInfo = await Api.getUserInfo(login)
-            res.json({
-                token,
-                displayName: userInfo.display_name,
-                profilePicture: userInfo.profile_image_url,
-                ModChannels
-            })
-        }
-    }catch(err){
-        next(err)
-    }
-})
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
@@ -149,6 +93,13 @@ TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]))
 });
 
+const formatMessage = (message, {HTMLClean, censor} = {}) => {
+    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
+    if (censor) message = Filter.clean(message)
+    message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
+    message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
+}
+
 TwitchClient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages and commands.
     if (self || message.startsWith("!") || message.startsWith("?")) return
@@ -188,9 +139,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
-    // message = message.replace(HTMLStripRegex, "")
-    message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
-    message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
+    const plainMessage = formatMessage(message)
+    const HTMLCleanMessage = formatMessage(message, {HTMLClean: true})
+    const censoredMessage = formatMessage(message, {censor: true})
+    const HTMLCensoredMessage = formatMessage(message, {HTMLClean: true, censor: true})
     
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
     const badges = {}

@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme",
   "dependencies": {
+    "bad-words": "^3.0.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "date-fns": "^2.14.0",
