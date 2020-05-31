@@ -3,6 +3,16 @@ const router = express.Router()
 const sha1 = require('sha1');
 const fetch = require("node-fetch")
 const TwitchApi = require('twitch-lib')
+const admin = require('firebase-admin');
+
+// get the serviceAccount details from the base64 string stored in environment variables
+const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
+
+// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+})
+
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
