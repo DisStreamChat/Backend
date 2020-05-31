@@ -28,10 +28,10 @@ app.use(bodyParser.json())
 app.use("/", require("./routes/index"))
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { checkForClash, formatMessage, replaceTwitchEmotes } = require("../utils/messageManipulation")
+const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation")
 
 // get the initialized clients from another file
-const {DiscordClient, TwitchClient} = require("../utils/initClients")
+const {DiscordClient, TwitchClient} = require("./utils/initClients")
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
