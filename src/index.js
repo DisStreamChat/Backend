@@ -36,7 +36,7 @@ app.use(bodyParser.json())
 app.use("/", require("./routes/index"))
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { checkForClash, formatMessage } = require("../utils/messageManipulation")
+const { checkForClash, formatMessage, replaceTwitchEmotes } = require("../utils/messageManipulation")
 
 // get the initialized clients from another file
 const {DiscordClient, TwitchClient} = require("../utils/initClients")
@@ -124,39 +124,19 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
 
     // replace the emote text with the images from twitch
     if(tags.emotes){
-        let messageWithEmotes = '';
-        const emoteIds = Object.keys(tags.emotes);
-        const emoteStart = emoteIds.reduce((starts, id) => {
-            tags.emotes[id].forEach((startEnd) => {
-                const [start, end] = startEnd.split('-');
-                starts[start] = {
-                    emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`,
-                    end,
-                };
-            });
-            return starts;
-        }, {});
-        const parts = Array.from(message);
-        for (let i = 0; i < parts.length; i++) {
-            const char = parts[i];
-            const emoteInfo = emoteStart[i];
-            if (emoteInfo) {
-                messageWithEmotes += emoteInfo.emoteUrl;
-                i = emoteInfo.end;
-            } else {
-                messageWithEmotes += char;
-            }
-        }
-        message = messageWithEmotes
+        message = replaceTwitchEmotes(message, tags.emotes)
     }
     
-    // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
+    // get all possible versions of the message with all variations of the message filters
     const plainMessage = formatMessage(message, "twitch")
     const HTMLCleanMessage = formatMessage(message, "twitch", {HTMLClean: true})
     const censoredMessage = formatMessage(message, "twitch", {censor: true})
     const HTMLCensoredMessage = formatMessage(message, "twitch", {HTMLClean: true, censor: true})
     
+    // get custom badges from twitch api
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
+    
+    // get all badges for the user that sent the messages put them in an object
     const badges = {}
     if(tags.badges) {
         const globalBadges = await Api.getGlobalBadges()
@@ -192,8 +172,11 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         }
     }
 
+    // the messageId is currently only used for higlighted messages
     let messageId = tags["msg-id"] || ""
 
+    // check for a clash code of url and if there is try to send it to discord
+    // TODO: make this an optional thing and false my default
     const clashUrl = checkForClash(message)
     if (clashUrl != undefined && sockets.hasOwnProperty(channelName)){
         const { guildId, liveChatId } = [...sockets[channelName]][0].userInfo
@@ -204,8 +187,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         const liveChatChannel = guildChannels.resolve(liveChatId)
         liveChatChannel.send(clashUrl)
     }
+
     // ping the twitch api for user data, currently only used for profile picture
     const userData = await Api.getUserInfo(tags.username)
+
     // this is all the data that gets sent to the frontend
     const messageObject = {
         displayName: tags["display-name"],
@@ -216,13 +201,13 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         HTMLCensoredMessage,
         platform: "twitch",
         messageId: messageId,
-        uuid: tags.id,
+        uuid: tags.id, // TODO: remove
         id: tags.id,
         badges,
         sentAt: +tags["tmi-sent-ts"]
     }
     
-    // send the message object to all overlays and applications connected to this channel
+    // send the message object to all sockets connected to this channel
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
 })
     
@@ -236,7 +221,11 @@ DiscordClient.on("message", async message => {
     if (!sockets.hasOwnProperty(message.guild.id)) return
 
     const { liveChatId } = [...sockets[message.guild.id]][0].userInfo
+
+    // don't waste time with the rest of the stuff if there isn't a connection to this guild
     if(message.channel.id != liveChatId) return
+
+    
     const senderName = message.member.displayName
     try{
 

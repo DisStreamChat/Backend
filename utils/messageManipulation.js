@@ -56,11 +56,39 @@ const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
     return message
 }
 
+const replaceTwitchEmotes = (message, emotes) => {
+    let messageWithEmotes = '';
+    const emoteIds = Object.keys(emotes);
+    const emoteStart = emoteIds.reduce((starts, id) => {
+        emotes[id].forEach((startEnd) => {
+            const [start, end] = startEnd.split('-');
+            starts[start] = {
+                emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`,
+                end,
+            };
+        });
+        return starts;
+    }, {});
+    const parts = Array.from(message);
+    for (let i = 0; i < parts.length; i++) {
+        const char = parts[i];
+        const emoteInfo = emoteStart[i];
+        if (emoteInfo) {
+            messageWithEmotes += emoteInfo.emoteUrl;
+            i = emoteInfo.end;
+        } else {
+            messageWithEmotes += char;
+        }
+    }
+    return messageWithEmotes
+}
+
 module.exports = {
     replaceMentions,
     replaceChannelMentions,
     checkForClash,
     formatMessage,
+    replaceTwitchEmotes,
     urlRegex,
     customEmojiRegex,
     channelMentionRegex,
