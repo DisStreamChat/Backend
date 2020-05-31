@@ -198,7 +198,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     const messageObject = {
         displayName: tags["display-name"],
         avatar: userData.profile_image_url,
-        body: message,
+        body: plainMessage,
+        HTMLCleanMessage,
+        censoredMessage,
+        HTMLCensoredMessage,
         platform: "twitch",
         messageId: messageId,
         uuid: tags.id,
