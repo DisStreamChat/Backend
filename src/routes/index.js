@@ -1,6 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const sha1 = require('sha1');
+const fetch = require("node-fetch")
 
 router.use("/oauth/twitch", express.static("public"))
 
