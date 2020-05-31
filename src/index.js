@@ -82,6 +82,18 @@ async function getFfzEmotes() {
 getBttvEmotes()
 getFfzEmotes()
 
+const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
+    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
+    if (censor) message = Filter.clean(message)
+    if (platform === "twitch") {
+        message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
+        message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
+    } else if (platform === "discord") {
+        message = message.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+    }
+    return message
+}
+
 TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // remove the "#" form the begginning of the channel name
     const channelName = channel.slice(1).toLowerCase()
@@ -92,13 +104,6 @@ TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]))
 });
-
-const formatMessage = (message, {HTMLClean, censor} = {}) => {
-    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
-    if (censor) message = Filter.clean(message)
-    message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
-    message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
-}
 
 TwitchClient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages and commands.
@@ -139,10 +144,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     }
     
     // use the regexs created at start up to replace the bttv emotes and ffz emotes with their proper img tags
-    const plainMessage = formatMessage(message)
-    const HTMLCleanMessage = formatMessage(message, {HTMLClean: true})
-    const censoredMessage = formatMessage(message, {censor: true})
-    const HTMLCensoredMessage = formatMessage(message, {HTMLClean: true, censor: true})
+    const plainMessage = formatMessage(message, "twitch")
+    const HTMLCleanMessage = formatMessage(message, "twitch", {HTMLClean: true})
+    const censoredMessage = formatMessage(message, "twitch", {censor: true})
+    const HTMLCensoredMessage = formatMessage(message, "twitch", {HTMLClean: true, censor: true})
     
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
     const badges = {}
@@ -227,15 +232,22 @@ DiscordClient.on("message", async message => {
     if(message.channel.id != liveChatId) return
     const senderName = message.member.displayName
     try{
-        const CleanMessage = message.cleanContent//.replace(HTMLStripRegex, "")
-        const messageBody = CleanMessage.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+        const CleanMessage = message.cleanContent
         
+        const plainMessage = formatMessage(CleanMessage, "discord")
+        const HTMLCleanMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true })
+        const censoredMessage = formatMessage(CleanMessage, "discord", { censor: true })
+        const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true, censor: true })
+
         if (messageBody.length <= 0 || messageBody.startsWith("!") || messageBody.startsWith("?")) return
         
         const messageObject = {
             displayName: senderName,
             avatar: message.author.displayAvatarURL(),
-            body: messageBody,
+            body: plainMessage,
+            HTMLCleanMessage,
+            censoredMessage,
+            HTMLCensoredMessage,
             platform: "discord",
             messageId: "",
             uuid: message.id,
