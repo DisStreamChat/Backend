@@ -4,7 +4,7 @@ const channelMentionRegex = /<#(\d+)>/gm
 const mentionRegex = /<@([\W\S])([\d]+)>/gm
 const HTMLStripRegex = /<[^:>]*>/gm
 
-
+// unused, currently
 const replaceMentions = async msg => {
     const guild = msg.guild
     const { members, roles } = guild
@@ -21,6 +21,8 @@ const replaceMentions = async msg => {
     return msg
 }
 
+
+// unused, currently
 const replaceChannelMentions = async msg => {
     const guild = msg.guild
     const { channels } = guild
@@ -32,7 +34,7 @@ const replaceChannelMentions = async msg => {
     return msg
 }
 
-const checkForClash = (message) => {
+const checkForClash = message => {
     const urlCheck = [...message.matchAll(urlRegex)][0]
     const hasUrl = urlCheck != undefined
     if (!hasUrl) return
@@ -42,10 +44,23 @@ const checkForClash = (message) => {
     return fullUrl
 }
 
+const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
+    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
+    if (censor) message = Filter.clean(message)
+    if (platform === "twitch") {
+        message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
+        message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
+    } else if (platform === "discord") {
+        message = message.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+    }
+    return message
+}
+
 module.exports = {
     replaceMentions,
     replaceChannelMentions,
     checkForClash,
+    formatMessage,
     urlRegex,
     customEmojiRegex,
     channelMentionRegex,

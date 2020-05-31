@@ -8,39 +8,56 @@ const bodyParser = require('body-parser')
 const fetch = require("node-fetch")
 const admin = require('firebase-admin');
 const badWords = require("bad-words")
+const TwitchApi = require('twitch-lib')
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SETUP
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// initialize the filter that will remove bad words, in the future, users should be able to customize this filter for their channel
 const Filter = new badWords({
     placeHolder: "⭐" 
 })
 
+
+// get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
 
+// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount)
 })
 
+// add the basic middleware to the express app
 app.use(cors())
 app.use(bodyParser.json())
 
+// add the routes stored in the 'routes' folder to the app
 app.use("/", require("./routes/index"))
 
-const { checkForClash, customEmojiRegex, HTMLStripRegex } = require("../utils/messageManipulation")
+// get functions used to do things like strip html and replace custom discord emojis with the url to the image
+const { checkForClash, formatMessage } = require("../utils/messageManipulation")
 
+// get the initialized clients from another file
 const {DiscordClient, TwitchClient} = require("../utils/initClients")
-// const TwitchApi = require("../utils/twitchLib.js")
-const TwitchApi = require('twitch-lib')
+
+// intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationToken: process.env.TWITCH_ACCESS_TOKEN
 })
-const sockets = {}
 
+// initialize the object that will store all sockets currently connected
+const sockets = {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // get emotes from bttv and ffz by pinging the api's and saving the regexs
+// TODO: allow for channel specific custom emotes
+// currently the bttvEmotes and ffzEmotes variables are global, in the future they will be local to the message handler
+// this will allow for channel specific emotes from these custom emote providers
 const bttvEmotes = {}
 let bttvRegex
 const ffzEmotes = {}
@@ -82,17 +99,6 @@ async function getFfzEmotes() {
 getBttvEmotes()
 getFfzEmotes()
 
-const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
-    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
-    if (censor) message = Filter.clean(message)
-    if (platform === "twitch") {
-        message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
-        message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
-    } else if (platform === "discord") {
-        message = message.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
-    }
-    return message
-}
 
 TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // remove the "#" form the begginning of the channel name
@@ -101,12 +107,13 @@ TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // don't waste time with all the next stuff if there isn't a socket connection to that channel
     if (!sockets.hasOwnProperty(channelName)) return
 
-
+    // send a message to all connected sockets for this channel to delete that message
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]))
 });
 
 TwitchClient.on('message', async (channel, tags, message, self) => {
     // Ignore echoed messages and commands.
+    // TODO: allow users to add in custom command prefixes
     if (self || message.startsWith("!") || message.startsWith("?")) return
         
     // remove the "#" form the begginning of the channel name
@@ -232,8 +239,8 @@ DiscordClient.on("message", async message => {
     if(message.channel.id != liveChatId) return
     const senderName = message.member.displayName
     try{
+
         const CleanMessage = message.cleanContent
-        
         const plainMessage = formatMessage(CleanMessage, "discord")
         const HTMLCleanMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true })
         const censoredMessage = formatMessage(CleanMessage, "discord", { censor: true })
