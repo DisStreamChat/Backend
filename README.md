@@ -14,7 +14,6 @@ to Install a development version follow these steps
 2. cd into the repo with `cd DisTwitchChat`
 3. run `npm i` to install dependencies
 4. add a `.env` and add in the environment variables from `.env.sample`
-5. add a `config.json` file and add at least on channel with the structure in `config.sample.json`
-6. run it with `npm start`
+5. run it with `npm start`
 
 # Todo
