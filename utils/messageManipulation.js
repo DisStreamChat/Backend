@@ -1,8 +1,64 @@
+const fetch = require("node-fetch")
+const badWords = require("bad-words")
+
+// initialize the filter that will remove bad words, in the future, users should be able to customize this filter for their channel
+const Filter = new badWords({
+    placeHolder: "⭐"
+})
+
 const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.\S*)?/gm
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm
 const channelMentionRegex = /<#(\d+)>/gm
 const mentionRegex = /<@([\W\S])([\d]+)>/gm
 const HTMLStripRegex = /<[^:>]*>/gm
+
+
+// get emotes from bttv and ffz by pinging the api's and saving the regexs
+// TODO: allow for channel specific custom emotes
+// currently the bttvEmotes and ffzEmotes variables are global, in the future they will be local to the message handler
+// this will allow for channel specific emotes from these custom emote providers
+const bttvEmotes = {}
+let bttvRegex
+const ffzEmotes = {}
+let ffzRegex
+
+async function getBttvEmotes() {
+    const bttvResponse = await fetch('https://api.betterttv.net/2/emotes')
+    let { emotes } = await bttvResponse.json()
+    // replace with your channel url
+    const bttvChannelResponse = await fetch('https://api.betterttv.net/2/channels/codinggarden')
+    const { emotes: channelEmotes } = await bttvChannelResponse.json()
+    emotes = emotes.concat(channelEmotes)
+    let regexStr = ''
+    emotes.forEach(({ code, id }, i) => {
+        bttvEmotes[code] = id
+        regexStr += code.replace(/\(/, '\\(').replace(/\)/, '\\)') + (i === emotes.length - 1 ? '' : '|')
+    })
+    bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
+}
+
+async function getFfzEmotes() {
+    const ffzResponse = await fetch('https://api.frankerfacez.com/v1/set/global')
+    // replace with your channel url
+    const ffzChannelResponse = await fetch('https://api.frankerfacez.com/v1/room/codinggarden')
+    const { sets } = await ffzResponse.json()
+    const { room, sets: channelSets } = await ffzChannelResponse.json()
+    let regexStr = ''
+    const appendEmotes = ({ name, urls }, i, emotes) => {
+        ffzEmotes[name] = `https:${Object.values(urls).pop()}`
+        regexStr += name + (i === emotes.length - 1 ? '' : '|')
+    }
+    sets[3].emoticons.forEach(appendEmotes)
+    if (channelSets) {
+        channelSets[609613].emoticons.forEach(appendEmotes)
+    }
+    ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
+}
+
+getBttvEmotes()
+getFfzEmotes()
+
+
 
 // unused, currently
 const replaceMentions = async msg => {

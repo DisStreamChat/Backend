@@ -5,20 +5,12 @@ const io = require('socket.io')(server)
 require("dotenv").config()
 const cors = require('cors');
 const bodyParser = require('body-parser')
-const fetch = require("node-fetch")
 const admin = require('firebase-admin');
-const badWords = require("bad-words")
 const TwitchApi = require('twitch-lib')
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// initialize the filter that will remove bad words, in the future, users should be able to customize this filter for their channel
-const Filter = new badWords({
-    placeHolder: "⭐" 
-})
-
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
@@ -53,52 +45,6 @@ const sockets = {}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// get emotes from bttv and ffz by pinging the api's and saving the regexs
-// TODO: allow for channel specific custom emotes
-// currently the bttvEmotes and ffzEmotes variables are global, in the future they will be local to the message handler
-// this will allow for channel specific emotes from these custom emote providers
-const bttvEmotes = {}
-let bttvRegex
-const ffzEmotes = {}
-let ffzRegex
-
-async function getBttvEmotes() {
-    const bttvResponse = await fetch('https://api.betterttv.net/2/emotes')
-    let { emotes } = await bttvResponse.json()
-    // replace with your channel url
-    const bttvChannelResponse = await fetch('https://api.betterttv.net/2/channels/codinggarden')
-    const { emotes: channelEmotes } = await bttvChannelResponse.json()
-    emotes = emotes.concat(channelEmotes)
-    let regexStr = ''
-    emotes.forEach(({ code, id }, i) => {
-        bttvEmotes[code] = id
-        regexStr += code.replace(/\(/, '\\(').replace(/\)/, '\\)') + (i === emotes.length - 1 ? '' : '|')
-    })
-    bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
-}
-
-async function getFfzEmotes() {
-    const ffzResponse = await fetch('https://api.frankerfacez.com/v1/set/global')
-    // replace with your channel url
-    const ffzChannelResponse = await fetch('https://api.frankerfacez.com/v1/room/codinggarden')
-    const { sets } = await ffzResponse.json()
-    const { room, sets: channelSets } = await ffzChannelResponse.json()
-    let regexStr = ''
-    const appendEmotes = ({ name, urls }, i, emotes) => {
-        ffzEmotes[name] = `https:${Object.values(urls).pop()}`
-        regexStr += name + (i === emotes.length - 1 ? '' : '|')
-    }
-    sets[3].emoticons.forEach(appendEmotes)
-    if (channelSets) {
-        channelSets[609613].emoticons.forEach(appendEmotes)
-    }
-    ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, 'g')
-}
-
-getBttvEmotes()
-getFfzEmotes()
-
 
 TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
     // remove the "#" form the begginning of the channel name
@@ -225,7 +171,7 @@ DiscordClient.on("message", async message => {
     // don't waste time with the rest of the stuff if there isn't a connection to this guild
     if(message.channel.id != liveChatId) return
 
-    
+
     const senderName = message.member.displayName
     try{
 
