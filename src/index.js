@@ -132,7 +132,7 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     const messageObject = {
         displayName: tags["display-name"],
         avatar: userData.profile_image_url,
-        body: plainMessage,
+        body: HTMLCleanMessage,
         HTMLCleanMessage,
         censoredMessage,
         HTMLCensoredMessage,
@@ -177,7 +177,7 @@ DiscordClient.on("message", async message => {
         const messageObject = {
             displayName: senderName,
             avatar: message.author.displayAvatarURL(),
-            body: plainMessage,
+            body: HTMLCleanMessage,
             HTMLCleanMessage,
             censoredMessage,
             HTMLCensoredMessage,
