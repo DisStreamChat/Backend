@@ -176,7 +176,7 @@ DiscordClient.on("message", async message => {
         const censoredMessage = formatMessage(CleanMessage, "discord", { censor: true })
         const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true, censor: true })
 
-        if (messageBody.length <= 0 || messageBody.startsWith("!") || messageBody.startsWith("?")) return
+        if (plainMessage.startsWith("!") || plainMessage.startsWith("?")) return
         
         const messageObject = {
             displayName: senderName,
