@@ -6,12 +6,16 @@ require("dotenv").config()
 const cors = require('cors');
 const bodyParser = require('body-parser')
 const TwitchApi = require('twitch-lib')
+const helemt = require("helmet")
+const morgan = require("morgan")
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // add the basic middleware to the express app
+app.use(helemt())
+// app.use(morgan("dev"))
 app.use(cors())
 app.use(bodyParser.json())
 
