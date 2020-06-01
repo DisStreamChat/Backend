@@ -44,6 +44,10 @@ router.get("/discord", (req, res, next) => {
     res.redirect("https://discord.gg/sFpMKVX")
 })
 
+router.get("/app", (req, res) => {
+    res.redirect("https://www.distwitchchat.com/distwitchchat.exe")
+})
+
 
 router.get("/token", async (req, res, next) => {
     try {
