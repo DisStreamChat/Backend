@@ -149,6 +149,8 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         badges,
         sentAt: +tags["tmi-sent-ts"]
     }
+
+    if (messageObject.body.length <= 0) return
     
     // send the message object to all sockets connected to this channel
     const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject))
@@ -171,7 +173,6 @@ DiscordClient.on("message", async message => {
 
     const senderName = message.member.displayName
     try{
-
         const CleanMessage = message.cleanContent
         const plainMessage = formatMessage(CleanMessage, "discord")
         const HTMLCleanMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true })
@@ -194,6 +195,9 @@ DiscordClient.on("message", async message => {
             badges: {},
             sentAt: message.createdAt.getTime()
         }
+
+        if (messageObject.body.length <= 0) return
+
         const _ = [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject))
     }catch(err){
         console.log(err.message)
