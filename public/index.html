@@ -58,14 +58,13 @@
                     const response = await fetch("https://api.distwitchchat.com/token?code=" + code)
                     const json = await response.json()
                     console.log(json)
-                    if (window.opener && code && response.ok) {
-                        window.opener.postMessage(json, '*');
+                    if (code && response.ok) {
+                        window.doLogin(json);
                     } else {
                         info.textContent = 'Go home.';
                     }
                 }catch(err){
                     info.textContent = 'Go home.';
-
                 }
                 
             } else {
