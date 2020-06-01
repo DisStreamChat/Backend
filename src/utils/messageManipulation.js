@@ -1,6 +1,14 @@
 const fetch = require("node-fetch")
 const badWords = require("bad-words")
 
+const createDOMPurify = require('dompurify');
+
+const { JSDOM } = require('jsdom');
+
+const window = new JSDOM('').window;
+
+const DOMPurify = createDOMPurify(window);
+
 // initialize the filter that will remove bad words, in the future, users should be able to customize this filter for their channel
 const Filter = new badWords({
     placeHolder: "⭐"
@@ -101,15 +109,19 @@ const checkForClash = message => {
 }
 
 const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
-    if (HTMLClean) message = message.replace(HTMLStripRegex, "")
-    if (censor) message = Filter.clean(message)
+    let dirty = message.slice()
+    if (HTMLClean) dirty = DOMPurify.sanitize(dirty, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
+    }).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    if (censor) dirty = Filter.clean(dirty)
     if (platform === "twitch") {
-        message = message.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
-        message = message.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
+        dirty = dirty.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)
+        dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`)
     } else if (platform === "discord") {
-        message = message.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
+        dirty = dirty.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`)
     }
-    return message
+    return dirty
 }
 
 const replaceTwitchEmotes = (message, emotes) => {

@@ -64,16 +64,18 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     if (!sockets.hasOwnProperty(channelName)) return
 
     // replace the emote text with the images from twitch
-    if(tags.emotes){
-        message = replaceTwitchEmotes(message, tags.emotes)
-    }
+    
     
     // get all possible versions of the message with all variations of the message filters
     const plainMessage = formatMessage(message, "twitch")
-    const HTMLCleanMessage = formatMessage(message, "twitch", {HTMLClean: true})
+    let HTMLCleanMessage = formatMessage(message, "twitch", {HTMLClean: true})
     const censoredMessage = formatMessage(message, "twitch", {censor: true})
     const HTMLCensoredMessage = formatMessage(message, "twitch", {HTMLClean: true, censor: true})
     
+    if (tags.emotes) {
+        HTMLCleanMessage = replaceTwitchEmotes(HTMLCleanMessage, tags.emotes)
+    }
+
     // get custom badges from twitch api
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
     
