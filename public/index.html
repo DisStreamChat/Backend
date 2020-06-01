@@ -55,7 +55,7 @@
             if (codeArray.length > 0) {
                 try{
                     const code = codeArray[0][1]
-                    const response = await fetch("https://distwitchchat-backend.herokuapp.com/token?code=" + code)
+                    const response = await fetch("https://api.distwitchchat.com/token?code=" + code)
                     const json = await response.json()
                     console.log(json)
                     if (window.opener && code && response.ok) {
