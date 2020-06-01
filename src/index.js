@@ -63,7 +63,6 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     // don't waste time with all the next stuff if there isn't a socket connection to that channel
     if (!sockets.hasOwnProperty(channelName)) return
 
-    // replace the emote text with the images from twitch
     
     
     // get all possible versions of the message with all variations of the message filters
@@ -75,10 +74,11 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     if (tags.emotes) {
         HTMLCleanMessage = replaceTwitchEmotes(HTMLCleanMessage, tags.emotes)
     }
-
+    
     // get custom badges from twitch api
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
     
+    // replace the emote text with the images from twitch
     // get all badges for the user that sent the messages put them in an object
     const badges = {}
     if(tags.badges) {
@@ -226,6 +226,8 @@ const addSocket = (socket, id) => {
 }
 
 io.on('connection', (socket) => {
+    
+    console.log('a user connected')
     // the addme event is sent from the frontend on load with the data from the database
     socket.on("addme", message => {
         const {
@@ -268,7 +270,6 @@ io.on('connection', (socket) => {
     })
     
 
-    console.log('a user connected')
     socket.on("disconnect", () => {
         console.log('a user disconnected')
 
@@ -286,7 +287,9 @@ io.on('connection', (socket) => {
         
         if (guildSockets instanceof Set) guildSockets.delete(socket)
         if (channelSockets instanceof Set) channelSockets.delete(socket)
-        TwitchClient.part(TwitchName)
+        if(channelSockets instanceof Set && channelSockets.size <= 0) {
+            TwitchClient.part(TwitchName)
+        }
     })
 })
 
