@@ -5,6 +5,7 @@
     <title>distwitchchat</title>
     <meta name="description" content="entropychat.app">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
     <style>
         * {
             margin: 0;
@@ -14,7 +15,8 @@
 
         html,
         body {
-            font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif';
+            font-family: Montserrat;
+            /* font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'; */
             font-weight: 400;
             font-size: 16px;
             background: linear-gradient(119.36deg,#17181b 21.35%,#24252a 76.56%);;
@@ -51,22 +53,21 @@
     <h1 id="info">Logging you in...</h1>
     <script>
         (async () => {
-            const codeArray = window.location.search.slice(1).split("&").map(item => item.split("=")).filter(item => item[0] === "code")
-            if (codeArray.length > 0) {
+            const codeArray = new URLSearchParams(window.location.search)
+            if (codeArray.has("code")) {
                 try{
-                    const code = codeArray[0][1]
+                    const code = codeArray.get("code")
                     const response = await fetch("https://api.distwitchchat.com/token?code=" + code)
                     const json = await response.json()
                     console.log(json)
                     if (code && response.ok) {
                         window.doLogin(json);
                     } else {
-                        info.textContent = 'Go home.';
+                        info.textContent = 'Failed to Log you in';
                     }
                 }catch(err){
-                    info.textContent = 'Go home.';
+                    info.textContent = 'Failed to Log you in';
                 }
-                
             } else {
                 info.textContent = 'Go home.';
             }
