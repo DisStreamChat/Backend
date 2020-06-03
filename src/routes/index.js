@@ -65,16 +65,15 @@ router.get("/discord/token/refresh", async (req, res, next) => {
         res.json(await getUserInfo(tokenData))
     }catch(err){
         next(err)
-    }
-    
+    }  
 })
 
 router.get("/discord/token", async (req, res, next) => {
     try{
         const code = req.query.code
         if(!code){
-            return res.status(400).json({
-                status: 400,
+            return res.status(401).json({
+                status: 401,
                 message: "Missing Auth Token"
             })
         }
