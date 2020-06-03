@@ -70,6 +70,7 @@ router.get("/discord/token/refresh", async (req, res, next) => {
 
 router.get("/discord/token", async (req, res, next) => {
     try{
+        console.log(process.env.REDIRECT_URI + "/?discord=true")
         const code = req.query.code
         if(!code){
             return res.status(401).json({
