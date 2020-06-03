@@ -4,6 +4,8 @@ const sha1 = require('sha1');
 const fetch = require("node-fetch")
 const TwitchApi = require('twitch-lib')
 const admin = require('firebase-admin');
+const DiscordOauth2 = require("discord-oauth2");
+
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
@@ -19,7 +21,7 @@ const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationToken: process.env.TWITCH_ACCESS_TOKEN
 })
-
+const oauth = new DiscordOauth2();
 
 router.use("/oauth/twitch", express.static("public"))
 
@@ -46,6 +48,34 @@ router.get("/discord", (req, res, next) => {
 
 router.get("/app", (req, res) => {
     res.redirect("https://www.distwitchchat.com/distwitchchat.exe")
+})
+
+router.get("/discord/token", async (req, res, next) => {
+    try{
+        const code = req.query.code
+        if(!code){
+            return res.status(400).json({
+                status: 400,
+                message: "Missing Auth Token"
+            })
+        }
+        const tokenData = await oauth.tokenRequest({
+            clientId: process.env.DISCORD_CLIENT_ID,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET,
+
+            code: code,
+            scope: "identify guilds",
+            grantType: "authorization_code",
+
+            redirectUri: process.env.REDIRECT_URI+"/login",
+        })
+        const accessToken = tokenData.access_token
+        const user = await oauth.getUser(accessToken)
+        const guilds = await oauth.getUserGuilds(accessToken)
+        res.json(user)
+    }catch(err){
+        next(err)
+    }
 })
 
 
