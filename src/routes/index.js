@@ -5,7 +5,7 @@ const fetch = require("node-fetch")
 const TwitchApi = require('twitch-lib')
 const admin = require('firebase-admin');
 const DiscordOauth2 = require("discord-oauth2");
-
+const { getUserInfo} = require("../utils/DiscordClasses")
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
@@ -50,6 +50,25 @@ router.get("/app", (req, res) => {
     res.redirect("https://www.distwitchchat.com/distwitchchat.exe")
 })
 
+router.get("/discord/token/refresh", async (req, res, next) => {
+    try{
+        const token = req.query.token
+        const tokenData = await oauth.tokenRequest({
+            clientId: process.env.DISCORD_CLIENT_ID,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET,
+            refreshToken: token,
+            scope: "identify guilds",
+            grantType: "refresh_token",
+
+            redirectUri: process.env.REDIRECT_URI + "/login",
+        })
+        res.json(await getUserInfo(tokenData))
+    }catch(err){
+        next(err)
+    }
+    
+})
+
 router.get("/discord/token", async (req, res, next) => {
     try{
         const code = req.query.code
@@ -69,10 +88,8 @@ router.get("/discord/token", async (req, res, next) => {
 
             redirectUri: process.env.REDIRECT_URI+"/login",
         })
-        const accessToken = tokenData.access_token
-        const user = await oauth.getUser(accessToken)
-        const guilds = await oauth.getUserGuilds(accessToken)
-        res.json(user)
+        
+        res.json(await getUserInfo(tokenData))
     }catch(err){
         next(err)
     }
