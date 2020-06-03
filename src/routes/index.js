@@ -21,7 +21,11 @@ const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationToken: process.env.TWITCH_ACCESS_TOKEN
 })
-const oauth = new DiscordOauth2();
+const oauth = new DiscordOauth2({
+    clientId: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+});
 
 router.use("/oauth/twitch", express.static("public"))
 
@@ -54,13 +58,9 @@ router.get("/discord/token/refresh", async (req, res, next) => {
     try{
         const token = req.query.token
         const tokenData = await oauth.tokenRequest({
-            clientId: process.env.DISCORD_CLIENT_ID,
-            clientSecret: process.env.DISCORD_CLIENT_SECRET,
             refreshToken: token,
             scope: "identify guilds",
             grantType: "refresh_token",
-
-            redirectUri: process.env.REDIRECT_URI + "/?discord=true",
         })
         res.json(await getUserInfo(tokenData))
     }catch(err){
@@ -79,14 +79,9 @@ router.get("/discord/token", async (req, res, next) => {
             })
         }
         const tokenData = await oauth.tokenRequest({
-            clientId: process.env.DISCORD_CLIENT_ID,
-            clientSecret: process.env.DISCORD_CLIENT_SECRET,
-
             code: code,
             scope: "identify guilds",
             grantType: "authorization_code",
-
-            redirectUri: process.env.REDIRECT_URI+"/?discord=true",
         })
         res.json(await getUserInfo(tokenData))
     }catch(err){
