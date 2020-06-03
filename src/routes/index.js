@@ -53,10 +53,10 @@ router.get("/app", (req, res) => {
 router.get("/discord/token/refresh", async (req, res, next) => {
     try{
         const uid = req.query.uid
-        if(!uid){
-            res.status(401)
-            throw new Error("Missing User id")
-        }
+        // if(!uid){
+        //     res.status(401)
+        //     throw new Error("Missing User id")
+        // }
         const token = req.query.token
         const tokenData = await oauth.tokenRequest({
             clientId: process.env.DISCORD_CLIENT_ID,
@@ -77,10 +77,10 @@ router.get("/discord/token/refresh", async (req, res, next) => {
 router.get("/discord/token", async (req, res, next) => {
     try{
         const uid = req.query.uid
-        if (!uid) {
-            res.status(401)
-            throw new Error("Missing User id")
-        }
+        // if (!uid) {
+        //     res.status(401)
+        //     throw new Error("Missing User id")
+        // }
         const code = req.query.code
         if(!code){
             return res.status(400).json({
