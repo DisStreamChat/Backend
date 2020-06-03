@@ -60,7 +60,7 @@ router.get("/discord/token/refresh", async (req, res, next) => {
             scope: "identify guilds",
             grantType: "refresh_token",
 
-            redirectUri: process.env.REDIRECT_URI + "/login",
+            redirectUri: process.env.REDIRECT_URI,
         })
         res.json(await getUserInfo(tokenData))
     }catch(err){
@@ -86,9 +86,8 @@ router.get("/discord/token", async (req, res, next) => {
             scope: "identify guilds",
             grantType: "authorization_code",
 
-            redirectUri: process.env.REDIRECT_URI+"/login",
+            redirectUri: process.env.REDIRECT_URI,
         })
-        
         res.json(await getUserInfo(tokenData))
     }catch(err){
         next(err)

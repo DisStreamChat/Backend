@@ -1,12 +1,13 @@
 const Discord = require("discord.js")
 const DiscordOauth2 = require("discord-oauth2");
-
+const fetch = require("node-fetch")
 
 const oauth = new DiscordOauth2();
 
+
 class DiscordServer {
-    constructor(serverObject, userId) {
-        this.member = userId
+    constructor(serverObject, user) {
+        this.member = user.id
         this.id = serverObject.id
         this.name = serverObject.name
         this.icon = serverObject.icon
@@ -23,7 +24,7 @@ class DiscordUser {
         this.avatar = userObject.avatar
         this.profilePicture = `https://cdn.discordapp.com/avatars/${this.id}/${userObject.avatar}`
         this.MFA = userObject.mfa_enabled
-        this.guilds = servers.map(server => new DiscordServer(server))
+        this.guilds = servers.map(server => new DiscordServer(server, userObject))
     }
 }
 
