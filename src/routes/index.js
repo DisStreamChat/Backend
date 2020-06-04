@@ -55,7 +55,7 @@ router.get("/app", (req, res) => {
     if(version){
         res.redirect(`https://www.distwitchchat.com/distwitchchat${version}.exe`)
     }else{
-        res.redirect(`https://www.distwitchchat.com/distwitchchat.exe`)
+        res.redirect(`https://firebasestorage.googleapis.com/v0/b/distwitchchat-db.appspot.com/o/distwitchchat1.0.2.exe?alt=media&token=1bf69ba1-61ef-4ffe-988c-f4458e0b7085`)
     }
 })
 
