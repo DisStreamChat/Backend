@@ -51,7 +51,12 @@ router.get("/discord", (req, res, next) => {
 })
 
 router.get("/app", (req, res) => {
-    res.redirect("https://www.distwitchchat.com/distwitchchat.exe")
+    const version = req.query.v
+    if(version){
+        res.redirect(`https://www.distwitchchat.com/distwitchchat${version}.exe`)
+    }else{
+        res.redirect(`https://www.distwitchchat.com/distwitchchat.exe`)
+    }
 })
 
 router.get("/discord/token/refresh", async (req, res, next) => {
