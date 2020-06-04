@@ -292,7 +292,7 @@ io.on('connection', (socket) => {
         if (guildSockets instanceof Set) guildSockets.delete(socket)
         if (channelSockets instanceof Set) channelSockets.delete(socket)
         if(channelSockets instanceof Set && channelSockets.size <= 0) {
-            TwitchClient.part(TwitchName)
+            // TwitchClient.part(TwitchName)
         }
     })
 })
