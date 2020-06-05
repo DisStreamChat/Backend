@@ -15,7 +15,6 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 })
 
-
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
@@ -27,8 +26,10 @@ const oauth = new DiscordOauth2({
     redirectUri: process.env.REDIRECT_URI + "/?discord=true",
 });
 
+// render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"))
 
+// default endpoint
 router.get('/', (req, res) => {
     res.json({
         message: '📺 DisTwitchChat API 📺',
@@ -42,14 +43,23 @@ router.get("/makecoffee", (req, res) => {
     })
 })
 
+// redirect to the invite page for the bot you can specify a guild if you want
 router.get("/invite", (req, res) => {
-    res.redirect("https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&scope=bot")
+    const guildId = req.query.guild
+    const inviteURL = "https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=https%3A%2F%2Fwww.distwitchchat.com%2F%3Fdiscord%3Dtrue&scope=bot"
+    if(guildId){
+        res.redirect(`${inviteURL}&guild_id=${guildId}`)
+    }else{
+        res.redirect(inviteURL)
+    }
 })
 
-router.get("/discord", (req, res, next) => {
+// get invite link to our discord
+router.get("/discord", (req, res) => {
     res.redirect("https://discord.gg/sFpMKVX")
 })
 
+// TODO: add download page
 router.get("/app", (req, res) => {
     const version = req.query.v
     if(version){
