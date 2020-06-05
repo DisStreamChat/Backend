@@ -20,6 +20,7 @@ const Api = new TwitchApi({
     clientId: process.env.TWITCH_CLIENT_ID,
     authorizationToken: process.env.TWITCH_ACCESS_TOKEN
 })
+
 const oauth = new DiscordOauth2({
     clientId: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
