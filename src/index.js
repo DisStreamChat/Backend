@@ -147,7 +147,8 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
         uuid: tags.id, // TODO: remove
         id: tags.id,
         badges,
-        sentAt: +tags["tmi-sent-ts"]
+        sentAt: +tags["tmi-sent-ts"],
+        userColor: tags.color
     }
 
     if (messageObject.body.length <= 0) return
