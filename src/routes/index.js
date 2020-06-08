@@ -50,11 +50,21 @@ router.get("/ismember", (req, res, next) => {
 })
 
 router.get("/getchannels", async (req, res, next) => {
-    
-    const id = req.query.guild
-    const selectedGuild = await DiscordClient.guilds.resolve(id)
-    const channelManger = selectedGuild.channels
-    res.json(channelManger.cache.array().filter(channel => channel.type == "text").map(channel => ({id: channel.id, name: channel.name})))
+    try{
+        const id = req.query.guild
+        const selectedGuild = await DiscordClient.guilds.resolve(id)
+        const channelManger = selectedGuild.channels
+        res.json(channelManger.cache.array().filter(channel => channel.type == "text").map(channel => ({ id: channel.id, name: channel.name })))
+    }catch(err){
+        res.json([])
+    }
+})
+
+router.get("/resolvechannel", async (req, res, next) => {
+    const {guild, channel} = req.query
+    const response = await fetch("https://api.distwitchchat.com/getchannels?guild="+guild)
+    const json = await response.json()
+    res.json(json.filter(ch => ch.id == channel)[0])
 })
 
 // redirect to the invite page for the bot you can specify a guild if you want
