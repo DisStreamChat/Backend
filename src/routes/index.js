@@ -6,7 +6,8 @@ const TwitchApi = require('twitch-lib')
 const admin = require('firebase-admin');
 const DiscordOauth2 = require("discord-oauth2");
 const { getUserInfo} = require("../utils/DiscordClasses")
-
+const {DiscordClient} = require("../utils/initClients")
+const Discord = require("discord.js")
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"))
 
@@ -42,6 +43,18 @@ router.get("/makecoffee", (req, res) => {
         status: 418,
         message: "I'm a Teapot ☕"
     })
+})
+
+router.get("/ismember", (req, res, next) => {
+    res.json({result: !!DiscordClient.guilds.resolve(req.query.guild)})
+})
+
+router.get("/getchannels", async (req, res, next) => {
+    
+    const id = req.query.guild
+    const selectedGuild = await DiscordClient.guilds.resolve(id)
+    const channelManger = selectedGuild.channels
+    res.json(channelManger.cache.array().filter(channel => channel.type == "text").map(channel => ({id: channel.id, name: channel.name})))
 })
 
 // redirect to the invite page for the bot you can specify a guild if you want
