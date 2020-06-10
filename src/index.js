@@ -196,7 +196,7 @@ DiscordClient.on("message", async message => {
             id: message.id,
             badges: {},
             sentAt: message.createdAt.getTime(),
-            userColor: message.member.displayHexColor || "#fff"
+            userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor
         }
 
         if (messageObject.body.length <= 0) return
