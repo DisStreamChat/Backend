@@ -260,9 +260,9 @@ io.on('connection', (socket) => {
         const connectGuild = DiscordClient.guilds.resolve(guildId)
         const guildChannels = connectGuild.channels
 
-        for(const id of liveChatId){
+        for(const channelId of liveChatId){
             try {
-                const liveChatChannel = guildChannels.resolve(id)
+                const liveChatChannel = guildChannels.resolve(channelId)
                 const messageManager = liveChatChannel.messages
 
                 const messageToDelete = await messageManager.fetch(id)
