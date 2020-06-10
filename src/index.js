@@ -169,7 +169,7 @@ DiscordClient.on("message", async message => {
     const { liveChatId } = [...sockets[message.guild.id]][0].userInfo
 
     // don't waste time with the rest of the stuff if there isn't a connection to this guild
-    if(message.channel.id != liveChatId) return
+    if(message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return
 
 
     const senderName = message.member.displayName
