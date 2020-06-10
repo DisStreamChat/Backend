@@ -260,14 +260,17 @@ io.on('connection', (socket) => {
         const connectGuild = DiscordClient.guilds.resolve(guildId)
         const guildChannels = connectGuild.channels
 
-        const liveChatChannel = guildChannels.resolve(liveChatId)
-        const messageManager = liveChatChannel.messages
-
-        const messageToDelete = await messageManager.fetch(id)
-        try {
-            messageToDelete.delete()
-        } catch (err) {
-            console.log(err.message)
+        for(const id of liveChatId){
+            try {
+                const liveChatChannel = guildChannels.resolve(liveChatId)
+                const messageManager = liveChatChannel.messages
+                
+                const messageToDelete = await messageManager.fetch(id)
+            
+                messageToDelete.delete()
+            } catch (err) {
+                console.log(err.message)
+            }
         }
     })
 
