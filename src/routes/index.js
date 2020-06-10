@@ -124,6 +124,7 @@ router.get("/discord/token", async (req, res, next) => {
         })
         res.json(await getUserInfo(tokenData))
     }catch(err){
+        // res.send
         next(err)
     }
 })

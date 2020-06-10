@@ -196,7 +196,7 @@ DiscordClient.on("message", async message => {
             id: message.id,
             badges: {},
             sentAt: message.createdAt.getTime(),
-            userColor: message.member.displayHexColor
+            userColor: message.member.displayHexColor || "#fff"
         }
 
         if (messageObject.body.length <= 0) return
@@ -233,7 +233,7 @@ const addSocket = (socket, id) => {
 }
 
 io.on('connection', (socket) => {
-    
+
     console.log('a user connected')
     // the addme event is sent from the frontend on load with the data from the database
     socket.on("addme", message => {
