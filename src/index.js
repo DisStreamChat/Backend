@@ -262,9 +262,9 @@ io.on('connection', (socket) => {
 
         for(const id of liveChatId){
             try {
-                const liveChatChannel = guildChannels.resolve(liveChatId)
+                const liveChatChannel = guildChannels.resolve(id)
                 const messageManager = liveChatChannel.messages
-                
+
                 const messageToDelete = await messageManager.fetch(id)
             
                 messageToDelete.delete()
