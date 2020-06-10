@@ -167,6 +167,8 @@ DiscordClient.on("message", async message => {
     if (!sockets.hasOwnProperty(message.guild.id)) return
 
     const { liveChatId } = [...sockets[message.guild.id]][0].userInfo
+    console.log({ liveChatId})
+    
 
     // don't waste time with the rest of the stuff if there isn't a connection to this guild
     if(message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return
