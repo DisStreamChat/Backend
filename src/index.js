@@ -164,10 +164,10 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
 DiscordClient.on("message", async message => {
     // if the message was sent by a bot it should be ignored
     if (message.author.bot) return
+    if (!sockets.hasOwnProperty(message.guild.id)) return
     
     const { liveChatId } = [...sockets[message.guild.id]][0].userInfo
     console.log({ liveChatId})
-    if (!sockets.hasOwnProperty(message.guild.id)) return
     
 
     // don't waste time with the rest of the stuff if there isn't a connection to this guild
@@ -248,6 +248,10 @@ io.on('connection', (socket) => {
         addSocket(socket, TwitchName)
         TwitchClient.join(TwitchName)
         // TODO use client.join(channel)
+    })
+
+    socket.on("updatedata", data => {
+        socket.userInfo = data
     })
 
     socket.on("deletemsg - discord", async id => {
