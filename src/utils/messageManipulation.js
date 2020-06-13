@@ -108,12 +108,15 @@ const checkForClash = message => {
     return fullUrl
 }
 
-const formatMessage = (message, platform, { HTMLClean, censor } = {}) => {
+const formatMessage = (message, platform, tags, { HTMLClean, censor } = {}) => {
     let dirty = message.slice()
     if (HTMLClean) dirty = DOMPurify.sanitize(dirty, {
         ALLOWED_TAGS: [],
         ALLOWED_ATTR: [],
     }).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    if(tags.emotes){
+        dirty = replaceTwitchEmotes(dirty, tags.emotes)
+    }
     if (censor) dirty = Filter.clean(dirty)
     if (platform === "twitch") {
         dirty = dirty.replace(bttvRegex, name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`)

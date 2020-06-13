@@ -66,14 +66,14 @@ TwitchClient.on('message', async (channel, tags, message, self) => {
     
     
     // get all possible versions of the message with all variations of the message filters
-    const plainMessage = formatMessage(message, "twitch")
-    let HTMLCleanMessage = formatMessage(message, "twitch", {HTMLClean: true})
-    const censoredMessage = formatMessage(message, "twitch", {censor: true})
-    const HTMLCensoredMessage = formatMessage(message, "twitch", {HTMLClean: true, censor: true})
+    const plainMessage = formatMessage(message, "twitch", tags,)
+    let HTMLCleanMessage = formatMessage(message, "twitch", tags, {HTMLClean: true})
+    const censoredMessage = formatMessage(message, "twitch", tags, {censor: true})
+    const HTMLCensoredMessage = formatMessage(message, "twitch", tags, {HTMLClean: true, censor: true})
     
-    if (tags.emotes) {
-        HTMLCleanMessage = replaceTwitchEmotes(HTMLCleanMessage, tags.emotes)
-    }
+    // if (tags.emotes) {
+    //     HTMLCleanMessage = replaceTwitchEmotes(HTMLCleanMessage, tags.emotes)
+    // }
     
     // get custom badges from twitch api
     const channelBadgeJSON = await Api.getBadgesByUsername(channelName) 
@@ -176,10 +176,10 @@ DiscordClient.on("message", async message => {
     const senderName = message.member.displayName
     try{
         const CleanMessage = message.cleanContent
-        const plainMessage = formatMessage(CleanMessage, "discord")
-        const HTMLCleanMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true })
-        const censoredMessage = formatMessage(CleanMessage, "discord", { censor: true })
-        const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", { HTMLClean: true, censor: true })
+        const plainMessage = formatMessage(CleanMessage, "discord", {})
+        const HTMLCleanMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true })
+        const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true })
+        const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true })
 
         if (plainMessage.startsWith("!") || plainMessage.startsWith("?")) return
         
