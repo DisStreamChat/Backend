@@ -8,9 +8,6 @@ const Api = new TwitchApi({
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
 
-console.log(Api)
-
-
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
 
@@ -86,7 +83,7 @@ module.exports = (TwitchClient, sockets) => {
         const HTMLCensoredMessage = formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
     
         // get all badges for the user that sent the messages put them in an object
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         // the messageId is currently only used for higlighted messages
         let messageId = tags["msg-id"] || "";
@@ -134,7 +131,7 @@ module.exports = (TwitchClient, sockets) => {
         const channelName = channel.slice(1).toLowerCase();
         if (!sockets.hasOwnProperty(channelName)) return;
     
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         let messageId = tags["msg-id"] || "";
         let bits = tags.bits;
@@ -173,7 +170,7 @@ module.exports = (TwitchClient, sockets) => {
     
         let messageId = tags["msg-id"] || "";
     
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         const userData = await Api.getUserInfo(username);
         
@@ -216,7 +213,7 @@ module.exports = (TwitchClient, sockets) => {
     
         let messageId = tags["msg-id"] || "";
     
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         const userData = await Api.getUserInfo(username);
     
@@ -260,7 +257,7 @@ module.exports = (TwitchClient, sockets) => {
         if (!sockets.hasOwnProperty(channelName)) return;
         let messageId = tags["msg-id"] || "";
         
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         const userData = await Api.getUserInfo(username);
     
@@ -316,7 +313,7 @@ module.exports = (TwitchClient, sockets) => {
     
         let messageId = tags["msg-id"] || "";
     
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         const userData = await Api.getUserInfo(username);
     
@@ -360,7 +357,7 @@ module.exports = (TwitchClient, sockets) => {
     
         let messageId = tags["msg-id"] || "";
     
-        const badges = await getBadges(tags);
+        const badges = await getBadges(channelName, tags);
     
         const userData = await Api.getUserInfo(username);
     
