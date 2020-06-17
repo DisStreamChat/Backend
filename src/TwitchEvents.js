@@ -138,19 +138,17 @@ module.exports = (TwitchClient, sockets) => {
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
-        console.log("cheer")
 		const badges = {}
 
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
-        
 		const plainMessage = formatMessage(message, "twitch", tags);
 		let HTMLCleanMessage = formatMessage(message, "twitch", tags, { HTMLClean: true });
 		const censoredMessage = formatMessage(message, "twitch", tags, { censor: true });
 		const HTMLCensoredMessage = formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
         
-        const theMessage = `${tags["display-name"]} cheered ${bits} bits!\n${HTMLCleanMessage}` 
+        const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1?"s":""}!\n${HTMLCleanMessage}` 
 
 		const messageObject = {
 			displayName: "DisTwitchChat",

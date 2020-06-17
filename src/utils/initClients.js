@@ -14,7 +14,7 @@ DiscordClient.once("ready", async () => {
 const TwitchClient = new tmi.Client({
 	options: { debug: process.env.TWITCH_DEBUG == "true" },
 	connection: {
-		server: "irc.fdgt.dev",
+		// server: "irc.fdgt.dev",
 		secure: true,
 		reconnect: true,
 	},
@@ -25,11 +25,6 @@ const TwitchClient = new tmi.Client({
 	channels: [process.env.DEBUG_CHANNEL || ""],
 });
 TwitchClient.connect();
-
-setTimeout(() => {
-    TwitchClient.say('#dav1dsnyder404', 'giftpaidupgrade')
-    console.log("done")
-}, 10000)
 
 
 module.exports = {
