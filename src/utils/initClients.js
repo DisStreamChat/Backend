@@ -1,31 +1,38 @@
-const discord = require("discord.js")
-const tmi = require("tmi.js")
+const discord = require("discord.js");
+const tmi = require("tmi.js");
 
 // initialize the discord client
-const DiscordClient = new discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] })
-DiscordClient.login(process.env.BOT_TOKEN)
+const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+DiscordClient.login(process.env.BOT_TOKEN);
 
 DiscordClient.once("ready", async () => {
-    console.log("bot ready")
-    DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "🔴 Live Chat" } })
-})
+	console.log("bot ready");
+	DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "🔴 Live Chat" } });
+});
 
 // initialize the twitch client
 const TwitchClient = new tmi.Client({
-    options: { debug: process.env.TWITCH_DEBUG == "true" },
-    connection: {
-        secure: true,
-        reconnect: true
-    },
-    identity: {
-        username: 'distwitchchat',
-        password: process.env.TWITH_OAUTH_TOKEN
-    },
-    channels: [process.env.DEBUG_CHANNEL || ""]
-})
-TwitchClient.connect()
+	options: { debug: process.env.TWITCH_DEBUG == "true" },
+	connection: {
+		server: "irc.fdgt.dev",
+		secure: true,
+		reconnect: true,
+	},
+	identity: {
+		username: "distwitchchat",
+		password: process.env.TWITH_OAUTH_TOKEN,
+	},
+	channels: [process.env.DEBUG_CHANNEL || ""],
+});
+TwitchClient.connect();
+
+setTimeout(() => {
+    TwitchClient.say('#dav1dsnyder404', 'bits')
+    console.log("done")
+}, 10000)
+
 
 module.exports = {
-    DiscordClient,
-    TwitchClient
-}
+	DiscordClient,
+	TwitchClient,
+};
