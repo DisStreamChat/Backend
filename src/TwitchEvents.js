@@ -85,7 +85,7 @@ module.exports = (TwitchClient, sockets) => {
         const badges = await getBadges(channelName, tags);
 
         if(["dav1dsnyder404", "saintplaysthings"].includes(tags["display-name"].toLowerCase())){
-            badges["developer"] = {image: "http://localhost:3000/logo.png", title: "Distwitchchat Staff"}
+            badges["developer"] = {image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png", title: "Distwitchchat Staff"}
         }
     
         // the messageId is currently only used for higlighted messages
