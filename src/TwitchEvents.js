@@ -144,27 +144,28 @@ module.exports = (TwitchClient, sockets) => {
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
-        let theMessage = `${tags["display-name"]} cheered ${bits} bits!\n${message}` 
-
-		const plainMessage = formatMessage(theMessage, "twitch", tags);
-		let HTMLCleanMessage = formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		const censoredMessage = formatMessage(theMessage, "twitch", tags, { censor: true });
-		const HTMLCensoredMessage = formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
+        
+		const plainMessage = formatMessage(message, "twitch", tags);
+		let HTMLCleanMessage = formatMessage(message, "twitch", tags, { HTMLClean: true });
+		const censoredMessage = formatMessage(message, "twitch", tags, { censor: true });
+		const HTMLCensoredMessage = formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
+        
+        const theMessage = `${tags["display-name"]} cheered ${bits} bits!\n${HTMLCleanMessage}` 
 
 		const messageObject = {
 			displayName: "DisTwitchChat",
 			avatar: DisTwitchChatProfile,
-			body: HTMLCleanMessage,
+			body: theMessage,
 			HTMLCleanMessage,
 			censoredMessage,
 			HTMLCensoredMessage,
-			platform: "cheers",
-			messageId: "cheers",
+			platform: "twitch",
+			messageId: "cheer",
 			uuid: tags.id,
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
-			userColor: tags.color,
+			userColor: "#ff0029",
 			bits, // << added this to the messageObject
 		};
 
@@ -175,20 +176,18 @@ module.exports = (TwitchClient, sockets) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 
-		let messageId = tags["msg-id"] || "";
+		const badges = {}
 
-		const badges = await getBadges(channelName, tags);
+        const theMessage = `${username}, upgraded their subscription! (Originally from Anonymous)`
 
-		const userData = await Api.getUserInfo(username);
-
-		const plainMessage = formatMessage(`${username}, upgraded their subscription! (Originally from an anonymous user.)`, "twitch", tags);
-		let HTMLCleanMessage = formatMessage(`${username}, upgraded their subscription! (Originally from an anonymous user.)`, "twitch", tags, {
+		const plainMessage = formatMessage(theMessage, "twitch", tags);
+		let HTMLCleanMessage = formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		const censoredMessage = formatMessage(`${username}, upgraded their subscription! (Originally from an anonymous user.)`, "twitch", tags, {
+		const censoredMessage = formatMessage(theMessage, "twitch", tags, {
 			censor: true,
 		});
-		const HTMLCensoredMessage = formatMessage(`${username}, upgraded their subscription! (Originally from an anonymous user.)`, "twitch", tags, {
+		const HTMLCensoredMessage = formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 			censor: true,
 		});
@@ -200,13 +199,13 @@ module.exports = (TwitchClient, sockets) => {
 			HTMLCleanMessage,
 			censoredMessage,
 			HTMLCensoredMessage,
-			platform: "subscription",
-			messageId: messageId,
+			platform: "twitch",
+			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
-			userColor: tags.color,
+			userColor: "#ff0029",
 		};
 
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject)); // << emitting 'twitchanonupgrade' so you can handle this on the app since the messageObject is slightly different.
@@ -216,20 +215,18 @@ module.exports = (TwitchClient, sockets) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 
-		let messageId = tags["msg-id"] || "";
+		const badges = {}
 
-		const badges = await getBadges(channelName, tags);
+        const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`
 
-		const userData = await Api.getUserInfo(username);
-
-		const plainMessage = formatMessage(`${username}, upgraded their subscription! (Originally from ${sender}.)`, "twitch", tags);
-		let HTMLCleanMessage = formatMessage(`${username}, upgraded their subscription! (Originally from ${sender}.)`, "twitch", tags, {
+		const plainMessage = formatMessage(theMessage, "twitch", tags);
+		let HTMLCleanMessage = formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		const censoredMessage = formatMessage(`${username}, upgraded their subscription! (Originally from ${sender}.)`, "twitch", tags, {
+		const censoredMessage = formatMessage(theMessage, "twitch", tags, {
 			censor: true,
 		});
-		const HTMLCensoredMessage = formatMessage(`${username}, upgraded their subscription! (Originally from ${sender}.)`, "twitch", tags, {
+		const HTMLCensoredMessage = formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 			censor: true,
 		});
@@ -241,16 +238,16 @@ module.exports = (TwitchClient, sockets) => {
 			HTMLCleanMessage,
 			censoredMessage,
 			HTMLCensoredMessage,
-			platform: "subscription",
-			messageId: messageId,
+			platform: "twitch",
+			messageId: "giftupgrade",
 			uuid: tags.id,
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
-			userColor: tags.color,
+			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchsubupgrade", messageObject)); // << emitting 'twitchsubupgrade' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsubupgrade' so you can handle this on the app since the messageObject is slightly different.
 	});
 
 	let giftTimeout = null;
@@ -263,7 +260,7 @@ module.exports = (TwitchClient, sockets) => {
 		if (!sockets.hasOwnProperty(channelName)) return;
 		let messageId = tags["msg-id"] || "";
 
-		const badges = await getBadges(channelName, tags);
+		const badges = {};
 
 		const userData = await Api.getUserInfo(username);
 
@@ -277,19 +274,19 @@ module.exports = (TwitchClient, sockets) => {
 			allRecipients = `@${recipient}`;
 		}
 		giftTimeout = setTimeout(() => {
-			const plainMessage = formatMessage(`${username}, has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
-			let HTMLCleanMessage = formatMessage(`${username}, has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
+			const plainMessage = formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
+			let HTMLCleanMessage = formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
 				HTMLClean: true,
 			});
-			const censoredMessage = formatMessage(`${username}, has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
+			const censoredMessage = formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
 				censor: true,
 			});
 			const HTMLCensoredMessage = formatMessage(
-				`${username}, has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`,
+				`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`,
 				"twitch",
 				tags,
 				{
-					HTMLClean: true,
+					HTMLClean: true, 
 					censor: true,
 				}
 			);
@@ -301,19 +298,19 @@ module.exports = (TwitchClient, sockets) => {
 				HTMLCleanMessage,
 				censoredMessage,
 				HTMLCensoredMessage,
-				platform: "subscription",
-				messageId: messageId,
+				platform: "twitch",
+				messageId: "subgift",
 				uuid: tags.id,
 				id: tags.id,
 				badges,
 				sentAt: +tags["tmi-sent-ts"],
-				userColor: tags.color,
+				userColor: "#ff0029",
 			};
 
-			const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchsubgift", messageObject)); // << emitting 'twitchsubgift' so you can handle this on the app since the messageObject is slightly different.
+			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsubgift' so you can handle this on the app since the messageObject is slightly different.
 
 			lastGiftAmount = 0;
-			allRecipients = ``;
+			allRecipients = ``; 
 		}, 1500);
 	});
 
@@ -321,14 +318,12 @@ module.exports = (TwitchClient, sockets) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 
-		let messageId = tags["msg-id"] || "";
-
 		const badges = {};
 
 		let theMessage = "";
 
-		let cumulativeMonths = ~~userstate["msg-param-cumulative-months"];
-		if ((userstate["msg-param-should-share-streak"] = true)) {
+		let cumulativeMonths = ~~tags["msg-param-cumulative-months"];
+		if ((tags["msg-param-should-share-streak"] = true)) {
 			theMessage = `Thanks for re-subscribing for ${cumulativeMonths} months @${username}.`;
 		} else {
 			theMessage = `Thanks for re-subscribing @${username}.`;
@@ -346,16 +341,16 @@ module.exports = (TwitchClient, sockets) => {
 			HTMLCleanMessage,
 			censoredMessage,
 			HTMLCensoredMessage,
-			platform: "subscription",
-			messageId: messageId,
+			platform: "twitch",
+			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
-			userColor: tags.color,
+			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchresub", messageObject)); // << emitting 'twitchresub' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchresub' so you can handle this on the app since the messageObject is slightly different.
 	});
 
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
@@ -380,17 +375,17 @@ module.exports = (TwitchClient, sockets) => {
 			HTMLCleanMessage,
 			censoredMessage,
 			HTMLCensoredMessage,
-			platform: "subscription",
-			messageId: messageId,
+			platform: "twitch",
+			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
-			userColor: tags.color,
+			userColor: "#ff0029",
 		};
 
 		if (messageObject.body.length <= 0) return;
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchsub", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
 	});
 
 	//Notes : only on cheer did I pass the "message", if you wanted to, you can do the same for resub and subscription.

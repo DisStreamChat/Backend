@@ -27,7 +27,7 @@ const TwitchClient = new tmi.Client({
 TwitchClient.connect();
 
 setTimeout(() => {
-    TwitchClient.say('#dav1dsnyder404', 'bits')
+    TwitchClient.say('#dav1dsnyder404', 'giftpaidupgrade')
     console.log("done")
 }, 10000)
 
