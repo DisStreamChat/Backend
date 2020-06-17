@@ -14,6 +14,8 @@ const TwitchEvents = require("./TwitchEvents.js")
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
+
 // add the basic middleware to the express app
 app.use(helemt());
 // app.use(morgan("dev"))
