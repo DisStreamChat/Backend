@@ -26,8 +26,6 @@ app.use("/", require("./routes/index"));
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient } = require("./utils/initClients");
 
-
-
 // initialize the object that will store all sockets currently connected
 const sockets = {};
 

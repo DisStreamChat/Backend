@@ -54,7 +54,7 @@ router.get("/getchannels", async (req, res, next) => {
         const id = req.query.guild
         const selectedGuild = await DiscordClient.guilds.resolve(id)
         const channelManger = selectedGuild.channels
-        res.json(channelManger.cache.array().filter(channel => channel.type == "text").map(channel => ({ id: channel.id, name: channel.name })))
+        res.json(channelManger.cache.array().filter(channel => channel.type == "text").map(channel => ({ id: channel.id, name: channel.name, parent: channel.parent.name })))
     }catch(err){
         res.json([])
     }

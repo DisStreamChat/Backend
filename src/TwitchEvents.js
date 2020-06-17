@@ -11,7 +11,6 @@ const Api = new TwitchApi({
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
 
-
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
 	const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
@@ -84,6 +83,10 @@ module.exports = (TwitchClient, sockets) => {
     
         // get all badges for the user that sent the messages put them in an object
         const badges = await getBadges(channelName, tags);
+
+        if(["dav1dsnyder404", "saintplaysthings"].includes(tags["display-name"].toLowerCase())){
+            badges["developer"] = {image: "http://localhost:3000/logo.png", title: "Distwitchchat Staff"}
+        }
     
         // the messageId is currently only used for higlighted messages
         let messageId = tags["msg-id"] || "";
