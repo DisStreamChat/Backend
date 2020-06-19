@@ -129,6 +129,28 @@ router.get("/discord/token", async (req, res, next) => {
     }
 })
 
+router.get("/profilepicture", async (req, res, next) => {
+    try{
+        const user = req.query.user
+        const profilePicture = (await Api.getUserInfo(user))["profile_image_url"]
+        res.json(profilePicture)
+    }catch(err){
+        next(err)
+    }
+})
+
+router.get("/modchannels", async (req, res, next) => {
+    try{
+        const user = req.query.user
+        const modChannels = await Api.getUserModerationChannels(user)
+        res.json(modChannels)
+    }catch(err){
+        next(err)
+    }
+
+    
+})
+
 
 router.get("/token", async (req, res, next) => {
     try {

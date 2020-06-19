@@ -146,9 +146,11 @@ module.exports = (TwitchClient, sockets) => {
 
         const cheerMotes = (await Api.fetch("https://api.twitch.tv/helix/bits/cheermotes")).data
 
+        
         const cheerMatches = [...message.matchAll(cheerMoteRegex)]
+        cheerMatches.pop()
         const cheerMoteMatches = cheerMatches.map(match => ({bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix === match[1])}))
-
+        
         const cheerMoteMatchTiers = cheerMoteMatches.map(cheerMote => {
             const tiers = cheerMote.tiers
             const bits = cheerMote.bits
@@ -161,7 +163,6 @@ module.exports = (TwitchClient, sockets) => {
                 bits
             }
         })
-
         
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
@@ -173,6 +174,7 @@ module.exports = (TwitchClient, sockets) => {
         
         HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
             const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match)
+            if(!cheerMote) return match
             return `<img src="${cheerMote.image}" class="emote"> ${number}`
         })
 
