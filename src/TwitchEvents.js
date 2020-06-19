@@ -8,6 +8,7 @@ const Api = new TwitchApi({
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
 
+
 const DisTwitchChatProfile = "https://www.distwitchchat.com/logo.png";
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
@@ -137,17 +138,45 @@ module.exports = (TwitchClient, sockets) => {
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
-		if (!sockets.hasOwnProperty(channelName)) return;
+        const cheerMoteRegex = /([a-zA-Z]*)([0-9])/g
+
+        if (!sockets.hasOwnProperty(channelName)) return;
+        
 		const badges = {}
 
+        const cheerMotes = (await Api.fetch("https://api.twitch.tv/helix/bits/cheermotes")).data
+
+        const cheerMatches = [...message.matchAll(cheerMoteRegex)]
+        const cheerMoteMatches = cheerMatches.map(match => ({bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix === match[1])}))
+
+        const cheerMoteMatchTiers = cheerMoteMatches.map(cheerMote => {
+            const tiers = cheerMote.tiers
+            const bits = cheerMote.bits
+            const cheeredTier = tiers.reduce((acc, tier) => tier["min_bits"] <= bits ? tier : acc)
+            return {
+                prefix: cheerMote.prefix,
+                id: cheerMote.prefix+bits,
+                tier: cheeredTier,
+                image: cheeredTier.images.dark.animated["1"],
+                bits
+            }
+        })
+
+        
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
-
+        
 		const plainMessage = formatMessage(message, "twitch", tags);
 		let HTMLCleanMessage = formatMessage(message, "twitch", tags, { HTMLClean: true });
 		const censoredMessage = formatMessage(message, "twitch", tags, { censor: true });
 		const HTMLCensoredMessage = formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
         
+        HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
+            const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match)
+            return `<img src="${cheerMote.image}" class="emote">`
+        })
+
+
         const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1?"s":""}!\n${HTMLCleanMessage}` 
 
 		const messageObject = {
