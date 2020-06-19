@@ -138,7 +138,7 @@ module.exports = (TwitchClient, sockets) => {
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
-        const cheerMoteRegex = /([a-zA-Z]*)([0-9])/g
+        const cheerMoteRegex = /([a-zA-Z]*)([0-9]*)/g
 
         if (!sockets.hasOwnProperty(channelName)) return;
         
@@ -173,7 +173,7 @@ module.exports = (TwitchClient, sockets) => {
         
         HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
             const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match)
-            return `<img src="${cheerMote.image}" class="emote">`
+            return `<img src="${cheerMote.image}" class="emote"> ${number}`
         })
 
 
