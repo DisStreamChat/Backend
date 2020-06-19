@@ -154,6 +154,7 @@ module.exports = (TwitchClient, sockets) => {
         const cheerMoteMatchTiers = cheerMoteMatches.map(cheerMote => {
             const tiers = cheerMote.tiers
             const bits = cheerMote.bits
+            if(!tiers || !bits) return
             const cheeredTier = tiers.reduce((acc, tier) => tier["min_bits"] <= bits ? tier : acc)
             return {
                 prefix: cheerMote.prefix,
@@ -162,7 +163,7 @@ module.exports = (TwitchClient, sockets) => {
                 image: cheeredTier.images.dark.animated["1"],
                 bits
             }
-        })
+        }).filter(c => !!c)
         
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
