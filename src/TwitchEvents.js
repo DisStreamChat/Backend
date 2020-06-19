@@ -138,7 +138,7 @@ module.exports = (TwitchClient, sockets) => {
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
-        const cheerMoteRegex = /([a-zA-Z]*)([0-9]*)/g
+        const cheerMoteRegex = /([0-9]*[a-zA-Z]*)([0-9]*)/g
 
         if (!sockets.hasOwnProperty(channelName)) return;
         
@@ -148,7 +148,7 @@ module.exports = (TwitchClient, sockets) => {
 
         
         const cheerMatches = [...message.matchAll(cheerMoteRegex)]
-        cheerMatches.pop()
+        console.log(cheerMatches)
         const cheerMoteMatches = cheerMatches.map(match => ({bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix === match[1])}))
         
         const cheerMoteMatchTiers = cheerMoteMatches.map(cheerMote => {
@@ -160,7 +160,7 @@ module.exports = (TwitchClient, sockets) => {
                 prefix: cheerMote.prefix,
                 id: cheerMote.prefix+bits,
                 tier: cheeredTier,
-                image: cheeredTier.images.dark.animated["1"],
+                image: cheeredTier.images.dark.animated["4"],
                 bits
             }
         }).filter(c => !!c)
