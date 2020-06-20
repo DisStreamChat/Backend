@@ -59,15 +59,17 @@ const checkForClash = message => {
 	return fullUrl;
 };
 
-async function getBttvEmotes() {
+async function getBttvEmotes(channelName) {
     const bttvEmotes = {};
 	let bttvRegex;
     const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
     let { emotes } = await bttvResponse.json();
     // replace with your channel url
-    const bttvChannelResponse = await fetch("https://api.betterttv.net/2/channels/codinggarden");
+    const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
     const { emotes: channelEmotes } = await bttvChannelResponse.json();
-    emotes = emotes.concat(channelEmotes);
+    if(channelEmotes){
+        emotes = emotes.concat(channelEmotes);
+    }
     let regexStr = "";
     emotes.forEach(({ code, id }, i) => {
         bttvEmotes[code] = id;
@@ -78,13 +80,13 @@ async function getBttvEmotes() {
     return {bttvEmotes, bttvRegex}
 }
 
-async function getFfzEmotes() {
+async function getFfzEmotes(channelName) {
 	const ffzEmotes = {};
 	let ffzRegex;
 
     const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
     // replace with your channel url
-    const ffzChannelResponse = await fetch("https://api.frankerfacez.com/v1/room/codinggarden");
+    const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
     const { sets } = await ffzResponse.json();
     const { room, sets: channelSets } = await ffzChannelResponse.json();
     let regexStr = "";
@@ -93,26 +95,16 @@ async function getFfzEmotes() {
         regexStr += name + (i === emotes.length - 1 ? "" : "|");
     };
     sets[3].emoticons.forEach(appendEmotes);
-    if (channelSets) {
-        channelSets[609613].emoticons.forEach(appendEmotes);
+    if (channelSets && room) {
+        const setnum = room.set
+        channelSets[setnum].emoticons.forEach(appendEmotes);
     }
     ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
     return {ffzEmotes, ffzRegex}
 }
 
-const formatMessage = (message, platform, tags, { HTMLClean, censor } = {}) => {
-	// get emotes from bttv and ffz by pinging the api's and saving the regexs
-	// TODO: allow for channel specific custom emotes
-	// currently the bttvEmotes and ffzEmotes variables are global, in the future they will be local to the message handler
-	// this will allow for channel specific emotes from these custom emote providers
-
-
-
-
-
-	const {bttvEmotes, bttvRegex};
-	getFfzEmotes();
-
+const formatMessage = async (message, platform, tags, { HTMLClean, censor, channelName } = {}) => {
+   
 	let dirty = message.slice();
 	if (HTMLClean)
 		dirty = DOMPurify.sanitize(dirty, {
@@ -125,7 +117,9 @@ const formatMessage = (message, platform, tags, { HTMLClean, censor } = {}) => {
 		dirty = replaceTwitchEmotes(dirty, tags.emotes);
 	}
 	if (censor) dirty = Filter.clean(dirty);
-	if (platform === "twitch") {
+	if (platform === "twitch" && channelName) {
+        const {bttvEmotes, bttvRegex} = await getBttvEmotes(channelName);
+        const {ffzEmotes, ffzRegex} = await getFfzEmotes(channelName);  
 		dirty = dirty.replace(
 			bttvRegex,
 			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`
