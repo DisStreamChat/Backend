@@ -54,20 +54,20 @@ DiscordClient.on("message", async message => {
 	const senderName = message.member.displayName;
 	try {
 		const CleanMessage = message.cleanContent;
-		const plainMessage = formatMessage(CleanMessage, "discord", {});
-		const HTMLCleanMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
-		const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
-		const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
+		// const plainMessage = formatMessage(CleanMessage, "discord", {});
+        const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
+		// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
+		// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
-		if (plainMessage.startsWith("!") || plainMessage.startsWith("?")) return;
+		if (HTMLCleanMessage.startsWith("!") || HTMLCleanMessage.startsWith("?")) return;
 
 		const messageObject = {
 			displayName: senderName,
 			avatar: message.author.displayAvatarURL(),
 			body: HTMLCleanMessage,
-			HTMLCleanMessage,
-			censoredMessage,
-			HTMLCensoredMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
 			platform: "discord",
 			messageId: "",
 			uuid: message.id,
