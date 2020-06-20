@@ -181,6 +181,56 @@ router.get("/token", async (req, res, next) => {
             const uid = sha1(user_id)
             const token = await admin.auth().createCustomToken(uid)
             const userInfo = await Api.getUserInfo(login)
+            const displayName = userInfo.display_name
+            const profilePicture = userInfo.profile_image_url
+            
+            // set or modify the users data in firestore
+            try {
+                await admin.firestore().collection("Streamers").doc(uid).update({
+                    displayName,
+                    profilePicture,
+                    TwitchName: displayName.toLowerCase(),
+                    name: displayName.toLowerCase()
+                })
+            } catch (err) {
+                await admin.firestore().collection("Streamers").doc(uid).set({
+                    displayName,
+                    uid: uid,
+                    profilePicture,
+                    ModChannels: [],
+                    TwitchName: displayName.toLowerCase(),
+                    name: displayName.toLowerCase(),
+                    appSettings: {
+                        TwitchColor: "",
+                        YoutubeColor: "",
+                        discordColor: "",
+                        displayPlatformColors: false,
+                        displayPlatformIcons: false,
+                        highlightedMessageColor: "",
+                        showHeader: true,
+                        showSourceButton: false,
+                        compact: false,
+                        showBorder: false,
+                        nameColors: true
+                    },
+                    discordLinked: false,
+                    guildId: "",
+                    liveChatId: "",
+                    overlaySettings: {
+                        TwitchColor: "",
+                        YoutubeColor: "",
+                        discordColor: "",
+                        displayPlatformColors: false,
+                        displayPlatformIcons: false,
+                        highlightedMessageColor: "",
+                        nameColors: true,
+                        compact: false
+                    },
+                    twitchAuthenticated: true,
+                    youtubeAuthenticated: false
+                })
+            }
+
             res.json({
                 token,
                 displayName: userInfo.display_name,
