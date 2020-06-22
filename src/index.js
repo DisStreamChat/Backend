@@ -17,6 +17,7 @@ const crypto = require('crypto');
 
 const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
 
+
 // add the basic middleware to the express app
 app.use(helemt());
 // app.use(morgan("dev"))
@@ -30,7 +31,7 @@ app.use(bodyParser.json({
 
             var xHub = req.headers['x-hub-signature'].split('=');
 
-            req.twitch_hex = crypto.createHmac(xHub[0], mysecret)
+            req.twitch_hex = crypto.createHmac(xHub[0], process.env.WEBHOOK_SECRET)
                 .update(buf)
                 .digest('hex');
             req.twitch_signature = xHub[1];
