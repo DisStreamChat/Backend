@@ -243,9 +243,9 @@ router.get("/token", async (req, res, next) => {
     }
 })
 
-router.get("/webhooks/twitch", async (res, req, next) => {
+router.get("/webhooks/twitch", async (req, res, next) => {
     console.log(req.query)
-    res.send("")
+    res.send(req.query["hub.challenge"])
 })
 
 router.use((req, res) => {
