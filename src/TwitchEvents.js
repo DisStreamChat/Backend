@@ -433,7 +433,7 @@ module.exports = (TwitchClient, sockets, app) => {
                     userColor: "#ff0029",
                 };
     
-                const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+                const _ = [...sockets[streamer]].forEach(async s => await s.emit("chatmessage", messageObject));
             }
             res.json("success");
         } else {
