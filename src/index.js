@@ -67,7 +67,7 @@ app.post("/webhooks/twitch", async (req, res, next) => {
 
 			const badges = {};
 
-			const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`;
+			const theMessage = `Thanks for following, ${follower}!`;
 
 			const messageObject = {
 				displayName: "DisTwitchChat",
