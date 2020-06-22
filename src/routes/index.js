@@ -243,6 +243,11 @@ router.get("/token", async (req, res, next) => {
     }
 })
 
+router.get("/webhooks/twitch", async (res, req, next) => {
+    console.log(req.query)
+    res.send("")
+})
+
 router.use((req, res) => {
     res.status(404).json({
         status: 404,
