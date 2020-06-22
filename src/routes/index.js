@@ -248,23 +248,6 @@ router.get("/webhooks/twitch", async (req, res, next) => {
     res.send(req.query["hub.challenge"])
 })
 
-router.post("/webhooks/twitch", async (req, res, next) => {
-    
-    if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-        // it's good
-        const body = req.body
-        console.log(body)
-        res.json("success")
-    } else {
-        // it's bad
-    }
-})
 
-router.use((req, res) => {
-    res.status(404).json({
-        status: 404,
-        message: "Page Not Found"
-    })
-})
 
 module.exports = router

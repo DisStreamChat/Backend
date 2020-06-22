@@ -97,19 +97,6 @@ module.exports = (TwitchClient, sockets) => {
 		// the messageId is currently only used for higlighted messages
 		let messageId = tags["msg-id"] || "";
 
-		// check for a clash code of url and if there is try to send it to discord
-		// TODO: make this an optional thing and false my default
-		// const clashUrl = checkForClash(message);
-		// if (clashUrl != undefined && sockets.hasOwnProperty(channelName)) {
-		// 	const { guildId, liveChatId } = [...sockets[channelName]][0].userInfo;
-
-		// 	const connectGuild = DiscordClient.guilds.resolve(guildId);
-		// 	const guildChannels = connectGuild.channels;
-
-		// 	const liveChatChannel = guildChannels.resolve(liveChatId);
-		// 	liveChatChannel.send(clashUrl);
-		// }
-
 		// ping the twitch api for user data, currently only used for profile picture
 		const userData = await Api.getUserInfo(tags.username);
 
@@ -148,7 +135,6 @@ module.exports = (TwitchClient, sockets) => {
 
         
         const cheerMatches = [...message.matchAll(cheerMoteRegex)]
-        console.log(cheerMatches)
         const cheerMoteMatches = cheerMatches.map(match => ({bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix === match[1])}))
         
         const cheerMoteMatchTiers = cheerMoteMatches.map(cheerMote => {

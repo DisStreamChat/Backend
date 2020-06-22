@@ -8,8 +8,8 @@ const bodyParser = require("body-parser");
 const TwitchApi = require("twitch-lib");
 const helemt = require("helmet");
 const morgan = require("morgan");
-const TwitchEvents = require("./TwitchEvents.js")
-const crypto = require('crypto');
+const TwitchEvents = require("./TwitchEvents.js");
+const crypto = require("crypto");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -17,27 +17,26 @@ const crypto = require('crypto');
 
 const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
 
-
 // add the basic middleware to the express app
 app.use(helemt());
 // app.use(morgan("dev"))
 app.use(cors());
-app.use(bodyParser.json({
-    verify: function(req, res, buf, encoding) {
-        // is there a hub to verify against
-        req.twitch_hub = false;
-        if (req.headers && req.headers['x-hub-signature']) {
-            req.twitch_hub = true;
+app.use(
+	bodyParser.json({
+		verify: function (req, res, buf, encoding) {
+			// is there a hub to verify against
+			req.twitch_hub = false;
+			if (req.headers && req.headers["x-hub-signature"]) {
+				req.twitch_hub = true;
 
-            var xHub = req.headers['x-hub-signature'].split('=');
+				var xHub = req.headers["x-hub-signature"].split("=");
 
-            req.twitch_hex = crypto.createHmac(xHub[0], process.env.WEBHOOK_SECRET)
-                .update(buf)
-                .digest('hex');
-            req.twitch_signature = xHub[1];
-        }
-    }
-}));
+				req.twitch_hex = crypto.createHmac(xHub[0], process.env.WEBHOOK_SECRET).update(buf).digest("hex");
+				req.twitch_signature = xHub[1];
+			}
+		},
+	})
+);
 
 // add the routes stored in the 'routes' folder to the app
 app.use("/", require("./routes/index"));
@@ -52,7 +51,45 @@ const sockets = {};
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TwitchEvents(TwitchClient, sockets)
+TwitchEvents(TwitchClient, sockets);
+
+app.post("/webhooks/twitch", async (req, res, next) => {
+	if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
+		// it's good
+		const data = req.body.data;
+		if (data) {
+			const body = data[0];
+			const streamer = body.to_name.toLowerCase();
+			const follower = body.from_name;
+			const followedAt = body.followed_at;
+
+			if (!sockets.hasOwnProperty(streamer)) return;
+
+			const badges = {};
+
+			const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`;
+
+			const messageObject = {
+				displayName: "DisTwitchChat",
+				avatar: DisTwitchChatProfile,
+				body: theMessage,
+				platform: "twitch",
+				messageId: "follow",
+				uuid: "follow",
+				id: "follow",
+				badges,
+				sentAt: new Date(followedAt).getTime(),
+				userColor: "#ff0029",
+			};
+
+			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+		}
+		res.json("success");
+	} else {
+		res.status("401").json("Looks like You aren't twitch");
+		// it's bad
+	}
+});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD MESSAGE HANDLING
@@ -72,7 +109,7 @@ DiscordClient.on("message", async message => {
 	try {
 		const CleanMessage = message.cleanContent;
 		// const plainMessage = formatMessage(CleanMessage, "discord", {});
-        const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
+		const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
 		// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
 		// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
@@ -189,6 +226,13 @@ io.on("connection", socket => {
 		if (channelSockets instanceof Set && channelSockets.size <= 0) {
 			// TwitchClient.part(TwitchName)
 		}
+	});
+});
+
+app.use((req, res) => {
+	res.status(404).json({
+		status: 404,
+		message: "Page Not Found",
 	});
 });
 
