@@ -55,7 +55,7 @@ const getBadges = async (channelName, tags) => {
 	return badges;
 };
 
-module.exports = (TwitchClient, sockets) => {
+module.exports = (TwitchClient, sockets, app) => {
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
@@ -402,7 +402,45 @@ module.exports = (TwitchClient, sockets) => {
 
 		if (messageObject.body.length <= 0) return;
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
-	});
+    });
+    
+    app.post("/webhooks/twitch", async (req, res, next) => {
+        if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
+            // it's good
+            const data = req.body.data;
+            if (data) {
+                const body = data[0];
+                const streamer = body.to_name.toLowerCase();
+                const follower = body.from_name;
+                const followedAt = body.followed_at;
+    
+                if (!sockets.hasOwnProperty(streamer)) return;
+    
+                const badges = {};
+    
+                const theMessage = `Thanks for following, ${follower}!`;
+    
+                const messageObject = {
+                    displayName: "DisTwitchChat",
+                    avatar: DisTwitchChatProfile,
+                    body: theMessage,
+                    platform: "twitch",
+                    messageId: "follow",
+                    uuid: "follow",
+                    id: "follow",
+                    badges,
+                    sentAt: new Date(followedAt).getTime(),
+                    userColor: "#ff0029",
+                };
+    
+                const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+            }
+            res.json("success");
+        } else {
+            res.status("401").json("Looks like You aren't twitch");
+            // it's bad
+        }
+    });
 
 	//Notes : only on cheer did I pass the "message", if you wanted to, you can do the same for resub and subscription.
 	//Also, I didn't pass the badges on the messageObject except for the cheer events, also I gave each one their own socket.emit's so you can stylize them different.

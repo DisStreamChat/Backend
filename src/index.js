@@ -51,45 +51,7 @@ const sockets = {};
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TwitchEvents(TwitchClient, sockets);
-
-app.post("/webhooks/twitch", async (req, res, next) => {
-	if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-		// it's good
-		const data = req.body.data;
-		if (data) {
-			const body = data[0];
-			const streamer = body.to_name.toLowerCase();
-			const follower = body.from_name;
-			const followedAt = body.followed_at;
-
-			if (!sockets.hasOwnProperty(streamer)) return;
-
-			const badges = {};
-
-			const theMessage = `Thanks for following, ${follower}!`;
-
-			const messageObject = {
-				displayName: "DisTwitchChat",
-				avatar: DisTwitchChatProfile,
-				body: theMessage,
-				platform: "twitch",
-				messageId: "follow",
-				uuid: "follow",
-				id: "follow",
-				badges,
-				sentAt: new Date(followedAt).getTime(),
-				userColor: "#ff0029",
-			};
-
-			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
-		}
-		res.json("success");
-	} else {
-		res.status("401").json("Looks like You aren't twitch");
-		// it's bad
-	}
-});
+TwitchEvents(TwitchClient, sockets, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD MESSAGE HANDLING
