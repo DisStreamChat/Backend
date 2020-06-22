@@ -248,6 +248,12 @@ router.get("/webhooks/twitch", async (req, res, next) => {
     res.send(req.query["hub.challenge"])
 })
 
+router.post("/webhooks/twitch", async (req, res, next) => {
+    const body = req.body
+    console.log(body)
+    res.json("success")
+})
+
 router.use((req, res) => {
     res.status(404).json({
         status: 404,
