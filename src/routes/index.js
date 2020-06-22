@@ -250,7 +250,7 @@ router.get("/webhooks/twitch", async (req, res, next) => {
 
 router.post("/webhooks/twitch", async (req, res, next) => {
     const body = req.body
-    console.log(body, req.headers)
+    console.log(body, req.headers, req.twitch_signature)
     res.json("success")
 })
 

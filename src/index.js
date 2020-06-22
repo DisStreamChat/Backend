@@ -20,7 +20,22 @@ const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/m
 app.use(helemt());
 // app.use(morgan("dev"))
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+    verify: function(req, res, buf, encoding) {
+        // is there a hub to verify against
+        req.twitch_hub = false;
+        if (req.headers && req.headers['x-hub-signature']) {
+            req.twitch_hub = true;
+
+            var xHub = req.headers['x-hub-signature'].split('=');
+
+            req.twitch_hex = crypto.createHmac(xHub[0], mysecret)
+                .update(buf)
+                .digest('hex');
+            req.twitch_signature = xHub[1];
+        }
+    }
+}));
 
 // add the routes stored in the 'routes' folder to the app
 app.use("/", require("./routes/index"));
