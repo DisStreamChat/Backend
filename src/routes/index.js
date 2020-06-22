@@ -249,9 +249,15 @@ router.get("/webhooks/twitch", async (req, res, next) => {
 })
 
 router.post("/webhooks/twitch", async (req, res, next) => {
-    const body = req.body
-    console.log(body, req.headers, req.twitch_signature, req.twitch_hex)
-    res.json("success")
+    
+    if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
+        // it's good
+        const body = req.body
+        console.log(body)
+        res.json("success")
+    } else {
+        // it's bad
+    }
 })
 
 router.use((req, res) => {
