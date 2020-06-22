@@ -9,6 +9,7 @@ const TwitchApi = require("twitch-lib");
 const helemt = require("helmet");
 const morgan = require("morgan");
 const TwitchEvents = require("./TwitchEvents.js")
+const crypto = require('crypto');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
