@@ -98,27 +98,27 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
-(async () => {
-	const db = admin.firestore();
-	const webhookConnections = await db.collection("webhookConnections").get();
-	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-	webhookConnectionData.forEach(data => {
-		const connection = data.followConnection;
-		const expiry = connection.lastConnection + connection.leaseSeconds;
-        const now = new Date().getTime();
-		if (expiry < now) {
-			const updateConnection = async () => {
-				const lastConnection = new Date().getTime();
-				const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
-				db.collection("webhookConnections").doc(data.id).update({
-					followConnection: { lastConnection, leaseSeconds },
-				});
-			};
-			updateConnection();
-			setInterval(updateConnection, connection.leaseSeconds);
-		}
-	});
-})();
+// (async () => {
+// 	const db = admin.firestore();
+// 	const webhookConnections = await db.collection("webhookConnections").get();
+// 	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+// 	webhookConnectionData.forEach(data => {
+// 		const connection = data.followConnection;
+// 		const expiry = connection.lastConnection + connection.leaseSeconds;
+//         const now = new Date().getTime();
+// 		if (expiry < now) {
+// 			const updateConnection = async () => {
+// 				const lastConnection = new Date().getTime();
+// 				const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
+// 				db.collection("webhookConnections").doc(data.id).update({
+// 					followConnection: { lastConnection, leaseSeconds },
+// 				});
+// 			};
+// 			updateConnection();
+// 			setInterval(updateConnection, connection.leaseSeconds);
+// 		}
+// 	});
+// })();
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
