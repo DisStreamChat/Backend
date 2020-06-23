@@ -169,7 +169,7 @@ module.exports = (TwitchClient, sockets, app) => {
         const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1?"s":""}!\n${HTMLCleanMessage}` 
 
 		const messageObject = {
-			displayName: "DisTwitchChat",
+			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
 			// HTMLCleanMessage,
@@ -209,7 +209,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		});
 
 		const messageObject = {
-			displayName: "DisTwitchChat",
+			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
 			HTMLCleanMessage,
@@ -248,7 +248,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		});
 
 		const messageObject = {
-			displayName: "DisTwitchChat",
+			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
 			HTMLCleanMessage,
@@ -308,7 +308,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			);
 
 			const messageObject = {
-				displayName: "DisTwitchChat",
+				displayName: "DisStreamChat",
 				avatar: DisTwitchChatProfile,
 				body: HTMLCleanMessage,
 				HTMLCleanMessage,
@@ -351,7 +351,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
-			displayName: "DisTwitchChat",
+			displayName: "DisStreamChat",
             avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
 			HTMLCleanMessage,
@@ -385,7 +385,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
-			displayName: "DisTwitchChat",
+			displayName: "DisStreamChat",
             avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
 			HTMLCleanMessage,
@@ -421,7 +421,7 @@ module.exports = (TwitchClient, sockets, app) => {
                 const theMessage = `Thanks for following, ${follower}!`;
     
                 const messageObject = {
-                    displayName: "DisTwitchChat",
+                    displayName: "DisStreamChat",
                     avatar: DisTwitchChatProfile,
                     body: theMessage,
                     platform: "twitch",
