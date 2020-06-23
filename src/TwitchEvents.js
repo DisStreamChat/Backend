@@ -418,7 +418,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
                 console.log(`${follower} followed ${streamer}`)
                 
-                if (!sockets.hasOwnProperty(streamer)) return;
+                if (!sockets.hasOwnProperty(streamer)) return res.status(500).json("already notified");
                 
                 const streamerDatabaseId = sha1(body.to_id)
 
