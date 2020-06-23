@@ -74,7 +74,7 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
  *
  *     subscribeToFollowers(32168215)
  */
-const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
+const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
 		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
@@ -82,29 +82,32 @@ const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
 		"hub.secret": process.env.WEBHOOK_SECRET,
-	};
-	Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
-		method: "POST",
-		body: JSON.stringify(body),
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+    };
+    try{
+        await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+    }catch(err){
+        console.log(err.message)
+    }
+
 	return leaseSeconds;
 };
 
 (async () => {
-	await new Promise(res => setTimeout(res, 10000));
 	const db = admin.firestore();
 	const webhookConnections = await db.collection("webhookConnections").get();
 	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-	// console.log(webhookConnectionData)
 	webhookConnectionData.forEach(data => {
 		const connection = data.followConnection;
 		const expiry = connection.lastConnection + connection.leaseSeconds;
         const now = new Date().getTime();
 		if (expiry < now) {
-			const updateConnection = () => {
+			const updateConnection = async () => {
 				const lastConnection = new Date().getTime();
 				const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
 				db.collection("webhookConnections").doc(data.id).update({
