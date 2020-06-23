@@ -102,11 +102,11 @@ const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
 	webhookConnectionData.forEach(data => {
 		const connection = data.followConnection;
 		const expiry = connection.lastConnection + connection.leaseSeconds;
-		const now = new Date().getTime();
+        const now = new Date().getTime();
 		if (expiry < now) {
 			const updateConnection = () => {
 				const lastConnection = new Date().getTime();
-				const leaseSeconds = subscribeToFollowers(data.channelId, connection.leaseSeconds);
+				const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
 				db.collection("webhookConnections").doc(data.id).update({
 					followConnection: { lastConnection, leaseSeconds },
 				});
