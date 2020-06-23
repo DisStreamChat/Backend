@@ -1,5 +1,5 @@
 const TwitchApi = require("twitch-lib");
-
+const sha1 = require("sha1");
 // console.log(process.env)
 
 // intialize the twitch api class from the twitch-lib package
@@ -13,6 +13,7 @@ const DisTwitchChatProfile = "https://www.disstreamchat.com/logo.png";
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("./utils/messageManipulation");
+const { admin } = require("firebase-admin/lib/database");
 
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
@@ -412,12 +413,29 @@ module.exports = (TwitchClient, sockets, app) => {
                 const body = data[0];
                 const streamer = body.to_name.toLowerCase();
                 const follower = body.from_name;
+                const followerId = body.from_id
                 const followedAt = body.followed_at;
-    
+
+                console.log(`${follower} followed ${streamer}`)
+                
                 if (!sockets.hasOwnProperty(streamer)) return;
-    
+                
+                const streamerDatabaseId = sha1(body.to_id)
+
+                const db = admin.firestore()
+                const streamerRef = await db.collection("Streamers").collection(streamerDatabaseId).get()
+                const streamerData = streamerRef.data()
+                const previouslyNotified = streamerData.previouslyNotified || []
+
+                if(previouslyNotified.includes(followerId)) return
+
+                previouslyNotified.push(followerId)
+                await db.collection("Streamers").collection(streamerDatabaseId).update({
+                    previouslyNotified
+                })
+                
                 const badges = {};
-    
+
                 const theMessage = `Thanks for following, ${follower}!`;
     
                 const messageObject = {
