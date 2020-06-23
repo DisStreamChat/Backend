@@ -423,14 +423,14 @@ module.exports = (TwitchClient, sockets, app) => {
                 const streamerDatabaseId = sha1(body.to_id)
 
                 const db = admin.firestore()
-                const streamerRef = await db.collection("Streamers").collection(streamerDatabaseId).get()
+                const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get()
                 const streamerData = streamerRef.data()
                 const previouslyNotified = streamerData.previouslyNotified || []
 
                 if(previouslyNotified.includes(followerId)) return
 
                 previouslyNotified.push(followerId)
-                await db.collection("Streamers").collection(streamerDatabaseId).update({
+                await db.collection("Streamers").doc(streamerDatabaseId).update({
                     previouslyNotified
                 })
                 
