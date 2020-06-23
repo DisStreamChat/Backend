@@ -98,7 +98,7 @@ const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
 		const connection = data.followConnection;
 		const expiry = connection.lastConnection + connection.leaseSeconds;
 		const now = new Date().getTime();
-		if (expiry > now) {
+		if (expiry < now) {
 			const updateConnection = () => {
 				const lastConnection = new Date().getTime();
 				const leaseSeconds = subscribeToFollowers(data.channelId, connection.leaseSeconds);
