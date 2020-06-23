@@ -13,7 +13,7 @@ const DisTwitchChatProfile = "https://www.disstreamchat.com/logo.png";
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("./utils/messageManipulation");
-const { admin } = require("firebase-admin/lib/database");
+const admin = require("firebase-admin");
 
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
