@@ -39,7 +39,7 @@ const oauth = new DiscordOauth2({
  *
  *     subscribeToFollowers(32168215)
  */
-const subscribeToFollowers = (channelID, leaseSeconds = 864000) => {
+const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
 		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
@@ -47,14 +47,19 @@ const subscribeToFollowers = (channelID, leaseSeconds = 864000) => {
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
 		"hub.secret": process.env.WEBHOOK_SECRET,
-    };
-	Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
-		method: "POST",
-		body: JSON.stringify(body),
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+	};
+	try {
+		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (err) {
+        console.log(err.message)
+    }
+
 	return leaseSeconds;
 };
 
@@ -89,7 +94,7 @@ const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
 };
 
 (async () => {
-    await new Promise(res => setTimeout(res, 10000))
+	await new Promise(res => setTimeout(res, 10000));
 	const db = admin.firestore();
 	const webhookConnections = await db.collection("webhookConnections").get();
 	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
