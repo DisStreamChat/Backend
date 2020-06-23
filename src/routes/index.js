@@ -58,6 +58,36 @@ const subscribeToFollowers = (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
+/**
+ * This is a function.
+ *
+ * @param {number} channelID - a twitch channel id
+ * @param {number} leaseSeconds - how long the subscription will last, in seconds. max 864000, min 0
+ * @returns {number} - leaseSeconds
+ *
+ * @example
+ *
+ *     subscribeToFollowers(32168215)
+ */
+const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
+	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
+	const body = {
+		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
+		"hub.mode": "unsubscribe",
+		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
+		"hub.lease_seconds": leaseSeconds,
+		"hub.secret": process.env.WEBHOOK_SECRET,
+	};
+	Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+		method: "POST",
+		body: JSON.stringify(body),
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+	return leaseSeconds;
+};
+
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
 
