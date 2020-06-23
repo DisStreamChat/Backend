@@ -11,7 +11,7 @@ Contributions and suggestions are welcome, if you have any suggestion go ahead a
 
 to Install a development version follow these steps
 1. clone the repo with `git clone`
-2. cd into the repo with `cd DisTwitchChat`
+2. cd into the repo with `cd Backend`
 3. run `npm i` to install dependencies
 4. add a `.env` and add in the environment variables from `.env.sample`
 5. run it with `npm start`
