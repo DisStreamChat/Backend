@@ -47,7 +47,7 @@ const subscribeToFollowers = (channelID, leaseSeconds = 864000) => {
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
 		"hub.secret": process.env.WEBHOOK_SECRET,
-	};
+    };
 	Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
 		method: "POST",
 		body: JSON.stringify(body),
@@ -87,6 +87,30 @@ const unsubscribeFromFollowers = (channelID, leaseSeconds = 864000) => {
 	});
 	return leaseSeconds;
 };
+
+(async () => {
+    await new Promise(res => setTimeout(res, 10000))
+	const db = admin.firestore();
+	const webhookConnections = await db.collection("webhookConnections").get();
+	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+	// console.log(webhookConnectionData)
+	webhookConnectionData.forEach(data => {
+		const connection = data.followConnection;
+		const expiry = connection.lastConnection + connection.leaseSeconds;
+		const now = new Date().getTime();
+		if (expiry > now) {
+			const updateConnection = () => {
+				const lastConnection = new Date().getTime();
+				const leaseSeconds = subscribeToFollowers(data.channelId, connection.leaseSeconds);
+				db.collection("webhookConnections").doc(data.id).update({
+					followConnection: { lastConnection, leaseSeconds },
+				});
+			};
+			updateConnection();
+			setInterval(updateConnection, connection.leaseSeconds);
+		}
+	});
+})();
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
