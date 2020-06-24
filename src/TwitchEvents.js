@@ -11,7 +11,7 @@ const Api = new TwitchApi({
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
 
-const DisTwitchChatProfile = "https://www.disstreamchat.com/logo.png";
+const DisTwitchChatProfile = "https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
