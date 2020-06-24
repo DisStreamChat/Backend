@@ -427,7 +427,7 @@ module.exports = (TwitchClient, sockets, app) => {
                 const streamerData = streamerRef.data()
                 const previouslyNotified = streamerData.previouslyNotified || []
 
-                if(previouslyNotified.includes(followerId)) return res.status(200).json("already notified");
+                if(new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
 
                 previouslyNotified.push(followerId)
                 await db.collection("Streamers").doc(streamerDatabaseId).update({
