@@ -47,7 +47,6 @@ class Command {
     }
 }
 
-
 const embedJSON = (obj, title="") => {
     const embed = new MessageEmbed()
         .setTitle(title)
@@ -61,8 +60,6 @@ const embedJSON = (obj, title="") => {
         }
     }
 }
-
-// checkCodingGame
 
 module.exports = {
     isNumeric: (value) => {

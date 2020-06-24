@@ -1,26 +1,25 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
-require("dotenv").config();
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const TwitchApi = require("twitch-lib");
 const helemt = require("helmet");
-const morgan = require("morgan");
 const TwitchEvents = require("./TwitchEvents.js");
 const crypto = require("crypto");
+const { formatMessage } = require("./utils/messageManipulation");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const { checkForClash, formatMessage, replaceTwitchEmotes } = require("./utils/messageManipulation");
 
 // add the basic middleware to the express app
 app.use(helemt());
-// app.use(morgan("dev"))
 app.use(cors());
+
+// this function is used to verify twitch webhook requests
 app.use(
 	bodyParser.json({
 		verify: function (req, res, buf, encoding) {
@@ -51,18 +50,20 @@ const sockets = {};
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// see ./TwitchEvents.js
 TwitchEvents(TwitchClient, sockets, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD MESSAGE HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: move discord events to separate file
 DiscordClient.on("message", async message => {
 	// if the message was sent by a bot it should be ignored
 	if (message.author.bot) return;
 	if (!sockets.hasOwnProperty(message.guild.id)) return;
 
-	const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
+	// const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
 
 	// don't waste time with the rest of the stuff if there isn't a connection to this guild
 	if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
@@ -75,6 +76,7 @@ DiscordClient.on("message", async message => {
 		// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
 		// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
+        // TODO: make customizable
 		if (HTMLCleanMessage.startsWith("!") || HTMLCleanMessage.startsWith("?")) return;
 
 		const messageObject = {
@@ -89,7 +91,8 @@ DiscordClient.on("message", async message => {
 			uuid: message.id,
 			id: message.id,
 			badges: {},
-			sentAt: message.createdAt.getTime(),
+            sentAt: message.createdAt.getTime(),
+            // TODO: improve with roles
 			userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor,
 		};
 
@@ -138,6 +141,7 @@ io.on("connection", socket => {
 		// TODO use client.join(channel)
 	});
 
+    // deprecated
 	socket.on("updatedata", data => {
 		socket.userInfo = data;
 	});
@@ -185,9 +189,6 @@ io.on("connection", socket => {
 
 		if (guildSockets instanceof Set) guildSockets.delete(socket);
 		if (channelSockets instanceof Set) channelSockets.delete(socket);
-		if (channelSockets instanceof Set && channelSockets.size <= 0) {
-			// TwitchClient.part(TwitchName)
-		}
 	});
 });
 

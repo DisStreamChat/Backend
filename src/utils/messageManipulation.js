@@ -1,5 +1,4 @@
 const fetch = require("node-fetch");
-const badWords = require("bad-words");
 
 const createDOMPurify = require("dompurify");
 
@@ -8,11 +7,6 @@ const { JSDOM } = require("jsdom");
 const window = new JSDOM("").window;
 
 const DOMPurify = createDOMPurify(window);
-
-// initialize the filter that will remove bad words, in the future, users should be able to customize this filter for their channel
-const Filter = new badWords({
-	placeHolder: "⭐",
-});
 
 const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.\S*)?/gm;
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm;
@@ -49,6 +43,7 @@ const replaceChannelMentions = async msg => {
 	return msg;
 };
 
+// unused, currently
 const checkForClash = message => {
 	const urlCheck = [...message.matchAll(urlRegex)][0];
 	const hasUrl = urlCheck != undefined;
@@ -103,7 +98,7 @@ async function getFfzEmotes(channelName) {
     return {ffzEmotes, ffzRegex}
 }
 
-const formatMessage = async (message, platform, tags, { HTMLClean, censor, channelName } = {}) => {
+const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
    
 	let dirty = message.slice();
 	if (HTMLClean)
@@ -116,8 +111,8 @@ const formatMessage = async (message, platform, tags, { HTMLClean, censor, chann
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, tags.emotes);
 	}
-	if (censor) dirty = Filter.clean(dirty);
 	if (platform === "twitch" && channelName) {
+        // TODO: cache these emotes so we don't have to check them every time and move to frontend
         const {bttvEmotes, bttvRegex} = await getBttvEmotes(channelName);
         const {ffzEmotes, ffzRegex} = await getFfzEmotes(channelName);  
 		dirty = dirty.replace(

@@ -1,6 +1,9 @@
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
-// console.log(process.env)
+
+// get functions used to do things like strip html and replace custom discord emojis with the url to the image
+const { formatMessage } = require("./utils/messageManipulation");
+const admin = require("firebase-admin");
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
@@ -8,22 +11,21 @@ const Api = new TwitchApi({
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
 
-
 const DisTwitchChatProfile = "https://www.disstreamchat.com/logo.png";
-
-// get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { formatMessage } = require("./utils/messageManipulation");
-const admin = require("firebase-admin");
 
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
-	const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
-
+    
 	const badges = {};
 	if (tags.badges) {
-		const globalBadges = await Api.getGlobalBadges();
+        const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
+        const globalBadges = await Api.getGlobalBadges();
+
+        // TODO: improve by doing channel badges first
+
+        // get all global badges
 		for (let [key, value] of Object.entries(tags.badges)) {
-			if (key === "subscriber") value = Math.min(+value, 1); // global subscriber badges only have two keys 0 and 1. 1 is for any subscriber above 1 month
+			if (key === "subscriber") value = 0; // global subscriber badges only have two keys 0 and 1. 0 is for any subscriber above 1 month
 
 			let badgeInfo = globalBadges[key].versions[value];
 			if (badgeInfo) {
@@ -88,7 +90,9 @@ module.exports = (TwitchClient, sockets, app) => {
 		// get all badges for the user that sent the messages put them in an object
 		const badges = await getBadges(channelName, tags);
 
-		if (["dav1dsnyder404", "saintplaysthings"].includes(tags["display-name"].toLowerCase())) {
+        // TODO: improve
+        // append a badge if there is a developer
+		if (["dav1dsnyder404", "saintplaysthings", "murdoc"].includes(tags["display-name"].toLowerCase())) {
 			badges["developer"] = {
 				image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
 				title: "Distwitchchat Staff",
@@ -104,7 +108,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		// this is all the data that gets sent to the frontend
 		const messageObject = {
 			displayName: tags["display-name"],
-			avatar: userData.profile_image_url,
+			avatar: userData.profile_image_url, // long term TODO: look into caching profile picture
 			body: HTMLCleanMessage,
 			// HTMLCleanMessage,
 			// censoredMessage,
@@ -125,7 +129,9 @@ module.exports = (TwitchClient, sockets, app) => {
 	});
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
-		const channelName = channel.slice(1).toLowerCase();
+        const channelName = channel.slice(1).toLowerCase();
+        // TODO: improve Regex
+        // TODO: improve by splitting by spaces
         const cheerMoteRegex = /([0-9]*[a-zA-Z]*)([0-9]*)/g
 
         if (!sockets.hasOwnProperty(channelName)) return;
@@ -166,7 +172,7 @@ module.exports = (TwitchClient, sockets, app) => {
             return `<img src="${cheerMote.image}" class="emote"> ${number}`
         })
 
-
+        // TODO: make customizable
         const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1?"s":""}!\n${HTMLCleanMessage}` 
 
 		const messageObject = {
@@ -197,25 +203,25 @@ module.exports = (TwitchClient, sockets, app) => {
 
         const theMessage = `${username}, upgraded their subscription! (Originally from Anonymous)`
 
-		const plainMessage = await formatMessage(theMessage, "twitch", tags);
+		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
-			censor: true,
-		});
-		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
-			HTMLClean: true,
-			censor: true,
-		});
+		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
+		// 	censor: true,
+		// });
+		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
+		// 	HTMLClean: true,
+		// 	censor: true,
+		// });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
-			HTMLCleanMessage,
-			censoredMessage,
-			HTMLCensoredMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -236,25 +242,25 @@ module.exports = (TwitchClient, sockets, app) => {
 
         const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`
 
-		const plainMessage = await formatMessage(theMessage, "twitch", tags);
+		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
-			censor: true,
-		});
-		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
-			HTMLClean: true,
-			censor: true,
-		});
+		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
+		// 	censor: true,
+		// });
+		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
+		// 	HTMLClean: true,
+		// 	censor: true,
+		// });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
-			HTMLCleanMessage,
-			censoredMessage,
-			HTMLCensoredMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "giftupgrade",
 			uuid: tags.id,
@@ -275,11 +281,8 @@ module.exports = (TwitchClient, sockets, app) => {
 	TwitchClient.on("subgift", async (channel, username, streakMonths, recipient, methods, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
-		let messageId = tags["msg-id"] || "";
 
 		const badges = {};
-
-		const userData = await Api.getUserInfo(username);
 
 		if (username == lastGifter) {
 			clearTimeout(giftTimeout);
@@ -291,30 +294,30 @@ module.exports = (TwitchClient, sockets, app) => {
 			allRecipients = `@${recipient}`;
 		}
 		giftTimeout = setTimeout(async () => {
-			const plainMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
+			// const plainMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
 			let HTMLCleanMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
 				HTMLClean: true,
 			});
-			const censoredMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
-				censor: true,
-			});
-			const HTMLCensoredMessage = await formatMessage(
-				`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`,
-				"twitch",
-				tags,
-				{
-					HTMLClean: true, 
-					censor: true,
-				}
-			);
+			// const censoredMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
+			// 	censor: true,
+			// });
+			// const HTMLCensoredMessage = await formatMessage(
+			// 	`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`,
+			// 	"twitch",
+			// 	tags,
+			// 	{
+			// 		HTMLClean: true, 
+			// 		censor: true,
+			// 	}
+			// );
 
 			const messageObject = {
 				displayName: "DisStreamChat",
 				avatar: DisTwitchChatProfile,
 				body: HTMLCleanMessage,
-				HTMLCleanMessage,
-				censoredMessage,
-				HTMLCensoredMessage,
+				// HTMLCleanMessage,
+				// censoredMessage,
+				// HTMLCensoredMessage,
 				platform: "twitch",
 				messageId: "subgift",
 				uuid: tags.id,
@@ -378,20 +381,20 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		let theMessage = `Thanks for subscribing @${username}!`; // You could take into account of prime, plan, planname etc above if you wanted to differ the method.
+		let theMessage = `Thanks for subscribing @${username}!`; // TODO: You could take into account of prime, plan, planname etc above if you wanted to differ the method.
 
-		const plainMessage = await formatMessage(theMessage, "twitch", tags);
+		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
-		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
+		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
+		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
             avatar: DisTwitchChatProfile,
 			body: HTMLCleanMessage,
-			HTMLCleanMessage,
-			censoredMessage,
-			HTMLCensoredMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -405,6 +408,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
     });
     
+    // TODO: move to separate file
     app.post("/webhooks/twitch", async (req, res, next) => {
         if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
             // it's good
@@ -418,6 +422,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
                 console.log(`${follower} followed ${streamer}`)
                 
+                // long term TODO: add follower count/goal overlay
                 if (!sockets.hasOwnProperty(streamer)) return res.status(200).json("no socket connection")
                 
                 const streamerDatabaseId = sha1(body.to_id)
@@ -436,6 +441,7 @@ module.exports = (TwitchClient, sockets, app) => {
                 
                 const badges = {};
 
+                // TODO add custom message handler in seperate file
                 const theMessage = `Thanks for following, ${follower}!`;
     
                 const messageObject = {
