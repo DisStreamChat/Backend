@@ -8,6 +8,7 @@ const DiscordOauth2 = require("discord-oauth2");
 const { getUserInfo } = require("../utils/DiscordClasses");
 const { DiscordClient } = require("../utils/initClients");
 const Discord = require("discord.js");
+const { firestore } = require("firebase-admin");
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
@@ -108,12 +109,14 @@ admin
 		allConnections = docs.filter(doc => doc.channelId != undefined);
 	});
 
+const sevenDays = 604800000;
+const tenDays = 8.64e8;
+
 (async () => {
 	try {
 		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs.find(doc => doc.id === "lastConnection").data()
 			.value;
-		const sevenDays = 604800000;
-		const tenDays = 8.64e8;
+
 		const now = new Date().getTime();
 		const nextConnectionTime = lastConnection + sevenDays;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
@@ -350,7 +353,14 @@ router.get("/token", async (req, res, next) => {
 					});
 			}
 
-			// const
+			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
+            console.log(hasConnection)
+            if (!hasConnection) {
+                subscribeToFollowers(user_id, sevenDays);
+                firestore.collection("webhookConnections").doc(uid).set({
+                    channelId: user_id
+                })
+			}
 
 			res.json({
 				token,
