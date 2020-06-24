@@ -4,7 +4,6 @@ const fetch = require("node-fetch")
 
 const oauth = new DiscordOauth2();
 
-
 class DiscordServer {
     constructor(serverObject, user) {
         this.member = user.id

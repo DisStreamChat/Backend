@@ -262,7 +262,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			// censoredMessage,
 			// HTMLCensoredMessage,
 			platform: "twitch",
-			messageId: "giftupgrade",
+			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
 			badges,

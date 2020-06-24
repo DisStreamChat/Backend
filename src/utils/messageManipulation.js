@@ -99,7 +99,6 @@ async function getFfzEmotes(channelName) {
 }
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
-   
 	let dirty = message.slice();
 	if (HTMLClean)
 		dirty = DOMPurify.sanitize(dirty, {
@@ -110,7 +109,8 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			.replace(/&gt;/g, ">");
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, tags.emotes);
-	}
+    }
+    // TODO: allow twitch emotes on discord and discord emotes on twitch
 	if (platform === "twitch" && channelName) {
         // TODO: cache these emotes so we don't have to check them every time and move to frontend
         const {bttvEmotes, bttvRegex} = await getBttvEmotes(channelName);

@@ -208,6 +208,7 @@ router.get("/app", (req, res) => {
 	}
 });
 
+// deprecated
 router.get("/discord/token/refresh", async (req, res, next) => {
 	try {
 		const token = req.query.token;
