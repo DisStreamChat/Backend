@@ -357,7 +357,7 @@ router.get("/token", async (req, res, next) => {
             console.log(hasConnection)
             if (!hasConnection) {
                 subscribeToFollowers(user_id, sevenDays);
-                firestore.collection("webhookConnections").doc(uid).set({
+                admin.firestore().collection("webhookConnections").doc(uid).set({
                     channelId: user_id
                 })
 			}
