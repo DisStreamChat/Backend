@@ -57,8 +57,8 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 			},
 		});
 	} catch (err) {
-        console.log(err.message)
-    }
+		console.log(err.message);
+	}
 
 	return leaseSeconds;
 };
@@ -82,43 +82,51 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
 		"hub.secret": process.env.WEBHOOK_SECRET,
-    };
-    try{
-        await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
-            method: "POST",
-            body: JSON.stringify(body),
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-    }catch(err){
-        console.log(err.message)
-    }
+	};
+	try {
+		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (err) {
+		console.log(err.message);
+	}
 
 	return leaseSeconds;
 };
 
-// (async () => {
-// 	const db = admin.firestore();
-// 	const webhookConnections = await db.collection("webhookConnections").get();
-// 	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-// 	webhookConnectionData.forEach(data => {
-// 		const connection = data.followConnection;
-// 		const expiry = connection.lastConnection + connection.leaseSeconds;
-//         const now = new Date().getTime();
-// 		if (expiry < now) {
-// 			const updateConnection = async () => {
-// 				const lastConnection = new Date().getTime();
-// 				const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
-// 				db.collection("webhookConnections").doc(data.id).update({
-// 					followConnection: { lastConnection, leaseSeconds },
-// 				});
-// 			};
-// 			updateConnection();
-// 			setInterval(updateConnection, connection.leaseSeconds);
-// 		}
-// 	});
-// })();
+(async () => {
+	const db = admin.firestore();
+	const webhookConnections = await db.collection("webhookConnections").get();
+	const webhookConnectionData = webhookConnections.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+	webhookConnectionData.forEach(data => {
+		const connection = data.followConnection;
+		const leaseMilliseconds = connection.leaseSeconds * 1000;
+		const expiry = connection.lastConnection + leaseMilliseconds;
+		const now = new Date().getTime();
+
+		const timeUntilNextConnection = Math.max(expiry - now, 0);
+
+		const updateConnection = async () => {
+			const lastConnection = new Date().getTime();
+			const leaseSeconds = await subscribeToFollowers(data.channelId, connection.leaseSeconds);
+			await db.collection("webhookConnections").doc(data.id).update({
+				followConnection: { lastConnection, leaseSeconds },
+			});
+		};
+		setTimeout(async () => {
+			await updateConnection();
+			clearInterval(data.intervalId);
+			const intervalId = setInterval(updateConnection, leaseMilliseconds);
+			db.collection("webhookConnections").doc(data.id).update({
+				intervalId,
+			});
+		}, timeUntilNextConnection);
+	});
+})();
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
