@@ -118,7 +118,7 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 			});
         };
         console.log("hello")
-        console.log(new Date(new Date.getTime() + timeUntilNextConnection))
+        console.log(new Date(new Date().getTime() + timeUntilNextConnection))
 		setTimeout(async () => {
 			await updateConnection();
 			clearInterval(data.intervalId);
