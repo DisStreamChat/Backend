@@ -116,11 +116,14 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 			await db.collection("webhookConnections").doc(data.id).update({
 				followConnection: { lastConnection, leaseSeconds },
 			});
-		};
+        };
+        console.log("hello")
+        console.log(new Date(new Date.getTime() + timeUntilNextConnection))
 		setTimeout(async () => {
 			await updateConnection();
 			clearInterval(data.intervalId);
-			const intervalId = setInterval(updateConnection, leaseMilliseconds);
+            const intervalId = setInterval(updateConnection, leaseMilliseconds);
+            
 			db.collection("webhookConnections").doc(data.id).update({
 				intervalId,
 			});
