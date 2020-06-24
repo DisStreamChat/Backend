@@ -98,41 +98,44 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
-let allConnections = []
-admin.firestore().collection("webhookConnections").onSnapshot(async snapshot => {
-    const docs = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
-    console.log("change")
-    allConnections = docs.filter(doc => doc.channelId != undefined)
-});
+let allConnections = [];
+admin
+	.firestore()
+	.collection("webhookConnections")
+	.onSnapshot(async snapshot => {
+		const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+		console.log("change");
+		allConnections = docs.filter(doc => doc.channelId != undefined);
+	});
 
 (async () => {
-    try{
-        const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs.find(doc => doc.id === "lastConnection").data().value
-        const sevenDays = 604800000
-        const tenDays = 8.64e+8
-        const now = new Date().getTime()
-        const nextConnectionTime = lastConnection+sevenDays
-        const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0)
-        console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection)
-        const updateConnections = () => {
-            const value = new Date().getTime()
-            allConnections.forEach(data => {
-                const id = data.channelId
-                subscribeToFollowers(id, tenDays)
-            })
-            admin.firestore().collection("webhookConnections").doc("lastConnection").update({
-                value
-            })
-        }
-        setTimeout(() => {
-            updateConnections()
-            setInterval(updateConnections, tenDays);
-        }, timeUntilNextConnection)
-    }catch(err){
-        console.log(err)
-    }
-
-})()
+	try {
+		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs.find(doc => doc.id === "lastConnection").data()
+			.value;
+		const sevenDays = 604800000;
+		const tenDays = 8.64e8;
+		const now = new Date().getTime();
+		const nextConnectionTime = lastConnection + sevenDays;
+		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
+		console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection);
+		const updateConnections = () => {
+			const value = new Date().getTime();
+			allConnections.forEach(data => {
+				const id = data.channelId;
+				subscribeToFollowers(id, tenDays);
+			});
+			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
+				value,
+			});
+		};
+		setTimeout(() => {
+			updateConnections();
+			setInterval(updateConnections, tenDays);
+		}, timeUntilNextConnection);
+	} catch (err) {
+		console.log(err);
+	}
+})();
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
@@ -346,6 +349,8 @@ router.get("/token", async (req, res, next) => {
 						youtubeAuthenticated: false,
 					});
 			}
+
+			// const
 
 			res.json({
 				token,
