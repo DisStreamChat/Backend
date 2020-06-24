@@ -284,7 +284,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		if (username == lastGifter) {
 			clearTimeout(giftTimeout);
 			lastGiftAmount++;
-			allRecipients += `- @${recipient}`;
+			allRecipients += `, @${recipient}`;
 		} else {
 			lastGifter = username;
 			lastGiftAmount = 1;
@@ -418,7 +418,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
                 console.log(`${follower} followed ${streamer}`)
                 
-                if (!sockets.hasOwnProperty(streamer)) return res.status(500).json("no socket connection")
+                if (!sockets.hasOwnProperty(streamer)) return res.status(200).json("no socket connection")
                 
                 const streamerDatabaseId = sha1(body.to_id)
 
@@ -427,7 +427,7 @@ module.exports = (TwitchClient, sockets, app) => {
                 const streamerData = streamerRef.data()
                 const previouslyNotified = streamerData.previouslyNotified || []
 
-                if(previouslyNotified.includes(followerId)) return res.status(500).json("already notified");
+                if(previouslyNotified.includes(followerId)) return res.status(200).json("already notified");
 
                 previouslyNotified.push(followerId)
                 await db.collection("Streamers").doc(streamerDatabaseId).update({
