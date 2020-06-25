@@ -1,5 +1,6 @@
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
+const uuidv1 = require("uuidv1")
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("./utils/messageManipulation");
@@ -450,8 +451,8 @@ module.exports = (TwitchClient, sockets, app) => {
                     body: theMessage,
                     platform: "twitch",
                     messageId: "follow",
-                    uuid: "follow",
-                    id: "follow",
+                    uuid: uuidv1(),
+                    id: uuidv1(),
                     badges,
                     sentAt: new Date(followedAt).getTime(),
                     userColor: "#ff0029",
