@@ -379,4 +379,14 @@ router.get("/webhooks/twitch", async (req, res, next) => {
 	res.send(req.query["hub.challenge"]);
 });
 
+router.get("/createauthtoken", async (req, res, next) => {
+    const oneTimeCode = req.query.code
+    const idToken = req.query.token
+    const decodedToken = await admin.auth().verifyIdToken(idToken)
+    const uid = decodedToken.uid
+    const authToken = await admin.auth().createCustomToken(uid)
+    await admin.firestore().collection("oneTimeCodes").doc(oneTimeCode).set({authToken})
+    res.json({authToken})
+})
+
 module.exports = router;
