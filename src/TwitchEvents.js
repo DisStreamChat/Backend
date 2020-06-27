@@ -96,7 +96,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		if (["dav1dsnyder404", "saintplaysthings", "murdoc"].includes(tags["display-name"].toLowerCase())) {
 			badges["developer"] = {
 				image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
-				title: "Distwitchchat Staff",
+				title: "DisStreamchat Staff",
 			};
 		}
 
