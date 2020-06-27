@@ -117,9 +117,9 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
         const {ffzEmotes, ffzRegex} = await getFfzEmotes(channelName);  
 		dirty = dirty.replace(
 			bttvRegex,
-			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}">`
+			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
 		);
-		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote">`);
+		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
 	} else if (platform === "discord") {
 		dirty = dirty.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`);
 	}
@@ -133,7 +133,7 @@ const replaceTwitchEmotes = (message, emotes) => {
 		emotes[id].forEach(startEnd => {
 			const [start, end] = startEnd.split("-");
 			starts[start] = {
-				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote">`,
+				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote"`,
 				end,
 			};
 		});
@@ -144,7 +144,7 @@ const replaceTwitchEmotes = (message, emotes) => {
 		const char = parts[i];
 		const emoteInfo = emoteStart[i];
 		if (emoteInfo) {
-			messageWithEmotes += emoteInfo.emoteUrl;
+			messageWithEmotes += `${emoteInfo.emoteUrl} title=${message.slice(i, emoteInfo.end+1)}>`;
 			i = emoteInfo.end;
 		} else {
 			messageWithEmotes += char;
