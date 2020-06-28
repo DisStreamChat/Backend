@@ -9,6 +9,8 @@ const { getUserInfo } = require("../utils/DiscordClasses");
 const { DiscordClient } = require("../utils/initClients");
 const Discord = require("discord.js");
 const { firestore } = require("firebase-admin");
+const tmi = require("tmi.js");
+
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
@@ -296,6 +298,26 @@ router.get("/token", async (req, res, next) => {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
+			try{
+                const UserClient = new tmi.Client({
+                    options: { debug: false},
+                    connection: {
+                        secure: true,
+                        reconnect: true,
+                    },
+                    identity: {
+                        username: login,
+                        password: json.access_token,
+                    },
+                    channels: [login],
+                });
+                await UserClient.connect();
+                await UserClient.say(login, "/mod disstreamchat")
+            }catch(err){
+                
+            }
+			
+
 			const uid = sha1(user_id);
 			const token = await admin.auth().createCustomToken(uid);
 			const userInfo = await Api.getUserInfo(login);
@@ -354,12 +376,11 @@ router.get("/token", async (req, res, next) => {
 			}
 
 			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
-            console.log(hasConnection)
-            if (!hasConnection) {
-                subscribeToFollowers(user_id, sevenDays);
-                admin.firestore().collection("webhookConnections").doc(uid).set({
-                    channelId: user_id
-                })
+			if (!hasConnection) {
+				subscribeToFollowers(user_id, sevenDays);
+				admin.firestore().collection("webhookConnections").doc(uid).set({
+					channelId: user_id,
+				});
 			}
 
 			res.json({
@@ -380,13 +401,13 @@ router.get("/webhooks/twitch", async (req, res, next) => {
 });
 
 router.get("/createauthtoken", async (req, res, next) => {
-    const oneTimeCode = req.query.code
-    const idToken = req.query.token
-    const decodedToken = await admin.auth().verifyIdToken(idToken)
-    const uid = decodedToken.uid
-    const authToken = await admin.auth().createCustomToken(uid)
-    await admin.firestore().collection("oneTimeCodes").doc(oneTimeCode).set({authToken})
-    res.json({authToken})
-})
+	const oneTimeCode = req.query.code;
+	const idToken = req.query.token;
+	const decodedToken = await admin.auth().verifyIdToken(idToken);
+	const uid = decodedToken.uid;
+	const authToken = await admin.auth().createCustomToken(uid);
+	await admin.firestore().collection("oneTimeCodes").doc(oneTimeCode).set({ authToken });
+	res.json({ authToken });
+});
 
 module.exports = router;
