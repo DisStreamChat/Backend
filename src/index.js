@@ -129,7 +129,8 @@ const addSocket = (socket, id) => {
 };
 
 io.on("connection", socket => {
-	console.log("a user connected");
+    console.log("a user connected");
+    socket.emit("imConnected")
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", message => {
 		const { TwitchName, guildId } = message;
@@ -173,7 +174,11 @@ io.on("connection", socket => {
 		} catch (err) {
 			console.log(err.message);
 		}
-	});
+    });
+    
+    socket.on("heartbeart", () => {
+        socket.emit("pong")
+    })
 
 	socket.on("disconnect", () => {
 		console.log("a user disconnected");
