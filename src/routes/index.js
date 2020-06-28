@@ -298,25 +298,23 @@ router.get("/token", async (req, res, next) => {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
-			try{
-                const UserClient = new tmi.Client({
-                    options: { debug: false},
-                    connection: {
-                        secure: true,
-                        reconnect: true,
-                    },
-                    identity: {
-                        username: login,
-                        password: json.access_token,
-                    },
-                    channels: [login],
-                });
-                await UserClient.connect();
-                await UserClient.say(login, "/mod disstreamchat")
-            }catch(err){
-                
-            }
-			
+			try {
+				const UserClient = new tmi.Client({
+					options: { debug: false },
+					connection: {
+						secure: true,
+						reconnect: true,
+					},
+					identity: {
+						username: login,
+						password: json.access_token,
+					},
+					channels: [login],
+				});
+				await UserClient.connect();
+				await UserClient.say(login, "/mod disstreamchat");
+				await UserClient.disconnect();
+			} catch (err) {}
 
 			const uid = sha1(user_id);
 			const token = await admin.auth().createCustomToken(uid);
