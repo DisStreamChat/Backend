@@ -110,14 +110,11 @@ async function getFfzEmotes(channelName) {
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
 	if (HTMLClean)
-		dirty = DOMPurify.sanitize(dirty, {
-			ALLOWED_TAGS: [],
-			ALLOWED_ATTR: [],
-		})
-			.replace(/&lt;/g, "<")
-			.replace(/&gt;/g, ">");
+		dirty = dirty
+			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
+        console.log(dirty)
 	if (tags.emotes) {
-		dirty = replaceTwitchEmotes(dirty, tags.emotes);
+		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	if (platform === "twitch" && channelName) {
@@ -146,15 +143,18 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	return dirty;
 };
 
-const replaceTwitchEmotes = (message, emotes) => {
+const replaceTwitchEmotes = (message, original, emotes) => {
+    const deltaLength = Math.abs(message.length - original.length)
+    console.log(deltaLength)
 	let messageWithEmotes = "";
 	const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
-			const [start, end] = startEnd.split("-");
-			starts[start] = {
+            const [start, end] = startEnd.split("-").map(Number);
+            
+			starts[start+deltaLength] = {
 				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote"`,
-				end,
+				end: end+deltaLength,
 			};
 		});
 		return starts;
