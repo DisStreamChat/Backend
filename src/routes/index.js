@@ -209,13 +209,17 @@ router.get("/discord", (req, res) => {
 
 // TODO: add download page
 router.get("/app", async (req, res) => {
+    const version = req.query.version
+    if(version){
+        return res.redirect(`https://github.com/DisTwitchChat/App/releases/download/v${version}/disstreamchat-Setup-${version}.exe`);
+    }
     const apiURL = "https://api.github.com/repos/disstreamchat/App/releases"
     const response = await fetch(apiURL)
     const json = await response.json()
     res.redirect(json[0].assets[0].browser_download_url)
 	// const version = req.query.v;
 	// if (version) {
-	// 	res.redirect(`https://github.com/DisTwitchChat/App/releases/download/v${version}/disstreamchat-Setup-${version}.exe`);
+	// 	
 	// } else {
 	// 	res.redirect(
 	// 		`https://firebasestorage.googleapis.com/v0/b/distwitchchat-db.appspot.com/o/disstreamchat%20Setup%201.0.2.exe?alt=media&token=4e928f5e-079a-47ab-b82b-3dba3101038c`
