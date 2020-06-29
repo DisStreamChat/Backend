@@ -143,6 +143,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	return dirty;
 };
 
+// TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
     const deltaLength = Math.abs(message.length - original.length)
     console.log(deltaLength)
