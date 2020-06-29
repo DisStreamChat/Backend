@@ -286,13 +286,19 @@ router.get("/modchannels", async (req, res, next) => {
 
 router.get("/token", async (req, res, next) => {
 	try {
-		const code = req.query.code;
+
+        // get the oauth code from the the request
+        const code = req.query.code;
+        
+        // get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
 		const json = await response.json();
-		const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
+        
+        // get the user info like username and user id by validating the access token with twitch
+        const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
 			headers: {
 				Authorization: `OAuth ${json.access_token}`,
 			},
@@ -306,6 +312,7 @@ router.get("/token", async (req, res, next) => {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
+            // automatically mod the bot in the users channel on sign in 
 			try {
 				const UserClient = new tmi.Client({
 					options: { debug: false },
@@ -330,7 +337,7 @@ router.get("/token", async (req, res, next) => {
 			const displayName = userInfo.display_name;
 			const profilePicture = userInfo.profile_image_url;
 
-			// set or modify the users data in firestore
+			// set or modify the user data in firestore
 			try {
 				await admin.firestore().collection("Streamers").doc(uid).update({
 					displayName,
@@ -381,6 +388,7 @@ router.get("/token", async (req, res, next) => {
 					});
 			}
 
+            // setup the follow webhook if there isn't already one
 			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
