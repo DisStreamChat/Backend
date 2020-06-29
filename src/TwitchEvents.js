@@ -360,8 +360,8 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-            avatar: theMessage,
-			body: HTMLCleanMessage,
+            avatar: DisTwitchChatProfile,
+			body: theMessage,
 			// HTMLCleanMessage,
 			// censoredMessage,
 			// HTMLCensoredMessage,
