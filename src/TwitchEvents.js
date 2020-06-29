@@ -73,6 +73,7 @@ module.exports = (TwitchClient, sockets, app) => {
 	});
 
 	TwitchClient.on("message", async (channel, tags, message, self) => {
+        if(!["chat", "action"].includes(tags["message-type"])) return
 		// Ignore echoed messages and commands.
 		// TODO: allow users to add in custom command prefixes
 		if (self || message.startsWith("!") || message.startsWith("?")) return;
