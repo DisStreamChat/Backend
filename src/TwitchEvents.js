@@ -5,6 +5,7 @@ const uuidv1 = require("uuidv1")
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("./utils/messageManipulation");
 const admin = require("firebase-admin");
+const ranks = require("./ranks.json");
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
@@ -92,8 +93,8 @@ module.exports = (TwitchClient, sockets, app) => {
 		const badges = await getBadges(channelName, tags);
 
         // TODO: improve
-        // append a badge if there is a developer
-		if (["dav1dsnyder404", "saintplaysthings", "murdoc"].includes(tags["display-name"].toLowerCase())) {
+		// append a badge if there is a developer
+		if (ranks.twitch.developers.includes(tags['user-id'])) {
 			badges["developer"] = {
 				image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
 				title: "DisStreamchat Staff",

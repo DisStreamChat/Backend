@@ -1,7 +1,7 @@
-# DisTwitchChat
-DisTwichChat is a Disord and Twitch Bot that allows integration between a discord `live chat` channel and twitch chat, this allow users without twitch accounts or who prefer discord to chat with the streamer without making the streamer look at two chats. This is the backend Code for the bot
+# DisStreamChat
+DisStreamChat is a Disord and Twitch Bot that allows integration between a discord `live chat` channel and twitch chat, this allow users without twitch accounts or who prefer discord to chat with the streamer without making the streamer look at two chats. This is the backend Code for the bot
 
-DisTwichChat is currently in development and is currently not available to add to your discord server / twitch channel, but when it is you can add it at [distwitchat.com](https://www.distwitchchat.com/#/)
+DisStreamChat is currently in development and is currently not available to add to your discord server / twitch channel, but when it is you can add it at [disstreamchat.com](https://www.disstreamchat.com/#/)
 
 # Contributions
 
