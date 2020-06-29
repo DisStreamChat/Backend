@@ -235,7 +235,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
-			body: HTMLCleanMessage,
+			body: theMessage,
 			// HTMLCleanMessage,
 			// censoredMessage,
 			// HTMLCensoredMessage,
@@ -274,7 +274,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
-			body: HTMLCleanMessage,
+			body: theMessage,
 			// HTMLCleanMessage,
 			// censoredMessage,
 			// HTMLCensoredMessage,
@@ -312,21 +312,8 @@ module.exports = (TwitchClient, sockets, app) => {
 		}
 		giftTimeout = setTimeout(async () => {
 			// const plainMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
-			let HTMLCleanMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
-				HTMLClean: true,
-			});
-			// const censoredMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags, {
-			// 	censor: true,
-			// });
-			// const HTMLCensoredMessage = await formatMessage(
-			// 	`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`,
-			// 	"twitch",
-			// 	tags,
-			// 	{
-			// 		HTMLClean: true, 
-			// 		censor: true,
-			// 	}
-			// );
+			let HTMLCleanMessage = `${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`
+
 
 			const messageObject = {
 				displayName: "DisStreamChat",
@@ -366,18 +353,18 @@ module.exports = (TwitchClient, sockets, app) => {
 			theMessage = `Thanks for re-subscribing @${username}.`;
 		}
 
-		const plainMessage = await formatMessage(theMessage, "twitch", tags);
-		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
-		const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
+		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
+		// let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
+		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
+		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-            avatar: DisTwitchChatProfile,
+            avatar: theMessage,
 			body: HTMLCleanMessage,
-			HTMLCleanMessage,
-			censoredMessage,
-			HTMLCensoredMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -408,7 +395,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const messageObject = {
 			displayName: "DisStreamChat",
             avatar: DisTwitchChatProfile,
-			body: HTMLCleanMessage,
+			body: theMessage,
 			// HTMLCleanMessage,
 			// censoredMessage,
 			// HTMLCensoredMessage,
@@ -459,7 +446,7 @@ module.exports = (TwitchClient, sockets, app) => {
                 const badges = {};
 
                 // TODO add custom message handler in seperate file
-                const theMessage = `Thanks for following, ${follower}!`;
+                const theMessage = `Thanks for following ${follower}!`;
     
                 const messageObject = {
                     displayName: "DisStreamChat",
