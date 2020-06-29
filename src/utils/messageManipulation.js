@@ -112,7 +112,6 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	if (HTMLClean)
 		dirty = dirty
 			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
-        console.log(dirty)
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
@@ -146,7 +145,6 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 // TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
     const deltaLength = Math.abs(message.length - original.length)
-    console.log(deltaLength)
 	let messageWithEmotes = "";
 	const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
