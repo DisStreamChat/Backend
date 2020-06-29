@@ -7,12 +7,21 @@ const { JSDOM } = require("jsdom");
 const window = new JSDOM("").window;
 
 const DOMPurify = createDOMPurify(window);
+const TwitchApi = require("twitch-lib");
+const sha1 = require("sha1");
+const admin = require("firebase-admin");
 
 const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.\S*)?/gm;
 const customEmojiRegex = /<(:[\w]+:)([\d]+)>/gm;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
+
+// intialize the twitch api class from the twitch-lib package
+const Api = new TwitchApi({
+	clientId: process.env.TWITCH_CLIENT_ID,
+	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+});
 
 // unused, currently
 const replaceMentions = async msg => {
@@ -55,47 +64,47 @@ const checkForClash = message => {
 };
 
 async function getBttvEmotes(channelName) {
-    const bttvEmotes = {};
+	const bttvEmotes = {};
 	let bttvRegex;
-    const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
-    let { emotes } = await bttvResponse.json();
-    // replace with your channel url
-    const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
-    const { emotes: channelEmotes } = await bttvChannelResponse.json();
-    if(channelEmotes){
-        emotes = emotes.concat(channelEmotes);
-    }
-    let regexStr = "";
-    emotes.forEach(({ code, id }, i) => {
-        bttvEmotes[code] = id;
-        regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
-    });
-    bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
+	let { emotes } = await bttvResponse.json();
+	// replace with your channel url
+	const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
+	const { emotes: channelEmotes } = await bttvChannelResponse.json();
+	if (channelEmotes) {
+		emotes = emotes.concat(channelEmotes);
+	}
+	let regexStr = "";
+	emotes.forEach(({ code, id }, i) => {
+		bttvEmotes[code] = id;
+		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
+	});
+	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
 
-    return {bttvEmotes, bttvRegex}
+	return { bttvEmotes, bttvRegex };
 }
 
 async function getFfzEmotes(channelName) {
 	const ffzEmotes = {};
 	let ffzRegex;
 
-    const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
-    // replace with your channel url
-    const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
-    const { sets } = await ffzResponse.json();
-    const { room, sets: channelSets } = await ffzChannelResponse.json();
-    let regexStr = "";
-    const appendEmotes = ({ name, urls }, i, emotes) => {
-        ffzEmotes[name] = `https:${Object.values(urls).pop()}`;
-        regexStr += name + (i === emotes.length - 1 ? "" : "|");
-    };
-    sets[3].emoticons.forEach(appendEmotes);
-    if (channelSets && room) {
-        const setnum = room.set
-        channelSets[setnum].emoticons.forEach(appendEmotes);
-    }
-    ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-    return {ffzEmotes, ffzRegex}
+	const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
+	// replace with your channel url
+	const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
+	const { sets } = await ffzResponse.json();
+	const { room, sets: channelSets } = await ffzChannelResponse.json();
+	let regexStr = "";
+	const appendEmotes = ({ name, urls }, i, emotes) => {
+		ffzEmotes[name] = `https:${Object.values(urls).pop()}`;
+		regexStr += name + (i === emotes.length - 1 ? "" : "|");
+	};
+	sets[3].emoticons.forEach(appendEmotes);
+	if (channelSets && room) {
+		const setnum = room.set;
+		channelSets[setnum].emoticons.forEach(appendEmotes);
+	}
+	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	return { ffzEmotes, ffzRegex };
 }
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
@@ -109,17 +118,28 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			.replace(/&gt;/g, ">");
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, tags.emotes);
-    }
-    // TODO: allow twitch emotes on discord and discord emotes on twitch
+	}
+	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	if (platform === "twitch" && channelName) {
-        // TODO: cache these emotes so we don't have to check them every time and move to frontend
-        const {bttvEmotes, bttvRegex} = await getBttvEmotes(channelName);
-        const {ffzEmotes, ffzRegex} = await getFfzEmotes(channelName);  
-		dirty = dirty.replace(
-			bttvRegex,
-			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
-		);
-		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
+		const info = await Api.getUserInfo(channelName);
+		if (info) {
+			const { id } = info;
+			const databaseId = sha1(id);
+			const db = admin.firestore();
+			const user = await db.collection("Streamers").doc(databaseId).get();
+			const userData = user.data();
+			const customEmotes = userData.appSettings.ShowCustomEmotes;
+			if (customEmotes) {
+				// TODO: cache these emotes so we don't have to check them every time and move to frontend
+				const { bttvEmotes, bttvRegex } = await getBttvEmotes(channelName);
+				const { ffzEmotes, ffzRegex } = await getFfzEmotes(channelName);
+				dirty = dirty.replace(
+					bttvRegex,
+					name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
+				);
+				dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
+			}
+		}
 	} else if (platform === "discord") {
 		dirty = dirty.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`);
 	}
@@ -144,7 +164,7 @@ const replaceTwitchEmotes = (message, emotes) => {
 		const char = parts[i];
 		const emoteInfo = emoteStart[i];
 		if (emoteInfo) {
-			messageWithEmotes += `${emoteInfo.emoteUrl} title=${message.slice(i, emoteInfo.end+1)}>`;
+			messageWithEmotes += `${emoteInfo.emoteUrl} title=${message.slice(i, emoteInfo.end + 1)}>`;
 			i = emoteInfo.end;
 		} else {
 			messageWithEmotes += char;
