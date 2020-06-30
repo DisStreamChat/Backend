@@ -79,7 +79,7 @@ DiscordClient.on("message", async message => {
 			title: "DisStreamchat Staff",
 		};
 	}
-	
+
 	try {
 		const CleanMessage = message.cleanContent;
 		// const plainMessage = formatMessage(CleanMessage, "discord", {});
@@ -101,7 +101,7 @@ DiscordClient.on("message", async message => {
 			messageId: "",
 			uuid: message.id,
 			id: message.id,
-			badges: {},
+			badges,
             sentAt: message.createdAt.getTime(),
             // TODO: improve with roles
 			userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor,
