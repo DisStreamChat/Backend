@@ -9,6 +9,7 @@ const helemt = require("helmet");
 const TwitchEvents = require("./TwitchEvents.js");
 const crypto = require("crypto");
 const { formatMessage } = require("./utils/messageManipulation");
+const ranks = require('./ranks.json');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -69,6 +70,16 @@ DiscordClient.on("message", async message => {
 	if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
 
 	const senderName = message.member.displayName;
+
+	const badges = {};
+
+	if (ranks.discord.developers.includes(message.author.id)) {
+		badges["developer"] = {
+			image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
+			title: "DisStreamchat Staff",
+		};
+	}
+	
 	try {
 		const CleanMessage = message.cleanContent;
 		// const plainMessage = formatMessage(CleanMessage, "discord", {});
