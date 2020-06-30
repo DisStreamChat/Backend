@@ -112,8 +112,8 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	if (HTMLClean)
 		dirty = dirty
             .replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
-            .replace(/<([a-z])/, "&lt;$1")
-            .replace(/([a-z])>/, "$1&gt;")
+            .replace(/<([a-z])/gi, "&lt;$1")
+            .replace(/([a-z])>/gi, "$1&gt;")
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
