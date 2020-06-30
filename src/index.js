@@ -9,6 +9,7 @@ const helemt = require("helmet");
 const TwitchEvents = require("./TwitchEvents.js");
 const crypto = require("crypto");
 const { formatMessage } = require("./utils/messageManipulation");
+const ranks = require('./ranks.json');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -59,7 +60,7 @@ TwitchEvents(TwitchClient, sockets, app);
 
 // TODO: move discord events to separate file
 DiscordClient.on("message", async message => {
-    console.log(message.cleanContent)
+	if (message.guild == null) return;
 	// if the message was sent by a bot it should be ignored
 	if (message.author.bot) return;
 	if (!sockets.hasOwnProperty(message.guild.id)) return;
@@ -70,6 +71,23 @@ DiscordClient.on("message", async message => {
 	if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
 
 	const senderName = message.member.displayName;
+
+	const badges = {};
+
+	if (message.guild.ownerID == message.author.id) {
+		badges["owner"] = {
+			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
+			title: "Server Owner",
+		};
+	}
+
+	if (ranks.discord.developers.includes(message.author.id)) {
+		badges["developer"] = {
+			image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
+			title: "DisStreamchat Staff",
+		};
+	}
+
 	try {
 		const CleanMessage = message.cleanContent;
 		// const plainMessage = formatMessage(CleanMessage, "discord", {});
@@ -91,7 +109,7 @@ DiscordClient.on("message", async message => {
 			messageId: "",
 			uuid: message.id,
 			id: message.id,
-			badges: {},
+			badges,
             sentAt: message.createdAt.getTime(),
             // TODO: improve with roles
 			userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor,
