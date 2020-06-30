@@ -60,6 +60,7 @@ TwitchEvents(TwitchClient, sockets, app);
 
 // TODO: move discord events to separate file
 DiscordClient.on("message", async message => {
+	if (message.guild == null) return;
 	// if the message was sent by a bot it should be ignored
 	if (message.author.bot) return;
 	if (!sockets.hasOwnProperty(message.guild.id)) return;
@@ -72,6 +73,13 @@ DiscordClient.on("message", async message => {
 	const senderName = message.member.displayName;
 
 	const badges = {};
+
+	if (message.guild.ownerID == message.author.id) {
+		badges["owner"] = {
+			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
+			title: "Server Owner",
+		};
+	}
 
 	if (ranks.discord.developers.includes(message.author.id)) {
 		badges["developer"] = {
