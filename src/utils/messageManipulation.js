@@ -12,7 +12,7 @@ const sha1 = require("sha1");
 const admin = require("firebase-admin");
 
 const urlRegex = /(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.\S*)?/gm;
-const customEmojiRegex = /&lt;(:[\w]+:)([\d]+)&gt;/gm;
+const customEmojiRegex = /&lt;([a-z]?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
@@ -111,9 +111,9 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	let dirty = message.slice();
 	if (HTMLClean)
 		dirty = dirty
-            .replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
-            .replace(/<([a-z])/gi, "&lt;$1")
-            .replace(/([a-z])>/gi, "$1&gt;")
+			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
+			.replace(/<([a-z])/gi, "&lt;$1")
+			.replace(/([a-z])>/gi, "$1&gt;");
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
@@ -139,23 +139,25 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			}
 		}
 	} else if (platform === "discord") {
-		dirty = dirty.replace(customEmojiRegex, `<img class="emote" src="https://cdn.discordapp.com/emojis/$2.png?v=1">`);
+		dirty = dirty.replace(customEmojiRegex, (match, p1, p2, p3) => {
+			return `<img class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
+		});
 	}
 	return dirty;
 };
 
 // TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
-    const deltaLength = Math.abs(message.length - original.length)
+	const deltaLength = Math.abs(message.length - original.length);
 	let messageWithEmotes = "";
 	const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
-            const [start, end] = startEnd.split("-").map(Number);
-            
-			starts[start+deltaLength] = {
+			const [start, end] = startEnd.split("-").map(Number);
+
+			starts[start + deltaLength] = {
 				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote"`,
-				end: end+deltaLength,
+				end: end + deltaLength,
 			};
 		});
 		return starts;
