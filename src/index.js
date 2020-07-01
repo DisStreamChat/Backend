@@ -88,6 +88,13 @@ DiscordClient.on("message", async message => {
 		}
 	}
 
+	if (message.member.premiumSinceTimestamp) {
+		badges["booster"] = {
+			image: "https://cdn.discordapp.com/attachments/711241287134609480/727707559045365771/serverbooster.png",
+			title: "Server Booster",
+		};
+	}
+
 	if (ranks.discord.developers.includes(message.author.id)) {
 		badges["developer"] = {
 			image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
