@@ -143,7 +143,7 @@ DiscordClient.on("messageDeleteBulk", message => {
 		try {
 			if (sockets.hasOwnProperty(msg.guild.id)) [...sockets[msg.guild.id]].forEach(async s => await s.emit("deletemessage", msg.id));
 		} catch (err) {
-			console.log(err.msg);
+			console.log(err.message);
 		}
 	})
 });
