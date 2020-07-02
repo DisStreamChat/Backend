@@ -155,7 +155,7 @@ DiscordClient.on("messageDeleteBulk", message => {
 	})
 });
 
-DiscordClient.on("messageUpdate", (oldMsg, newMsg) => {
+DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 	if (!sockets.hasOwnProperty(newMsg.channel.guild.id)) return;
 	const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
 	if (newMsg.channel.id != liveChatId && !liveChatId.includes(newMsg.channel.id)) return;
