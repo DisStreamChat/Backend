@@ -156,7 +156,7 @@ const replaceTwitchEmotes = (message, original, emotes) => {
 			const [start, end] = startEnd.split("-").map(Number);
 
 			starts[start + deltaLength] = {
-				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/2.0" class="emote"`,
+				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/3.0" class="emote"`,
 				end: end + deltaLength,
 			};
 		});
