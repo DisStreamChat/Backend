@@ -137,6 +137,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: tags.color,
+			messageType: tags["message-type"],
 		};
 
 		if (messageObject.body.length <= 0) return;
