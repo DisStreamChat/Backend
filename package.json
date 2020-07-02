@@ -4,7 +4,6 @@
   "description": "a discord/twitch bot for integrating discord chat with twitch chat",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js"
   },
   "repository": {
