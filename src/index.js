@@ -155,6 +155,23 @@ DiscordClient.on("messageDeleteBulk", message => {
 	})
 });
 
+DiscordClient.on("messageUpdate", (oldMsg, newMsg) => {
+	if (!sockets.hasOwnProperty(newMsg.channel.guild.id)) return;
+	const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
+	if (newMsg.channel.id != liveChatId && !liveChatId.includes(newMsg.channel.id)) return;
+	try {
+		const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
+		const updateMessage = {
+			body: HTMLCleanMessage,
+			id: newMsg.id,
+		}
+		const _ = [...sockets[newMsg.channel.guild.id]].forEach(async s => await s.emit("updateMessage", updateMessage));
+	}
+	catch (err) {
+		console.log(err.message);
+	}
+});
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
