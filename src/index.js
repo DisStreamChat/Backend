@@ -59,7 +59,7 @@ TwitchEvents(TwitchClient, sockets, app);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: move discord events to separate file
-DiscordClient.on("message", message => {
+DiscordClient.on("message", async message => {
 	if (message.guild == null) return;
 	// if the message was sent by a bot it should be ignored
 	if (message.author.bot) return;
