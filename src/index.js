@@ -160,7 +160,7 @@ DiscordClient.on("messageUpdate", (oldMsg, newMsg) => {
 	const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
 	if (newMsg.channel.id != liveChatId && !liveChatId.includes(newMsg.channel.id)) return;
 	try {
-		const HTMLCleanMessage = await formatMessage(newMsg.content, "discord", {}, { HTMLClean: true });
+		const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
 		const updateMessage = {
 			body: HTMLCleanMessage,
 			id: newMsg.id,
