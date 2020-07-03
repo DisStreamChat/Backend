@@ -86,10 +86,31 @@ module.exports = (TwitchClient, sockets, app) => {
 
 	//Bans and Timeouts can be treated the same on the app side, only need to purge the user.
 
-	TwitchClient.on("raided", ( channel, username, viewers ) => {
+	TwitchClient.on("raided", async ( channel, username, viewers ) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} has raided with ${viewers} viewer${viewers > 1?"s":""}`
+		const messageObject = {
+			displayName: "DisStreamChat",
+			avatar: DisTwitchChatProfile,
+			body: theMessage,
+			platform: "twitch",
+			messageId: "raid",
+			uuid: uuidv1(),
+			id: uuidv1(),
+			badges: {},
+			sentAt: Date.now(),
+			userColor: "#ff0029",
+		};
+		if (messageObject.body.length <= 0) return;
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+    });
+    
+    TwitchClient.on("hosted", async ( channel, username, viewers, autohost) => {
+        if(autohost) return
+		const channelName = channel.slice(1).toLowerCase();
+		if (!sockets.hasOwnProperty(channelName)) return;
+		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1?"s":""}`
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
