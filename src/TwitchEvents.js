@@ -107,7 +107,8 @@ module.exports = (TwitchClient, sockets, app) => {
     });
     
     TwitchClient.on("hosted", async ( channel, username, viewers, autohost) => {
-        if(autohost) return
+	    console.log("hosted")
+        if(autohost) return;
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1?"s":""}`
