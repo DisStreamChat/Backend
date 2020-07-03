@@ -98,7 +98,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			messageId: "raid",
 			uuid: uuidv1(),
 			id: uuidv1(),
-			{},
+			badges: {},
 			sentAt: Date.now(),
 			userColor: "#ff0029",
 		};
