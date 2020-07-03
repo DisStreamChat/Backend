@@ -104,6 +104,27 @@ module.exports = (TwitchClient, sockets, app) => {
 		};
 		if (messageObject.body.length <= 0) return;
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+    });
+    
+    TwitchClient.on("hosted", ( channel, username, viewers, autohost) => {
+        if(autohost) return
+		const channelName = channel.slice(1).toLowerCase();
+		if (!sockets.hasOwnProperty(channelName)) return;
+		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1?"s":""}`
+		const messageObject = {
+			displayName: "DisStreamChat",
+			avatar: DisTwitchChatProfile,
+			body: theMessage,
+			platform: "twitch",
+			messageId: "raid",
+			uuid: uuidv1(),
+			id: uuidv1(),
+			badges: {},
+			sentAt: Date.now(),
+			userColor: "#ff0029",
+		};
+		if (messageObject.body.length <= 0) return;
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("message", async (channel, tags, message, self) => {
