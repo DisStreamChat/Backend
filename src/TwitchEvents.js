@@ -421,6 +421,11 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchresub' so you can handle this on the app since the messageObject is slightly different.
 	});
 
+	const subTypes = {
+		'2000': 'Tier 2',
+		'3000': 'Tier 3',
+	}
+
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
@@ -429,7 +434,14 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		let theMessage = `Thanks for subscribing @${username}!`; // TODO: You could take into account of prime, plan, planname etc above if you wanted to differ the method.
+		let theMessage = '';
+		if (prime) {
+			theMessage = `Thanks for subscribing with Twitch Prime @${username}!`
+		} else if (subTypes[plan]) {
+			theMessage = `Thanks for the ${subTypes[plan]} subscription @${username}!`
+		} else {
+			theMessage = `Thanks for subscribing @${username}!`;
+		}
 
 		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
