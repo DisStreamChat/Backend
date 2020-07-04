@@ -227,7 +227,6 @@ router.get("/app", async (req, res) => {
 	// }
 });
 
-// deprecated
 router.get("/discord/token/refresh", async (req, res, next) => {
 	try {
 		const token = req.query.token;
@@ -408,6 +407,17 @@ router.get("/token", async (req, res, next) => {
 		next(err);
 	}
 });
+
+router.get("/stats/twitch", async (req, res, next) => {
+    const streamerName = req.query.name
+    const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`
+    const streamDataResponse = await Api.fetch(apiUrl)
+    const streamData = streamDataResponse.data
+    if(streamData[0]){
+        return res.json(streamData[0])
+    }
+    res.json(null)
+})
 
 router.get("/webhooks/twitch", async (req, res, next) => {
 	console.log(req.query);
