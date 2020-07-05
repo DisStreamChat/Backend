@@ -234,6 +234,24 @@ io.on("connection", socket => {
 		} catch (err) {
 			console.log(err.message);
 		}
+	});
+	
+	socket.on("timeoutuser - twitch", async user => {
+		const { TwitchName } = socket.userInfo;
+		try {
+			TwitchClient.timeout(TwitchName, user, 300);
+		} catch (err) {
+			console.log(err.message);
+		}
+	});
+	
+	socket.on("banuser - twitch", async user => {
+		const { TwitchName } = socket.userInfo;
+		try {
+			TwitchClient.ban(TwitchName, user);
+		} catch (err) {
+			console.log(err.message);
+		}
     });
     
     socket.on("heartbeart", () => {

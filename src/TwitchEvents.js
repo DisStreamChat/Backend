@@ -260,7 +260,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			bits, // << added this to the messageObject
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchcheer' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
 	});
 
 	TwitchClient.on("anongiftpaidupgrade", async (channel, username, sender, tags) => {
@@ -299,8 +299,13 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject)); // << emitting 'twitchanonupgrade' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject)); 
 	});
+
+	const subTypes = {
+		"2000": "Tier 2",
+		"3000": "Tier 3",
+	};
 
 	TwitchClient.on("giftpaidupgrade", async (channel, username, sender, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
@@ -338,7 +343,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsubupgrade' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
 	});
 
 	let giftTimeout = null;
@@ -346,7 +351,7 @@ module.exports = (TwitchClient, sockets, app) => {
 	let lastGiftAmount = 0;
 	let allRecipients = ``;
 
-	TwitchClient.on("subgift", async (channel, username, streakMonths, recipient, methods, tags) => {
+	TwitchClient.on("subgift", async (channel, username, streakMonths, recipient, { prime, plan, planName }, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 
@@ -363,12 +368,18 @@ module.exports = (TwitchClient, sockets, app) => {
 		}
 		giftTimeout = setTimeout(async () => {
 			// const plainMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
-			let HTMLCleanMessage = `${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`;
+			let theMessage = ``;
+
+			if (subTypes[plan]) {
+				theMessage = `${username} has gifted ${lastGiftAmount} ${subTypes[plan]} subscription(s) ${allRecipients}!`;
+			} else {
+				theMessage = `${username} has gifted ${lastGiftAmount} subscription(s) ${allRecipients}!`;
+			}
 
 			const messageObject = {
 				displayName: "DisStreamChat",
 				avatar: DisTwitchChatProfile,
-				body: HTMLCleanMessage,
+				body: theMessage,
 				// HTMLCleanMessage,
 				// censoredMessage,
 				// HTMLCensoredMessage,
@@ -381,14 +392,14 @@ module.exports = (TwitchClient, sockets, app) => {
 				userColor: "#ff0029",
 			};
 
-			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsubgift' so you can handle this on the app since the messageObject is slightly different.
+			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
 
 			lastGiftAmount = 0;
 			allRecipients = ``;
 		}, 1500);
 	});
 
-	TwitchClient.on("resub", async (channel, username, months, message, tags, methods) => {
+	TwitchClient.on("resub", async (channel, username, months, message, tags, { prime, plan, planName }) => {
 		const channelName = channel.slice(1).toLowerCase();
 		if (!sockets.hasOwnProperty(channelName)) return;
 
@@ -397,10 +408,23 @@ module.exports = (TwitchClient, sockets, app) => {
 		let theMessage = "";
 
 		let cumulativeMonths = ~~tags["msg-param-cumulative-months"];
+		
 		if ((tags["msg-param-should-share-streak"] = true)) {
-			theMessage = `Thanks for re-subscribing for ${cumulativeMonths} months @${username}.`;
+			if (prime) {
+				theMessage = `Thanks for the Twitch Prime re-sub for ${cumulativeMonths} months @${username}!`;
+			} else if (subTypes[plan]) {
+				theMessage = `Thanks for the ${subTypes[plan]} resub for ${cumulativeMonths} months @${username}!`;
+			} else {
+				theMessage = `Thanks for the resub for ${cumulativeMonths} months @${username}!`;
+			}
 		} else {
-			theMessage = `Thanks for re-subscribing @${username}.`;
+			if (prime) {
+				theMessage = `Thanks for the Twitch Prime re-sub @${username}!`;
+			} else if (subTypes[plan]) {
+				theMessage = `Thanks for the ${subTypes[plan]} resub @${username}!`;
+			} else {
+				theMessage = `Thanks for the resub @${username}!`;
+			}
 		}
 
 		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
@@ -424,13 +448,8 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchresub' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
 	});
-
-	const subTypes = {
-		"2000": "Tier 2",
-		"3000": "Tier 3",
-	};
 
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
@@ -471,7 +490,47 @@ module.exports = (TwitchClient, sockets, app) => {
 		};
 
 		if (messageObject.body.length <= 0) return;
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+	});
+
+	TwitchClient.on("primepaidupgrade", async (channel, username, { prime, plan, planName }, tags) => {
+		const channelName = channel.slice(1).toLowerCase();
+		if (!sockets.hasOwnProperty(channelName)) return;
+
+		let messageId = tags["msg-id"] || "";
+
+		const badges = {};
+
+		let theMessage = "";
+		if (subTypes[plan]) {
+			theMessage = `@${username} has upgraded from a Twitch Prime Sub to a  ${subTypes[plan]} subscription!`;
+		} else {
+			theMessage = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
+		}
+
+		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
+		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
+		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
+		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
+
+		const messageObject = {
+			displayName: "DisStreamChat",
+			avatar: DisTwitchChatProfile,
+			body: theMessage,
+			// HTMLCleanMessage,
+			// censoredMessage,
+			// HTMLCensoredMessage,
+			platform: "twitch",
+			messageId: "subscription",
+			uuid: tags.id,
+			id: tags.id,
+			badges,
+			sentAt: +tags["tmi-sent-ts"],
+			userColor: "#ff0029",
+		};
+
+		if (messageObject.body.length <= 0) return;
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
 	});
 
 	// TODO: move to separate file
@@ -580,7 +639,7 @@ module.exports = (TwitchClient, sockets, app) => {
                             sentAt: new Date().getTime(),
                             userColor: "#ff0029",
                         };
-                        const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
+                        const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
     
                     } catch (error) {
                         console.log("error sending redemption message", data, error.message);
