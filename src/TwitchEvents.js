@@ -534,54 +534,55 @@ module.exports = (TwitchClient, sockets, app) => {
 
 	// get channel point redemptions for each channel
 	(async () => {
-		const allStreamersRef = await admin.firestore().collection("Streamers").get();
-		const allStreamersTwitchData = await (
-			await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
-		).map(doc => doc.data());
-		const authorizedStreamers = allStreamersTwitchData.filter(s => s);
-		authorizedStreamers.forEach(async streamer => {
-			const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
-			const json = await res.json();
-			const access_token = json.access_token;
-			const init_topics = [
-				{
-					topic: `channel-points-channel-v1.${streamer.user_id}`,
-					token: access_token,
-				},
-			];
-			const pubSub = new TPS({
-				init_topics,
-				reconnect: true,
-				debug: false,
-			});
-			pubSub.on("channel-points", async data => {
-				try {
-                    const { redemption, channel_id } = data;
-                    const firebaseId = sha1(channel_id)
-                    const user = await (await admin.firestore().collection("Streamers").doc(firebaseId).get()).data()
-                    const channelName = user.name
-                    if (!sockets.hasOwnProperty(channelName)) return
-					const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
-						redemption.reward.title
-					}${redemption.reward.prompt}`;
-					const messageObject = {
-                        displayName: "DisStreamChat",
-                        avatar: DisTwitchChatProfile,
-                        body: message,
-                        platform: "twitch",
-                        messageId: "subscription",
-                        uuid: uuidv1(),
-                        id: uuidv1(),
-                        badges: {},
-                        sentAt: new Date().getTime(),
-                        userColor: "#ff0029",
-                    };
-                    const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
-
-				} catch (error) {
-					console.log("error sending redemption message", data, error.message);
-				}
-			});
-		});
+		admin.firestore().collection("Streamers").onSnapshot(async allStreamersRef => {
+            const allStreamersTwitchData = await (await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))).map(doc => doc.data());
+            const authorizedStreamers = allStreamersTwitchData.filter(s => s);
+            authorizedStreamers.forEach(async streamer => {
+                const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
+                const json = await res.json();
+                const access_token = json.access_token;
+                const init_topics = [
+                    {
+                        topic: `channel-points-channel-v1.${streamer.user_id}`,
+                        token: access_token,
+                    },
+                ];
+                const pubSub = new TPS({
+                    init_topics,
+                    reconnect: true,
+                    debug: false,
+                });
+                pubSub.on("channel-points", async data => {
+                    try {
+                        console.log("HI")
+                        const { redemption, channel_id } = data;
+                        const firebaseId = sha1(channel_id)
+                        const user = await (await admin.firestore().collection("Streamers").doc(firebaseId).get()).data()
+                        const channelName = user.name
+                        if (!sockets.hasOwnProperty(channelName)) return
+                        const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
+                            redemption.reward.title
+                        }${redemption.reward.prompt}`;
+                        const messageObject = {
+                            displayName: "DisStreamChat",
+                            avatar: DisTwitchChatProfile,
+                            body: message,
+                            platform: "twitch",
+                            messageId: "subscription",
+                            uuid: uuidv1(),
+                            id: uuidv1(),
+                            badges: {},
+                            sentAt: new Date().getTime(),
+                            userColor: "#ff0029",
+                        };
+                        const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); // << emitting 'twitchsub' so you can handle this on the app since the messageObject is slightly different.
+    
+                    } catch (error) {
+                        console.log("error sending redemption message", data, error.message);
+                    }
+                });
+            });
+        })
+    
 	})();
 };
