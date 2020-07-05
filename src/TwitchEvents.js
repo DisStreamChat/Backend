@@ -1,10 +1,15 @@
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1")
+const TPS = require("twitchps")
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("./utils/messageManipulation");
+
+// the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
+
+// TODO: move to firebase db
 const ranks = require("./ranks.json");
 
 // intialize the twitch api class from the twitch-lib package
@@ -526,6 +531,4 @@ module.exports = (TwitchClient, sockets, app) => {
         }
     });
 
-	//Notes : only on cheer did I pass the "message", if you wanted to, you can do the same for resub and subscription.
-	//Also, I didn't pass the badges on the messageObject except for the cheer events, also I gave each one their own socket.emit's so you can stylize them different.
 };

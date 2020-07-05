@@ -43,7 +43,7 @@
     "socket.io": "^2.3.0",
     "tmi.js": "^1.5.0",
     "twitch-lib": "^0.2.3",
-    "twitchps": "^1.5.0",
+    "twitchps": "^1.5.1",
     "uuidv1": "^1.6.14"
   }
 }
