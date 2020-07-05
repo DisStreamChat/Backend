@@ -401,6 +401,7 @@ router.get("/token", async (req, res, next) => {
 					.doc(uid)
                     .collection("twitch")
                     .doc("data").set({
+                        user_id,
                         refresh_token: json.refresh_token
                     })
 
