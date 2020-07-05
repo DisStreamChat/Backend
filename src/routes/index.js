@@ -350,7 +350,8 @@ router.get("/token", async (req, res, next) => {
 					displayName,
 					profilePicture,
 					TwitchName: displayName.toLowerCase(),
-					name: displayName.toLowerCase(),
+                    name: displayName.toLowerCase(),
+                    twitchId: user_id
 				});
 			} catch (err) {
 				await admin
@@ -358,6 +359,7 @@ router.get("/token", async (req, res, next) => {
 					.collection("Streamers")
 					.doc(uid)
 					.set({
+                        twitchId: user_id,
 						displayName,
 						uid: uid,
 						profilePicture,
