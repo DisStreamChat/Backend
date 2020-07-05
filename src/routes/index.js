@@ -309,7 +309,7 @@ router.get("/token", async (req, res, next) => {
 				Authorization: `OAuth ${json.access_token}`,
 			},
         });
-        console.log(json.refresh_token)
+
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
 			res.status(validationJson.status);
@@ -393,7 +393,16 @@ router.get("/token", async (req, res, next) => {
 						twitchAuthenticated: true,
 						youtubeAuthenticated: false,
 					});
-			}
+            }
+            
+            await admin
+					.firestore()
+					.collection("Streamers")
+					.doc(uid)
+                    .collection("twitch")
+                    .doc("data").set({
+                        refresh_token: json.refresh_token
+                    })
 
 			// setup the follow webhook if there isn't already one
 			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
