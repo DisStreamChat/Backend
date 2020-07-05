@@ -209,17 +209,17 @@ router.get("/discord", (req, res) => {
 
 // TODO: add download page
 router.get("/app", async (req, res) => {
-    const version = req.query.version
-    if(version){
-        return res.redirect(`https://github.com/DisTwitchChat/App/releases/download/v${version}/disstreamchat-Setup-${version}.exe`);
-    }
-    const apiURL = "https://api.github.com/repos/disstreamchat/App/releases"
-    const response = await fetch(apiURL)
-    const json = await response.json()
-    res.redirect(json[0].assets[0].browser_download_url)
+	const version = req.query.version;
+	if (version) {
+		return res.redirect(`https://github.com/DisTwitchChat/App/releases/download/v${version}/disstreamchat-Setup-${version}.exe`);
+	}
+	const apiURL = "https://api.github.com/repos/disstreamchat/App/releases";
+	const response = await fetch(apiURL);
+	const json = await response.json();
+	res.redirect(json[0].assets[0].browser_download_url);
 	// const version = req.query.v;
 	// if (version) {
-	// 	
+	//
 	// } else {
 	// 	res.redirect(
 	// 		`https://firebasestorage.googleapis.com/v0/b/distwitchchat-db.appspot.com/o/disstreamchat%20Setup%201.0.2.exe?alt=media&token=4e928f5e-079a-47ab-b82b-3dba3101038c`
@@ -283,25 +283,31 @@ router.get("/modchannels", async (req, res, next) => {
 	}
 });
 
+router.get("/twitch/token/refresh", async (req, res, next) => {
+	const refresh_token = req.query.token;
+	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
+
+});
+
 router.get("/token", async (req, res, next) => {
 	try {
-
-        // get the oauth code from the the request
+		// get the oauth code from the the request
         const code = req.query.code;
-        
-        // get the access token and refresh token from the from the twitch oauth2 endpoint
+
+		// get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
 		const json = await response.json();
-        
-        // get the user info like username and user id by validating the access token with twitch
-        const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
+
+		// get the user info like username and user id by validating the access token with twitch
+		const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
 			headers: {
 				Authorization: `OAuth ${json.access_token}`,
 			},
-		});
+        });
+        console.log(json.access_token)
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
 			res.status(validationJson.status);
@@ -311,7 +317,7 @@ router.get("/token", async (req, res, next) => {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
-            // automatically mod the bot in the users channel on sign in 
+			// automatically mod the bot in the users channel on sign in
 			try {
 				const UserClient = new tmi.Client({
 					options: { debug: false },
@@ -387,7 +393,7 @@ router.get("/token", async (req, res, next) => {
 					});
 			}
 
-            // setup the follow webhook if there isn't already one
+			// setup the follow webhook if there isn't already one
 			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
@@ -409,15 +415,15 @@ router.get("/token", async (req, res, next) => {
 });
 
 router.get("/stats/twitch", async (req, res, next) => {
-    const streamerName = req.query.name
-    const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`
-    const streamDataResponse = await Api.fetch(apiUrl)
-    const streamData = streamDataResponse.data
-    if(streamData[0]){
-        return res.json(streamData[0])
-    }
-    res.json(null)
-})
+	const streamerName = req.query.name;
+	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
+	const streamDataResponse = await Api.fetch(apiUrl);
+	const streamData = streamDataResponse.data;
+	if (streamData[0]) {
+		return res.json(streamData[0]);
+	}
+	res.json(null);
+});
 
 router.get("/webhooks/twitch", async (req, res, next) => {
 	console.log(req.query);
