@@ -284,9 +284,10 @@ router.get("/modchannels", async (req, res, next) => {
 });
 
 router.get("/twitch/token/refresh", async (req, res, next) => {
-	const refresh_token = req.query.token;
+    const refresh_token = req.query.token;
+    
 	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
-
+    console.log(apiURL)
 });
 
 router.get("/token", async (req, res, next) => {
@@ -307,7 +308,7 @@ router.get("/token", async (req, res, next) => {
 				Authorization: `OAuth ${json.access_token}`,
 			},
         });
-        console.log(json.access_token)
+        console.log(json.refresh_token)
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
 			res.status(validationJson.status);
