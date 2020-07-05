@@ -532,11 +532,15 @@ module.exports = (TwitchClient, sockets, app) => {
 		}
 	});
 
-	// get channel point redemptions for each channel
+    // get channel point redemptions for each channel
+    pubsubbedChannels = [];
 	(async () => {
 		admin.firestore().collection("Streamers").onSnapshot(async allStreamersRef => {
             const allStreamersTwitchData = await (await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))).map(doc => doc.data());
             const authorizedStreamers = allStreamersTwitchData.filter(s => s);
+            pubsubbedChannels.forEach(channel => {
+                channel.listener.removeTopic([{topic: `channel-points-channel-v1.${channel.id}`}]);
+            })
             authorizedStreamers.forEach(async streamer => {
                 const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
                 const json = await res.json();
@@ -549,9 +553,10 @@ module.exports = (TwitchClient, sockets, app) => {
                 ];
                 const pubSub = new TPS({
                     init_topics,
-                    reconnect: true,
+                    reconnect: false,
                     debug: false,
                 });
+                pubsubbedChannels.push({listener: pubSub, id: streamer.user_id})
                 pubSub.on("channel-points", async data => {
                     try {
                         console.log("HI")
