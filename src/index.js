@@ -109,7 +109,7 @@ DiscordClient.on("message", async message => {
 		// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
 		// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
-        // TODO: make customizable
+        // TODO: make customizable, this line will be removed in 1.2.11
 		if (HTMLCleanMessage.startsWith("!") || HTMLCleanMessage.startsWith("?")) return;
 
 		const messageObject = {
