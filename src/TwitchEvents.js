@@ -147,7 +147,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
 		if (!sockets.hasOwnProperty(channelName)) return;
-
+		console.log(tags.emotes)
 		// get all possible versions of the message with all variations of the message filters
 		// const plainMessage = await formatMessage(message, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
