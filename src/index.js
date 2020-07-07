@@ -239,16 +239,18 @@ io.on("connection", socket => {
 	socket.on("timeoutuser - twitch", async user => {
 		const { TwitchName } = socket.userInfo;
 		try {
-			TwitchClient.timeout(TwitchName, user, 300);
+            console.log(`banning ${user}`)
+			await TwitchClient.timeout(TwitchName, user, 300);
 		} catch (err) {
-			console.log(err.message);
+            console.log(err.message);
 		}
 	});
 	
 	socket.on("banuser - twitch", async user => {
-		const { TwitchName } = socket.userInfo;
+        const { TwitchName } = socket.userInfo;
 		try {
-			TwitchClient.ban(TwitchName, user);
+            console.log(`timeout ${user}`)
+			await TwitchClient.ban(TwitchName, user);
 		} catch (err) {
 			console.log(err.message);
 		}
