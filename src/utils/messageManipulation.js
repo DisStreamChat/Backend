@@ -114,6 +114,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
 			.replace(/<([a-z])/gi, "&lt;$1")
 			.replace(/([a-z])>/gi, "$1&gt;");
+	dirty = dirty.replace(urlRegex, `<a href="$&">$&</a>`);
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
@@ -143,7 +144,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			return `<img class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
 		});
 	}
-	return dirty.replace(urlRegex, `<a href="$&">$&</a>`);
+	return dirty;
 };
 
 // TODO: fix bugs
