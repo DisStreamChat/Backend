@@ -227,6 +227,37 @@ io.on("connection", socket => {
 		}
 	});
 
+	socket.on("timeoutuser - discord", async user => {
+		const { guildId } = socket.userInfo;
+		const connectGuild = DiscordClient.guilds.resolve(guildId);
+		/* await muted role fetch from database 
+		const muteRole = connectGuild.roles.cache.find(role => role.id === fetchedRole);
+		*/
+		try {
+			console.log(`Timeout ${user} - Discord`);
+			/*
+			user.roles.add(muteRole);
+			Add TimeoutFunction to remove role in 5 minutes (or fetch default timeouts from database)
+			removeDiscordTimeout(user, muteRole) - pass both the user object and muteRole to function
+			inside the removeDiscordTimeout function the following will suffice to remove the role;
+			user.roles.remove(muteRole)
+			 */
+		} catch (err) {
+			console.log(err.message);
+		}
+	});
+
+	socket.on("banuser - discord", async user => {
+		const { guildId } = socket.userInfo;
+		const connectGuild = DiscordClient.guilds.resolve(guildId);
+		try {
+			console.log(`Banning ${user} - Discord`);
+			connectGuild.members.ban(user);
+		} catch (err) {
+			console.log(err.message);
+		}
+	});
+
 	socket.on("deletemsg - twitch", async id => {
 		const { TwitchName } = socket.userInfo;
 		try {
@@ -239,7 +270,8 @@ io.on("connection", socket => {
 	socket.on("timeoutuser - twitch", async user => {
 		const { TwitchName } = socket.userInfo;
 		try {
-            console.log(`banning ${user}`)
+			console.log(`Timeout ${user} - Twitch`)
+			//Possible to do: let default timeouts be assigned in dashboard
 			await TwitchClient.timeout(TwitchName, user, 300);
 		} catch (err) {
             console.log(err.message);
@@ -249,7 +281,7 @@ io.on("connection", socket => {
 	socket.on("banuser - twitch", async user => {
         const { TwitchName } = socket.userInfo;
 		try {
-            console.log(`timeout ${user}`)
+            console.log(`Banning ${user} - Twitch`)
 			await TwitchClient.ban(TwitchName, user);
 		} catch (err) {
 			console.log(err.message);
