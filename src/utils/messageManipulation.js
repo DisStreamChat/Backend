@@ -143,7 +143,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			return `<img class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
 		});
 	}
-	return dirty;
+	return dirty.replace(urlRegex, `<a href="$&">$&</a>`);
 };
 
 // TODO: fix bugs
