@@ -226,7 +226,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				};
 			})
 			.filter(c => !!c);
-
+        
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
@@ -238,7 +238,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
 			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match);
 			if (!cheerMote) return match;
-			return `<img src="${cheerMote.image}" class="emote"> ${number}`;
+			return `<img src="${cheerMote.image}" title="${cheerMote.prefix}" class="emote"> ${number}`;
 		});
 
 		// TODO: make customizable
