@@ -602,7 +602,6 @@ module.exports = (TwitchClient, sockets, app) => {
                 channel.listener.removeTopic([{topic: `channel-points-channel-v1.${channel.id}`}]);
             })
             authorizedStreamers.forEach(async streamer => {
-                console.log(streamer)
                 const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
                 const json = await res.json();
                 const access_token = json.access_token;
@@ -620,7 +619,6 @@ module.exports = (TwitchClient, sockets, app) => {
                 pubsubbedChannels.push({listener: pubSub, id: streamer.user_id})
                 pubSub.on("channel-points", async data => {
                     try {
-                        console.log("HI")
                         const { redemption, channel_id } = data;
                         const firebaseId = sha1(channel_id)
                         const user = await (await admin.firestore().collection("Streamers").doc(firebaseId).get()).data()
