@@ -147,34 +147,35 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	return dirty;
 };
 
+const cleanRegex = function (str) {
+	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
+
 // TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
-	const deltaLength = Math.abs(message.length - original.length);
-	let messageWithEmotes = "";
 	const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
 			const [start, end] = startEnd.split("-").map(Number);
-
-			starts[start + deltaLength] = {
+			starts[start] = {
 				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/3.0" class="emote"`,
-				end: end + deltaLength,
+				end: end,
 			};
 		});
 		return starts;
 	}, {});
 	const parts = Array.from(message);
+	const emoteNames = {};
 	for (let i = 0; i < parts.length; i++) {
-		const char = parts[i];
 		const emoteInfo = emoteStart[i];
 		if (emoteInfo) {
-			messageWithEmotes += `${emoteInfo.emoteUrl} title=${message.slice(i, emoteInfo.end + 1)}>`;
-			i = emoteInfo.end;
-		} else {
-			messageWithEmotes += char;
+			emoteNames[original.slice(i, emoteInfo.end + 1)] = emoteInfo.emoteUrl + ` title="${original.slice(i, emoteInfo.end + 1)}">`;
 		}
 	}
-	return messageWithEmotes;
+	for (let name in emoteNames) {
+		message = message.replace(new RegExp(`(?<=\\s|^)(${cleanRegex(name)})(?=\\s|$)`, "gm"), emoteNames[name]);
+	}
+	return message;
 };
 
 module.exports = {
