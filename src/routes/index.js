@@ -263,13 +263,44 @@ router.get("/discord/token", async (req, res, next) => {
 	}
 });
 
+router.get("//profilepicture", async (req, res, next) => {
+	try {
+        const platform = req.query.platform
+        const user = req.query.user;
+        let profilePicture
+        console.log(user)
+        if(platform === "twitch" || !platform){
+            profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+        }else if(platform === "youtube"){
+            // get profile picture from youtube api
+        }
+        if(!profilePicture){
+            throw new Error("invalid profile picture")
+        }
+		res.json(profilePicture);
+	} catch (err) {
+		next(err);
+	}
+});
+
+router.get("//modchannels", async (req, res, next) => {
+	try {
+		const user = req.query.user;
+		const modChannels = await Api.getUserModerationChannels(user);
+		res.json(modChannels);
+	} catch (err) {
+		next(err);
+	}
+});
+
+
 router.get("/profilepicture", async (req, res, next) => {
 	try {
         const platform = req.query.platform
         const user = req.query.user;
         let profilePicture
         console.log(user)
-        if(platform === "twitch"){
+        if(platform === "twitch" || !platform){
             profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
         }else if(platform === "youtube"){
             // get profile picture from youtube api
