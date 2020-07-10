@@ -265,8 +265,15 @@ router.get("/discord/token", async (req, res, next) => {
 
 router.get("/profilepicture", async (req, res, next) => {
 	try {
-		const user = req.query.user;
-		const profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+        const platform = req.query.platform
+        const user = req.query.user;
+        let profilePicture
+        if(platform == "twitch"){
+            profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+        }
+        if(!profilePicture){
+            throw new Error("invalid profile picture")
+        }
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
