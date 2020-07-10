@@ -268,8 +268,11 @@ router.get("/profilepicture", async (req, res, next) => {
         const platform = req.query.platform
         const user = req.query.user;
         let profilePicture
-        if(platform == "twitch"){
+        console.log(user)
+        if(platform === "twitch"){
             profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+        }else if(platform === "youtube"){
+            // get profile picture from youtube api
         }
         if(!profilePicture){
             throw new Error("invalid profile picture")
