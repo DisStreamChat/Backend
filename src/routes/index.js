@@ -454,4 +454,5 @@ router.get("/createauthtoken", async (req, res, next) => {
 	res.json({ authToken });
 });
 
+
 module.exports = router;

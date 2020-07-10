@@ -10,6 +10,7 @@ const TwitchEvents = require("./TwitchEvents.js");
 const crypto = require("crypto");
 const { formatMessage } = require("./utils/messageManipulation");
 const ranks = require('./ranks.json');
+const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -173,8 +174,63 @@ DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Youtube Events
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+app.get("/youtube/events", async (req, res, next) => {
+	try {
+		const events = await getAllEvents();
+		return res.json(events);
+	} catch (error) {
+		return next(error);
+	}
+});
+
+let listening = false;
+async function listenChat(channelId) {
+    if(!channelId){
+        return {
+            listening: false
+        }
+    }
+	if (listening) {
+		return {
+			listening: true,
+		};
+	}
+	const liveEvent = (await getAllEvents(channelId)).find(event => event.liveStreamingDetails.concurrentViewers);
+	if (liveEvent) {
+		listening = true;
+		const {
+			snippet: { liveChatId },
+		} = liveEvent;
+		const listener = listenMessages(liveChatId);
+		listener.on("messages", async newMessages => {
+			newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
+			io.emit("messages", newMessages);
+		});
+		listener.on("event-end", data => {
+			io.emit("event-end", data);
+			listening = false;
+		});
+		return {
+			listening: true,
+		};
+	}
+	return {
+		listening: false,
+	};
+}
+
+app.get("/youtube/listen", async (req, res) => {
+	const result = await listenChat(req.query.id);
+	return res.json(result);
+});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 // add a socket to a set at set id (key)
 const addSocket = (socket, id) => {
@@ -193,9 +249,13 @@ io.on("connection", socket => {
     socket.emit("imConnected")
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", message => {
-		const { TwitchName, guildId } = message;
+        const { TwitchName, guildId } = message;
+        const youtubeChannelId = message.youtubeChannelId
 		socket.userInfo = message;
 
+        if(youtubeChannelId){
+            addSocket(socket, youtubeChannelId);
+        }
 		addSocket(socket, guildId);
 		addSocket(socket, TwitchName);
 		TwitchClient.join(TwitchName);
