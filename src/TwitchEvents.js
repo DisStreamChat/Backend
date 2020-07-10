@@ -627,7 +627,7 @@ module.exports = (TwitchClient, sockets, app) => {
                         if (!sockets.hasOwnProperty(channelName)) return
                         const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
                             redemption.reward.title
-                        } ${redemption.reward.prompt}`;
+                        } - ${redemption.reward.prompt}`;
                         const messageObject = {
                             displayName: "DisStreamChat",
                             avatar: DisTwitchChatProfile,
