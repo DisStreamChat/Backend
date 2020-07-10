@@ -209,13 +209,13 @@ async function listenChat(channelId) {
             if(!sockets.hasOwnProperty(channelId)) return
             newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
             newMessages.forEach(message => {
-                const _ = [...sockets[newMsg.channel.guild.id]].forEach(async s => await s.emit("chatmessage", message));
+                const _ = [...sockets[channelId]].forEach(async s => await s.emit("chatmessage", message));
             })
 		});
 		listener.on("event-end", data => {
 			listening = false;
             if(!sockets.hasOwnProperty(channelId)) return
-			io.emit("event-end", data);
+			const _ = [...sockets[channelId]].forEach(async s => await s.emit("event-end", data));
 		});
 		return {
 			listening: true,
