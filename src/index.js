@@ -179,7 +179,7 @@ DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 
 app.get("/youtube/events", async (req, res, next) => {
 	try {
-		const events = await getAllEvents();
+		const events = await getAllEvents(req.query.id);
 		return res.json(events);
 	} catch (error) {
 		return next(error);
@@ -206,12 +206,16 @@ async function listenChat(channelId) {
 		} = liveEvent;
 		const listener = listenMessages(liveChatId);
 		listener.on("messages", async newMessages => {
-			newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
-			io.emit("messages", newMessages);
+            if(!sockets.hasOwnProperty(channelId)) return
+            newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
+            newMessages.forEach(message => {
+                const _ = [...sockets[newMsg.channel.guild.id]].forEach(async s => await s.emit("chatmessage", message));
+            })
 		});
 		listener.on("event-end", data => {
-			io.emit("event-end", data);
 			listening = false;
+            if(!sockets.hasOwnProperty(channelId)) return
+			io.emit("event-end", data);
 		});
 		return {
 			listening: true,
