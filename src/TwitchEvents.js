@@ -372,9 +372,9 @@ module.exports = (TwitchClient, sockets, app) => {
 			let theMessage = ``;
 
 			if (subTypes[plan]) {
-				theMessage = `${username} has gifted ${lastGiftAmount} ${subTypes[plan]} subscription(s) ${allRecipients}!`;
+				theMessage = `${username} has gifted ${lastGiftAmount} ${subTypes[plan]} subscription(s) to ${allRecipients}!`;
 			} else {
-				theMessage = `${username} has gifted ${lastGiftAmount} subscription(s) ${allRecipients}!`;
+				theMessage = `${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`;
 			}
 
 			const messageObject = {
