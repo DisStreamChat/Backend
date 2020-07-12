@@ -634,6 +634,7 @@ module.exports = (TwitchClient, sockets, app) => {
                             body: message,
                             platform: "twitch",
                             messageId: "subscription",
+                            messageType: "channel-points",
                             uuid: uuidv1(),
                             id: uuidv1(),
                             badges: {},
