@@ -139,9 +139,6 @@ module.exports = (TwitchClient, sockets, app) => {
         // Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
         
-		// TODO: allow users to add in custom command prefixes. this line will be removed when 1.2.11 is released
-		if (self || message.startsWith("!") || message.startsWith("?")) return;
-
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
 
