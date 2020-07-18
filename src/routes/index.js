@@ -495,4 +495,10 @@ router.get("/createauthtoken", async (req, res, next) => {
 	res.json({ authToken });
 });
 
+router.post("/setauthtoken", async (req, res, next) => {
+    console.log(req.query)
+    await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
+    res.json("success")
+})
+
 module.exports = router;
