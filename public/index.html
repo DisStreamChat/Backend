@@ -53,7 +53,7 @@
     <h1 id="info">Logging you in...</h1>
     <script>
         (async () => {
-            const signInUrl = "https://id.twitch.tv/oauth2/authorize?client_id=ip3igc72c6wu7j00nqghb24duusmbr&redirect_uri=http://localhost:3200/oauth/twitch/&response_type=code&scope=openid%20moderation:read%20chat:edit%20chat:read%20channel:moderate%20channel:read:redemptions"
+            const signInUrl = "https://id.twitch.tv/oauth2/authorize?client_id=ip3igc72c6wu7j00nqghb24duusmbr&redirect_uri=https://api.disstreamchat.com/oauth/twitch/&response_type=code&scope=openid%20moderation:read%20chat:edit%20chat:read%20channel:moderate%20channel:read:redemptions"
             const codeArray = new URLSearchParams(window.location.search)
             if(codeArray.has("otc")){
                 localStorage.setItem("oneTimeCode", codeArray.get("otc"))
@@ -68,7 +68,7 @@
                     const json = await response.json()
                     const token = json.token
                     if (code && response.ok) {
-                        await fetch(`http://localhost:3200/setauthtoken?code=${otc}&token=${token}`, {method: "POST"})
+                        await fetch(`https://api.disstreamchat.com/setauthtoken?code=${otc}&token=${token}`, {method: "POST"})
                     } else {
                         info.textContent = 'Failed to Log you in';
                     }
