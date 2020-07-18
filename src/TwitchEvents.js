@@ -139,6 +139,8 @@ module.exports = (TwitchClient, sockets, app) => {
         // Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
         
+        
+
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
 
