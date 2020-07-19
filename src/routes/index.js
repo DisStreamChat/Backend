@@ -10,6 +10,7 @@ const { DiscordClient } = require("../utils/initClients");
 const Discord = require("discord.js");
 const { firestore } = require("firebase-admin");
 const tmi = require("tmi.js");
+const path = require("path")
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -499,6 +500,10 @@ router.post("/setauthtoken", async (req, res, next) => {
     console.log(req.query)
     await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
     res.json("success")
+})
+
+router.get("/fonts", async (req, res, next) => {
+    res.sendFile(path.join(__dirname, "../../public/fonts.css"))
 })
 
 module.exports = router;
