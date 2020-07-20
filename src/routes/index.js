@@ -506,4 +506,8 @@ router.get("/fonts", async (req, res, next) => {
     res.sendFile(path.join(__dirname, "../../public/fonts.css"))
 })
 
+router.get("/name", (req, res, next) => {
+    res.send("DisStreamChat")
+})
+
 module.exports = router;
