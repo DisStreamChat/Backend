@@ -6,11 +6,11 @@ const TwitchApi = require("twitch-lib");
 const admin = require("firebase-admin");
 const DiscordOauth2 = require("discord-oauth2");
 const { getUserInfo } = require("../utils/DiscordClasses");
-const { DiscordClient } = require("../utils/initClients");
+const { DiscordClient, TwitchClient } = require("../utils/initClients");
 const Discord = require("discord.js");
 const { firestore } = require("firebase-admin");
 const tmi = require("tmi.js");
-const path = require("path")
+const path = require("path");
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -266,18 +266,18 @@ router.get("/discord/token", async (req, res, next) => {
 
 router.get("//profilepicture", async (req, res, next) => {
 	try {
-        const platform = req.query.platform
-        const user = req.query.user;
-        let profilePicture
-        console.log(user)
-        if(platform === "twitch" || !platform){
-            profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
-        }else if(platform === "youtube"){
-            // get profile picture from youtube api
-        }
-        if(!profilePicture){
-            throw new Error("invalid profile picture")
-        }
+		const platform = req.query.platform;
+		const user = req.query.user;
+		let profilePicture;
+		console.log(user);
+		if (platform === "twitch" || !platform) {
+			profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+		} else if (platform === "youtube") {
+			// get profile picture from youtube api
+		}
+		if (!profilePicture) {
+			throw new Error("invalid profile picture");
+		}
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
@@ -294,21 +294,33 @@ router.get("//modchannels", async (req, res, next) => {
 	}
 });
 
+router.get("/checkmod", async (req, res, next) => {
+	const channelName = req.query.channel;
+	const userName = req.query.user;
+	await TwitchClient.join("#" + channelName);
+	const results = await TwitchClient.mods("#" + channelName);
+    const isMod = !!userName && results.includes(userName.toLowerCase())
+    if(isMod){
+        res.json(await Api.getUserInfo(channelName))
+    }else{
+        res.json(null)
+    }
+});
 
 router.get("/profilepicture", async (req, res, next) => {
 	try {
-        const platform = req.query.platform
-        const user = req.query.user;
-        let profilePicture
-        console.log(user)
-        if(platform === "twitch" || !platform){
-            profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
-        }else if(platform === "youtube"){
-            // get profile picture from youtube api
-        }
-        if(!profilePicture){
-            throw new Error("invalid profile picture")
-        }
+		const platform = req.query.platform;
+		const user = req.query.user;
+		let profilePicture;
+		console.log(user);
+		if (platform === "twitch" || !platform) {
+			profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
+		} else if (platform === "youtube") {
+			// get profile picture from youtube api
+		}
+		if (!profilePicture) {
+			throw new Error("invalid profile picture");
+		}
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
@@ -326,17 +338,17 @@ router.get("/modchannels", async (req, res, next) => {
 });
 
 router.get("/twitch/token/refresh", async (req, res, next) => {
-    const refresh_token = req.query.token;
+	const refresh_token = req.query.token;
 	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
-    const response = await fetch(apiURL, {method: "POST"})
-    const json = await response.json()
-    res.json(json)
+	const response = await fetch(apiURL, { method: "POST" });
+	const json = await response.json();
+	res.json(json);
 });
 
 router.get("/token", async (req, res, next) => {
 	try {
 		// get the oauth code from the the request
-        const code = req.query.code;
+		const code = req.query.code;
 
 		// get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
@@ -350,7 +362,7 @@ router.get("/token", async (req, res, next) => {
 			headers: {
 				Authorization: `OAuth ${json.access_token}`,
 			},
-        });
+		});
 
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
@@ -392,8 +404,8 @@ router.get("/token", async (req, res, next) => {
 					displayName,
 					profilePicture,
 					TwitchName: displayName.toLowerCase(),
-                    name: displayName.toLowerCase(),
-                    twitchId: user_id
+					name: displayName.toLowerCase(),
+					twitchId: user_id,
 				});
 			} catch (err) {
 				await admin
@@ -401,7 +413,7 @@ router.get("/token", async (req, res, next) => {
 					.collection("Streamers")
 					.doc(uid)
 					.set({
-                        twitchId: user_id,
+						twitchId: user_id,
 						displayName,
 						uid: uid,
 						profilePicture,
@@ -437,17 +449,12 @@ router.get("/token", async (req, res, next) => {
 						twitchAuthenticated: true,
 						youtubeAuthenticated: false,
 					});
-            }
-            
-            await admin
-					.firestore()
-					.collection("Streamers")
-					.doc(uid)
-                    .collection("twitch")
-                    .doc("data").set({
-                        user_id,
-                        refresh_token: json.refresh_token
-                    })
+			}
+
+			await admin.firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
+				user_id,
+				refresh_token: json.refresh_token,
+			});
 
 			// setup the follow webhook if there isn't already one
 			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
@@ -471,28 +478,27 @@ router.get("/token", async (req, res, next) => {
 });
 
 router.get("/stats/twitch", async (req, res, next) => {
-    const streamerName = req.query.name;
-    const isNew = req.query.new
-    const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
-    const chattersUrl = `https://tmi.twitch.tv/group/user/${streamerName}/chatters`
-    const streamDataResponse = await Api.fetch(apiUrl);
-    const response = await fetch(chattersUrl)
-    const json = await response.json()
-    const streamData = streamDataResponse.data;
-    const stream = streamData[0]
+	const streamerName = req.query.name;
+	const isNew = req.query.new;
+	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
+	const chattersUrl = `https://tmi.twitch.tv/group/user/${streamerName}/chatters`;
+	const streamDataResponse = await Api.fetch(apiUrl);
+	const response = await fetch(chattersUrl);
+	const json = await response.json();
+	const streamData = streamDataResponse.data;
+	const stream = streamData[0];
 	if (stream) {
-        stream.all_viewers = stream.viewer_count
-        stream.viewer_count = json.chatter_count
-        stream.isLive = true
+		stream.all_viewers = stream.viewer_count;
+		stream.viewer_count = json.chatter_count;
+		stream.isLive = true;
 		return res.json(stream);
-	}else if (isNew){
-        return 	res.json({
-            viewer_count: json.chatter_count,
-            isLive: false
-        });
-    }
-    res.json(null)
-
+	} else if (isNew) {
+		return res.json({
+			viewer_count: json.chatter_count,
+			isLive: false,
+		});
+	}
+	res.json(null);
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
@@ -511,17 +517,17 @@ router.get("/createauthtoken", async (req, res, next) => {
 });
 
 router.post("/setauthtoken", async (req, res, next) => {
-    console.log(req.query)
-    await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
-    res.json("success")
-})
+	console.log(req.query);
+	await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
+	res.json("success");
+});
 
 router.get("/fonts", async (req, res, next) => {
-    res.sendFile(path.join(__dirname, "../../public/fonts.css"))
-})
+	res.sendFile(path.join(__dirname, "../../public/fonts.css"));
+});
 
 router.get("/name", (req, res, next) => {
-    res.send("DisStreamChat")
-})
+	res.send("DisStreamChat");
+});
 
 module.exports = router;
