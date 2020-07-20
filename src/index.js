@@ -75,13 +75,13 @@ DiscordClient.on("message", async message => {
 
 	if (message.guild.ownerID == message.author.id) {
 		badges["owner"] = {
-			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
+			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1",
 			title: "Server Owner",
 		};
 	} else {
 		if (message.member.hasPermission(["MANAGE_MESSAGES"])) {
 			badges["moderator"] = {
-				image: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
+				image: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1",
 				title: "Moderator",
 			};
 		}
