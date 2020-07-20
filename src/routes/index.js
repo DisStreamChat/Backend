@@ -472,13 +472,23 @@ router.get("/token", async (req, res, next) => {
 
 router.get("/stats/twitch", async (req, res, next) => {
 	const streamerName = req.query.name;
-	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
-	const streamDataResponse = await Api.fetch(apiUrl);
-	const streamData = streamDataResponse.data;
-	if (streamData[0]) {
-		return res.json(streamData[0]);
+    const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
+    const chattersUrl = `https://tmi.twitch.tv/group/user/${streamerName}/chatters`
+    const streamDataResponse = await Api.fetch(apiUrl);
+    const response = await fetch(chattersUrl)
+    const json = await response.json()
+    const streamData = streamDataResponse.data;
+    const stream = streamData[0]
+	if (stream) {
+        stream.all_viewers = stream.viewer_count
+        stream.viewer_count = json.chatter_count
+        stream.isLive = true
+		return res.json(stream);
 	}
-	res.json(null);
+	res.json({
+        viewer_count: json.chatter_count,
+        isLive: false
+    });
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
