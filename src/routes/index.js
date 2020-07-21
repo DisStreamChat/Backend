@@ -298,13 +298,15 @@ router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
 	const userName = req.query.user;
 	await TwitchClient.join("#" + channelName);
-	const results = await TwitchClient.mods("#" + channelName);
+    const results = await TwitchClient.mods("#" + channelName);
+    console.log(results)
     const isMod = !!userName && results.includes(userName.toLowerCase())
     if(isMod){
-        res.json(await Api.getUserInfo(channelName))
+        return res.json(await Api.getUserInfo(channelName))
     }else{
-        res.json(null)
+        return res.json(null)
     }
+    res.json(null)
 });
 
 router.get("/profilepicture", async (req, res, next) => {
