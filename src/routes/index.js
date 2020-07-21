@@ -294,6 +294,10 @@ router.get("//modchannels", async (req, res, next) => {
 	}
 });
 
+router.get("/guildcount", async (req, res, next) => {
+    res.json(DiscordClient.guilds.cache.array().length)
+})
+
 router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
 	const userName = req.query.user;
