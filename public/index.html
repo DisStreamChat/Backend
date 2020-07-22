@@ -64,7 +64,7 @@
                     const otc = localStorage.getItem("oneTimeCode")
                     console.log(otc)
                     const code = codeArray.get("code")
-                    const response = await fetch("https://api.dissreamchat.com/token?code=" + code)
+                    const response = await fetch("https://api.disstreamchat.com/token?code=" + code)
                     const json = await response.json()
                     const token = json.token
                     if (code && response.ok) {
