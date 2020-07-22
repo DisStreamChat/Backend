@@ -301,7 +301,8 @@ router.get("/guildcount", async (req, res, next) => {
 router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
 	const userName = req.query.user;
-	await TwitchClient.join("#" + channelName);
+    await TwitchClient.join("#" + channelName);
+    console.log("joined "+channelName)
     const results = await TwitchClient.mods("#" + channelName);
     console.log(results)
     const isMod = !!userName && results.includes(userName.toLowerCase())
