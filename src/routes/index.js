@@ -483,6 +483,16 @@ router.get("/token", async (req, res, next) => {
 	}
 });
 
+router.get("/resolveuser", async (req, res, next) => {
+    
+})
+
+router.get("/chatters", async (req, res, next) => {
+    const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`)
+    const json = await response.json()
+    res.json(json)
+})
+
 router.get("/stats/twitch", async (req, res, next) => {
 	const streamerName = req.query.name;
 	const isNew = req.query.new;
