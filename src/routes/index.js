@@ -484,8 +484,8 @@ router.get("/token", async (req, res, next) => {
 });
 
 router.get("/resolveuser", async (req, res, next) => {
-    if(!req.query.platform) return res.status(400).json({message: "missing platform"})
     if(!req.query.user) return res.status(400).json({message: "missing user"})
+    if(!req.query.platform) return res.status(400).json({message: "missing platform"})
     if(req.query.platform === "twitch"){
         res.json(await Api.getUserInfo(req.query.user))
     }
