@@ -1,4 +1,4 @@
-# DisStreamChat backend
+# DisStreamChat Backend
 ![license](https://img.shields.io/github/license/DisStreamChat/Backend) <a href="https://api.disstreamchat.com/discord">
         <img src="https://img.shields.io/discord/711238743213998091?logo=discord"
             alt="chat on Discord"></a>  
