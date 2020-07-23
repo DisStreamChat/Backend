@@ -295,23 +295,23 @@ router.get("//modchannels", async (req, res, next) => {
 });
 
 router.get("/guildcount", async (req, res, next) => {
-    res.json(DiscordClient.guilds.cache.array().length)
-})
+	res.json(DiscordClient.guilds.cache.array().length);
+});
 
 router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
 	const userName = req.query.user;
-    await TwitchClient.join("#" + channelName);
-    console.log("joined "+channelName)
-    const results = await TwitchClient.mods("#" + channelName);
-    console.log(results)
-    const isMod = !!userName && results.includes(userName.toLowerCase())
-    if(isMod){
-        return res.json(await Api.getUserInfo(channelName))
-    }else{
-        return res.json(null)
-    }
-    res.json(null)
+	await TwitchClient.join("#" + channelName);
+	console.log("joined " + channelName);
+	const results = await TwitchClient.mods("#" + channelName);
+	console.log(results);
+	const isMod = !!userName && results.includes(userName.toLowerCase());
+	if (isMod) {
+		return res.json(await Api.getUserInfo(channelName));
+	} else {
+		return res.json(null);
+	}
+	res.json(null);
 });
 
 router.get("/profilepicture", async (req, res, next) => {
@@ -477,6 +477,7 @@ router.get("/token", async (req, res, next) => {
 				displayName: userInfo.display_name,
 				profilePicture: userInfo.profile_image_url,
 				ModChannels,
+				refresh_token: json.refresh_token,
 			});
 		}
 	} catch (err) {
@@ -485,18 +486,18 @@ router.get("/token", async (req, res, next) => {
 });
 
 router.get("/resolveuser", async (req, res, next) => {
-    if(!req.query.user) return res.status(400).json({message: "missing user"})
-    if(!req.query.platform) return res.status(400).json({message: "missing platform"})
-    if(req.query.platform === "twitch"){
-        res.json(await Api.getUserInfo(req.query.user))
-    }
-})
+	if (!req.query.user) return res.status(400).json({ message: "missing user" });
+	if (!req.query.platform) return res.status(400).json({ message: "missing platform" });
+	if (req.query.platform === "twitch") {
+		res.json(await Api.getUserInfo(req.query.user));
+	}
+});
 
 router.get("/chatters", async (req, res, next) => {
-    const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`)
-    const json = await response.json()
-    res.json(json)
-})
+	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
+	const json = await response.json();
+	res.json(json);
+});
 
 router.get("/stats/twitch", async (req, res, next) => {
 	const streamerName = req.query.name;
