@@ -139,8 +139,7 @@ module.exports = (TwitchClient, sockets, app) => {
         // Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
         
-		// TODO: allow users to add in custom command prefixes. this line will be removed when 1.2.11 is released
-		if (self || message.startsWith("!") || message.startsWith("?")) return;
+        
 
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
@@ -372,9 +371,9 @@ module.exports = (TwitchClient, sockets, app) => {
 			let theMessage = ``;
 
 			if (subTypes[plan]) {
-				theMessage = `${username} has gifted ${lastGiftAmount} ${subTypes[plan]} subscription(s) ${allRecipients}!`;
+				theMessage = `${username} has gifted ${lastGiftAmount} ${subTypes[plan]} subscription(s) to ${allRecipients}!`;
 			} else {
-				theMessage = `${username} has gifted ${lastGiftAmount} subscription(s) ${allRecipients}!`;
+				theMessage = `${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`;
 			}
 
 			const messageObject = {
@@ -627,13 +626,14 @@ module.exports = (TwitchClient, sockets, app) => {
                         if (!sockets.hasOwnProperty(channelName)) return
                         const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
                             redemption.reward.title
-                        }${redemption.reward.prompt}`;
+                        } - ${redemption.reward.prompt}`;
                         const messageObject = {
                             displayName: "DisStreamChat",
                             avatar: DisTwitchChatProfile,
                             body: message,
                             platform: "twitch",
                             messageId: "subscription",
+                            messageType: "channel-points",
                             uuid: uuidv1(),
                             id: uuidv1(),
                             badges: {},

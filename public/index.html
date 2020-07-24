@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>distwitchchat</title>
+    <title>disstreamchat</title>
     <meta name="description" content="entropychat.app">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
@@ -53,15 +53,25 @@
     <h1 id="info">Logging you in...</h1>
     <script>
         (async () => {
+            const signInUrl = "https://id.twitch.tv/oauth2/authorize?client_id=ip3igc72c6wu7j00nqghb24duusmbr&redirect_uri=https://api.disstreamchat.com/oauth/twitch/&response_type=code&scope=openid%20moderation:read%20chat:edit%20chat:read%20channel:moderate%20channel:read:redemptions"
             const codeArray = new URLSearchParams(window.location.search)
-            if (codeArray.has("code")) {
+            if(codeArray.has("otc")){
+                localStorage.setItem("oneTimeCode", codeArray.get("otc"))
+                window.location.replace(signInUrl)
+            }
+            else if (codeArray.has("code")) {
                 try{
+                    const otc = localStorage.getItem("oneTimeCode")
+                    console.log(otc)
                     const code = codeArray.get("code")
-                    const response = await fetch("https://api.distwitchchat.com/token?code=" + code)
+                    const response = await fetch("https://api.disstreamchat.com/token?code=" + code)
                     const json = await response.json()
-                    console.log(json)
+                    const token = json.token
                     if (code && response.ok) {
-                        window.doLogin(json);
+                        await fetch(`https://api.disstreamchat.com/setauthtoken?code=${otc}&token=${token}`, {method: "POST"})
+                        if(window.doLogin){
+                            window.doLogin(json)
+                        }
                     } else {
                         info.textContent = 'Failed to Log you in';
                     }
@@ -71,8 +81,9 @@
             } else {
                 info.textContent = 'Go home.';
             }
-
-            window.close();
+            setTimeout(() => {
+                window.close();
+            }, 1000)
         })()
         
     </script>

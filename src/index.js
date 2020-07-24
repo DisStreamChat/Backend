@@ -16,7 +16,6 @@ const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 // add the basic middleware to the express app
 app.use(helemt());
 app.use(cors());
@@ -48,6 +47,11 @@ const { DiscordClient, TwitchClient } = require("./utils/initClients");
 // initialize the object that will store all sockets currently connected
 const sockets = {};
 
+io.origins((origin, callback) => {
+	console.log(origin)
+	callback(null, true)
+})
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,15 +81,15 @@ DiscordClient.on("message", async message => {
 
 	if (message.guild.ownerID == message.author.id) {
 		badges["owner"] = {
-			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/3",
+			image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1",
 			title: "Server Owner",
 		};
 	} else {
-		if (message.member.hasPermission(['MANAGE_MESSAGES'])) {
+		if (message.member.hasPermission(["MANAGE_MESSAGES"])) {
 			badges["moderator"] = {
-				image: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/3",
+				image: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1",
 				title: "Moderator",
-			}
+			};
 		}
 	}
 
@@ -110,11 +114,10 @@ DiscordClient.on("message", async message => {
 		// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
 		// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
-        // TODO: make customizable, this line will be removed in 1.2.11
-		if (HTMLCleanMessage.startsWith("!") || HTMLCleanMessage.startsWith("?")) return;
-
 		const messageObject = {
 			displayName: senderName,
+			username: message.author.username,
+			userId: message.author.id,
 			avatar: message.author.displayAvatarURL(),
 			body: HTMLCleanMessage,
 			// HTMLCleanMessage,
@@ -122,11 +125,12 @@ DiscordClient.on("message", async message => {
 			// HTMLCensoredMessage,
 			platform: "discord",
 			messageId: "",
+			messageType: "chat",
 			uuid: message.id,
 			id: message.id,
 			badges,
-            sentAt: message.createdAt.getTime(),
-            // TODO: improve with roles
+			sentAt: message.createdAt.getTime(),
+			// TODO: improve with roles
 			userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor,
 		};
 
@@ -153,7 +157,7 @@ DiscordClient.on("messageDeleteBulk", message => {
 		} catch (err) {
 			console.log(err.message);
 		}
-	})
+	});
 });
 
 DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
@@ -165,11 +169,18 @@ DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 		const updateMessage = {
 			body: HTMLCleanMessage,
 			id: newMsg.id,
-		}
+		};
 		const _ = [...sockets[newMsg.channel.guild.id]].forEach(async s => await s.emit("updateMessage", updateMessage));
-	}
-	catch (err) {
+	} catch (err) {
 		console.log(err.message);
+	}
+});
+
+DiscordClient.on("guildMemberAdd", async member => {
+	if (member.guild.id === "711238743213998091") {
+		await member.send(
+			`Welcome to the DisStreamChat community. If you need help setting up DisStreamChat feel free to ask in any of the help channels. But try to find a help channel related to you problem. If you can't talk in any of the chats just DM a moderator and they will sort out the issue. Any suggestions or bug reports you have should go in the respective channels. 😀`
+		);
 	}
 });
 
@@ -249,8 +260,8 @@ const addSocket = (socket, id) => {
 };
 
 io.on("connection", socket => {
-    console.log("a user connected");
-    socket.emit("imConnected")
+	console.log("a user connected");
+	socket.emit("imConnected");
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", message => {
         const { TwitchName, guildId } = message;
@@ -266,7 +277,7 @@ io.on("connection", socket => {
 		// TODO use client.join(channel)
 	});
 
-    // deprecated
+	// deprecated
 	socket.on("updatedata", data => {
 		socket.userInfo = data;
 	});
@@ -294,18 +305,18 @@ io.on("connection", socket => {
 	socket.on("timeoutuser - discord", async user => {
 		const { guildId } = socket.userInfo;
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
-		/* await muted role fetch from database 
-		const muteRole = connectGuild.roles.cache.find(role => role.id === fetchedRole);
-		*/
+		let muteRole = connectGuild.roles.cache.find(role => role.name === "Muted");
+		if (!muteRole) {
+			connectGuild.roles.create({ data: { name: "Muted", color: "#000001", permissions: [] } });
+			muteRole = connectGuild.roles.cache.find(role => role.name === "Muted");
+		}
 		try {
 			console.log(`Timeout ${user} - Discord`);
-			/*
-			user.roles.add(muteRole);
-			Add TimeoutFunction to remove role in 5 minutes (or fetch default timeouts from database)
-			removeDiscordTimeout(user, muteRole) - pass both the user object and muteRole to function
-			inside the removeDiscordTimeout function the following will suffice to remove the role;
-			user.roles.remove(muteRole)
-			 */
+			const member = connectGuild.members.resolve(user);
+			member.roles.add(muteRole);
+			const _ = [...sockets[guildId]].forEach(async s => await s.emit("purgeuser", member.nickname));
+            await new Promise(resolve => setTimeout(resolve, 300000))
+            member.roles.remove(muteRole);
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -330,31 +341,31 @@ io.on("connection", socket => {
 			console.log(err.message);
 		}
 	});
-	
+
 	socket.on("timeoutuser - twitch", async user => {
 		const { TwitchName } = socket.userInfo;
 		try {
-			console.log(`Timeout ${user} - Twitch`)
+			console.log(`Timeout ${user} - Twitch`);
 			//Possible to do: let default timeouts be assigned in dashboard
 			await TwitchClient.timeout(TwitchName, user, 300);
 		} catch (err) {
-            console.log(err.message);
+			console.log(err.message);
 		}
 	});
-	
+
 	socket.on("banuser - twitch", async user => {
-        const { TwitchName } = socket.userInfo;
+		const { TwitchName } = socket.userInfo;
 		try {
-            console.log(`Banning ${user} - Twitch`)
+			console.log(`Banning ${user} - Twitch`);
 			await TwitchClient.ban(TwitchName, user);
 		} catch (err) {
 			console.log(err.message);
 		}
-    });
-    
-    socket.on("heartbeart", () => {
-        socket.emit("pong")
-    })
+	});
+
+	socket.on("heartbeart", () => {
+		socket.emit("pong");
+	});
 
 	socket.on("disconnect", () => {
 		console.log("a user disconnected");

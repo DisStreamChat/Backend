@@ -1,7 +1,10 @@
-# DisStreamChat backend
-This is the backend for the DisStreamChat application, it contains the discord and twitch bots that allow integration between a discord `live chat` channel and twitch chat, this allow users without twitch accounts or who prefer discord to chat with the streamer without making the streamer look at two chats. This is the backend Code for the bot
+# DisStreamChat Backend
+![license](https://img.shields.io/github/license/DisStreamChat/Backend) <a href="https://api.disstreamchat.com/discord">
+        <img src="https://img.shields.io/discord/711238743213998091?logo=discord"
+            alt="chat on Discord"></a>  
+This is the backend for the DisStreamChat application, it contains the discord and twitch bots that allow integration between a discord `live chat` channel and twitch chat, this allow users without twitch accounts or who prefer discord to chat with the streamer without making the streamer look at two chats.
 
-DisStreamChat is currently in development and is currently not available to add to your discord server / twitch channel, but when it is you can add it at [disstreamchat.com](https://www.disstreamchat.com/#/)
+DisStreamChat is currently in early alpha, but you can add it at [disstreamchat.com](https://www.disstreamchat.com/#/)
 
 # Contributions
 
@@ -15,5 +18,3 @@ to Install a development version follow these steps
 3. run `npm i` to install dependencies
 4. add a `.env` and add in the environment variables from `.env.sample`
 5. run it with `npm start`
-
-# Todo
