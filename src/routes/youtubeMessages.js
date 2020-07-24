@@ -97,6 +97,8 @@ function listenMessages(liveChatId) {
 					const newMessages = result.items.map(item => {
 						const { id: message_id, snippet, authorDetails } = item;
 
+                        // TODO: manipulate message to work with our standards
+
 						const message = {
 							message_id,
 							liveChatId,

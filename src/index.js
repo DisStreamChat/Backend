@@ -247,7 +247,7 @@ app.get("/youtube/listen", async (req, res) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// add a socket to a set at set id (key)
+// add a socket to a set at an id (key)
 const addSocket = (socket, id) => {
 	if (id != undefined) {
 		id = id.toLowerCase();
