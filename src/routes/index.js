@@ -495,7 +495,15 @@ router.get("/resolveuser", async (req, res, next) => {
 
 router.get("/chatters", async (req, res, next) => {
 	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
-	const json = await response.json();
+    const json = await response.json();
+    const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
+    const onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+    let count = 0
+    for(let [key, value] of Object.entries(json.chatters)){
+        json.chatters[key] = value.filter(name => !onlineBots.includes(name))
+        count += json.chatters[key].length
+    }
+    json.chatter_count = count
 	res.json(json);
 });
 
@@ -503,7 +511,7 @@ router.get("/stats/twitch", async (req, res, next) => {
 	const streamerName = req.query.name;
 	const isNew = req.query.new;
 	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
-	const chattersUrl = `https://tmi.twitch.tv/group/user/${streamerName}/chatters`;
+	const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
 	const streamDataResponse = await Api.fetch(apiUrl);
 	const response = await fetch(chattersUrl);
 	const json = await response.json();
