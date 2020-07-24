@@ -1,3 +1,13 @@
+// get functions used to do things like strip html and replace custom discord emojis with the url to the image
+const { formatMessage } = require("./utils/messageManipulation");
+
+
+// TODO: move to firebase db
+const ranks = require("./ranks.json");
+
+
+
+
 module.exports = (DiscordClient, sockets, app) => {
 
     const handleLeveling = message => {
