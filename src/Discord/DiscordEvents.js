@@ -1,9 +1,10 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { formatMessage } = require("./utils/messageManipulation");
+const { formatMessage } = require("../utils/messageManipulation");
+const CommandHandler = require("./CommandHandler")
 
 
 // TODO: move to firebase db
-const ranks = require("./ranks.json");
+const ranks = require("../ranks.json");
 
 
 
@@ -22,6 +23,7 @@ module.exports = (DiscordClient, sockets, app) => {
         
         if(message.guild.id === "711238743213998091"){ // comment out in the future to make it work on all guilds
             handleLeveling()
+            CommandHandler(message, DiscordClient)
         }
 
 		if (!sockets.hasOwnProperty(message.guild.id)) return;
