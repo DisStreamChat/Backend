@@ -1,6 +1,6 @@
 const path = require("path")
 const fs = require("fs")
-const {adminWare} = require("../utils/functions")
+const {adminWare, modWare} = require("../utils/functions")
 const commandPath = path.join(__dirname, "Commands")
 const commandFiles = (fs.readdirSync(commandPath))
 const commands = {}
@@ -23,5 +23,6 @@ module.exports = async (message, client) => {
     if(!commandObj) return
     
     if(commandObj.adminOnly) await adminWare(message, args, client, commandObj.execute)
+    else if(commandObj.permissions) await modWare(message, args, client, commandObj.permissions, commandObj.execute)
     else await commandObj.execute(message, args, client)
 }

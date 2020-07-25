@@ -21,9 +21,9 @@ const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0)
 
 const hasPermsission = (member, perms) => ArrayAny(member.permissions.toArray(), perms)
 
-const modWare = async (msg, args, client, config, cb) => {
-    if (hasPermsission(msg.member, client.config[msg.guild.id].modPerms)) {
-        await cb(msg, args, client, config)
+const modWare = async (msg, args, client, permissions, cb) => {
+    if (hasPermsission(msg.member, permissions)) {
+        await cb(msg, args, client)
     } else {
         await msg.channel.send("❌ you don't have permission to use this command")
     }
