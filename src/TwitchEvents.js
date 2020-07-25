@@ -206,6 +206,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const badges = {};
 
         const userInfo = await Api.getUserInfo(channelName)
+        console.log(userInfo)
 		const cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
