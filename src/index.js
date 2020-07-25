@@ -210,7 +210,7 @@ io.on("connection", socket => {
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		try {
 			console.log(`Banning ${user} - Discord`);
-			connectGuild.members.ban(user);
+			connectGuild.members.ban(user, {days: 1});
 		} catch (err) {
 			console.log(err.message);
 		}
