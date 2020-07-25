@@ -48,7 +48,6 @@ module.exports = {
 
 			case "delete":
 				const nameToDelete = args[1];
-				console.log(guildData);
 				if (!Object.keys(guildData || {}).includes(nameToDelete)) {
 					return await message.channel.send(`The command "${nameToDelete}" doesn't exist`);
 				} else {
