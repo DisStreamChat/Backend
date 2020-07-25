@@ -5,7 +5,7 @@ const tmi = require("tmi.js");
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
-DiscordClient.once("ready", async () => {
+DiscordClient.on("ready", async () => {
 	console.log("bot ready");
 	DiscordClient.user.setPresence({ status: "online", activity: { type: "WATCHING", name: "🔴 Live Chat" } });
 });

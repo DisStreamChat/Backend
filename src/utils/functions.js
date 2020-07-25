@@ -2,6 +2,7 @@ const formatDistanceToNow = require('date-fns/formatDistanceToNow');
 const { MessageEmbed} = require("discord.js")
 const fs = require("fs")
 const path = require("path")
+const adminIds = require("../ranks.json")
 
 const walkSync = (files, fileDir, fileList = []) => {
     for (const file of files) {
@@ -24,8 +25,18 @@ const modWare = async (msg, args, client, config, cb) => {
     if (hasPermsission(msg.member, client.config[msg.guild.id].modPerms)) {
         await cb(msg, args, client, config)
     } else {
-        await msg.channel.send("you don't have permission to use this command")
+        await msg.channel.send("❌ you don't have permission to use this command")
     }
+}
+
+const adminWare = async (message, args, client, cb) => {
+    const discordAdmins = adminIds.discord.developers
+    if(discordAdmins.includes(message.author.id)){
+        await cb(message, args, client)
+    }else{
+        await message.channel.send("❌ you don't have permission to use this command")
+    }
+
 }
 
 class Command {
@@ -78,5 +89,6 @@ module.exports = {
     hasPermsission,
     walkSync,
     Command,
-    modWare
+    modWare,
+    adminWare
 }

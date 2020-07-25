@@ -40,6 +40,7 @@
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",
+    "pretty-ms": "^7.0.0",
     "sha1": "^1.1.1",
     "socket.io": "^2.3.0",
     "tmi.js": "^1.5.0",
