@@ -7,7 +7,7 @@ const { createCanvas, loadImage, registerFont } = require("canvas");
 
 const getLevel = xp => Math.max(0, Math.floor(Math.log(xp - 100)));
 
-const getXp = level => Math.floor(100 + Math.exp(level));
+const getXp = level => 5 / 6 * level * (2 * level * level + 27 * level + 91);
 
 const applyText = (canvas, text) => {
 	const ctx = canvas.getContext("2d");
