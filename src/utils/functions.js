@@ -6,6 +6,7 @@ const adminIds = require("../ranks.json")
 const { createCanvas, loadImage, registerFont } = require("canvas");
 
 const getLevel = xp => Math.max(0, Math.floor(Math.log(xp - 100)));
+
 const getXp = level => Math.floor(100 + Math.exp(level));
 
 const applyText = (canvas, text) => {
@@ -196,6 +197,9 @@ module.exports = {
     adminWare,
     resolveUser,
     Random: (min, max) => {
+        if(!max && min){
+            return this.Random(0, min)
+        }
         return Math.random() * (max - min) + min;
     },
     generateRankCard,

@@ -9,7 +9,7 @@ const ranks = require("../ranks.json");
 const admin = require("firebase-admin");
 const { Random } = require("../utils/functions");
 
-const getLevel = xp => Math.max(0, Math.floor(Math.log(xp-100)));
+const {getXp} = require("../utils/functions")
 
 module.exports = (DiscordClient, sockets, app) => {
 	const handleLeveling = async message => {
@@ -27,11 +27,10 @@ module.exports = (DiscordClient, sockets, app) => {
 				userLevelingData.cooldown = now;
 				userLevelingData.xp += Random(10, 20);
 				userLevelingData.xp = Math.floor(userLevelingData.xp);
-				let currentLevel = userLevelingData.level;
-				let newLevel = getLevel(userLevelingData.xp);
-				if(newLevel > currentLevel){
-                    message.channel.send(`Congrats ${message.author}, you leveled up to level ${newLevel}`)
-                    userLevelingData.level = newLevel
+				let xpToNextLevel = getXp(userLevelingData.level+1)
+				if(userLevelingData.xp >= xpToNextLevel){
+                    userLevelingData.level++
+                    message.channel.send(`Congrats ${message.author}, you leveled up to level ${userLevelingData.level}`)
                 }
 				levelingData[message.author.id] = userLevelingData;
 				await admin.firestore().collection("Leveling").doc(message.guild.id).update(levelingData);
