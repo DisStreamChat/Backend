@@ -199,7 +199,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const channelName = channel.slice(1).toLowerCase();
 		// TODO: improve Regex
 		// TODO: improve by splitting by spaces
-		const cheerMoteRegex = /([0-9]*[a-zA-Z]*)([0-9]*)/g;
+		const cheerMoteRegex = /([0-9]*[a-zA-Z]*)([0-9]*)/gi;
 
 		if (!sockets.hasOwnProperty(channelName)) return;
 
