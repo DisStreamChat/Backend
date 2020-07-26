@@ -17,7 +17,7 @@ commandFiles.forEach(command => {
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const prefix = "!";
+const prefix = "?";
 
 module.exports = async (message, client) => {
 	if (!message.content.startsWith(prefix)) return;
