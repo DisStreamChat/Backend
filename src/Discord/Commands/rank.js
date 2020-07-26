@@ -94,7 +94,7 @@ module.exports = {
 		ctx.drawImage(avatar, 25, 25, 200, 200);
 
         const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
-        fs.writeFileSync(canvas.toBuffer(), path.join(__dirname, `../../../images/${user.username}.png`))
+        fs.writeFileSync(path.join(__dirname, `../../../images/${user.username}.png`), canvas.toBuffer())
 		message.channel.send(attachment);
 	},
 };
