@@ -1,6 +1,7 @@
 const { resolveUser } = require("../../utils/functions");
 const { MessageAttachment } = require("discord.js");
 const path = require("path");
+const fs = require("fs")
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 const { createCanvas, loadImage, registerFont } = require("canvas");
@@ -92,7 +93,8 @@ module.exports = {
 		const avatar = await loadImage(profileUrl);
 		ctx.drawImage(avatar, 25, 25, 200, 200);
 
-		const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
+        const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
+        fs.writeFileSync(canvas.toBuffer(), path.join(__dirname, `../../../images/${user.username}.png`))
 		message.channel.send(attachment);
 	},
 };
