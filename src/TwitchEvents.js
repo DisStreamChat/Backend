@@ -211,7 +211,6 @@ module.exports = (TwitchClient, sockets, app) => {
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({ bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix.toLowerCase() === match[1].toLowerCase()) }));
 
-        console.log(cheerMoteMatches, cheerMotes)
 
 		const cheerMoteMatchTiers = cheerMoteMatches
 			.map(cheerMote => {
