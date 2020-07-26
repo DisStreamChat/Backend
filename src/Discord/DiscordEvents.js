@@ -1,30 +1,57 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("../utils/messageManipulation");
-const CommandHandler = require("./CommandHandler")
-
+const CommandHandler = require("./CommandHandler");
 
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 
+// the admin app has already been initialized in routes/index.js
+const admin = require("firebase-admin");
+const { Random } = require("../utils/functions");
 
-
+const getLevel = xp => Math.max(0, Math.floor(Math.log(xp-100)));
 
 module.exports = (DiscordClient, sockets, app) => {
-
-    const handleLeveling = message => {
-        
-    }
+	const handleLeveling = async message => {
+		const levelingDataRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
+		const levelingData = levelingDataRef.data();
+		if (levelingData) {
+			let userLevelingData = levelingData[message.author.id];
+			if (!userLevelingData) {
+				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
+			}
+			const now = new Date().getTime();
+			const cooldownTime = 60000;
+			const expireTime = userLevelingData.cooldown + cooldownTime;
+			if (now > expireTime) {
+				userLevelingData.cooldown = now;
+				userLevelingData.xp += Random(10, 20);
+				userLevelingData.xp = Math.floor(userLevelingData.xp);
+				let currentLevel = userLevelingData.level;
+				let newLevel = getLevel(userLevelingData.xp);
+				if(newLevel > currentLevel){
+                    message.channel.send(`Congrats ${message.author}, you leveled up to level: ${newLevel}`)
+                    userLevelingData.level = newLevel
+                }
+				levelingData[message.author.id] = userLevelingData;
+				await admin.firestore().collection("Leveling").doc(message.guild.id).update(levelingData);
+			}
+		} else {
+			await admin.firestore().collection("Leveling").doc(message.guild.id).set({});
+		}
+	};
 
 	// TODO: move discord events to separate file
 	DiscordClient.on("message", async message => {
 		if (message.guild == null) return;
 		// if the message was sent by a bot it should be ignored
-        if (message.author.bot) return;
-        
-        if(message.guild.id === "711238743213998091"){ // comment out in the future to make it work on all guilds
-            handleLeveling()
-            CommandHandler(message, DiscordClient)
-        }
+		if (message.author.bot) return;
+
+		if (message.guild.id === "711238743213998091") {
+			// remove in the future to make it work on all guilds
+			await handleLeveling(message);
+			await CommandHandler(message, DiscordClient);
+		}
 
 		if (!sockets.hasOwnProperty(message.guild.id)) return;
 

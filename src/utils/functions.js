@@ -114,5 +114,8 @@ module.exports = {
     Command,
     modWare,
     adminWare,
-    resolveUser
+    resolveUser,
+    Random: (min, max) => {
+        return Math.random() * (max - min) + min;
+    }
 }
