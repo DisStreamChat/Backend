@@ -209,7 +209,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
-		const cheerMoteMatches = cheerMatches.map(match => ({ bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix === match[1]) }));
+		const cheerMoteMatches = cheerMatches.map(match => ({ bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix.toLowerCase() === match[1].toLowerCase()) }));
 
 		const cheerMoteMatchTiers = cheerMoteMatches
 			.map(cheerMote => {
