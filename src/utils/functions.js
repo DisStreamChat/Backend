@@ -107,8 +107,8 @@ const generateRankCard = async (userData, user) => {
     ctx.fillStyle = "#ffffff";
     ctx.fillText(`${user.user.tag}`, canvas.width / 2.75, 170);
     ctx.font = "20px Poppins";
-    const displayXp = userData.xp > 1000 ? `${(userData.xp / 1000).toFixed(1)}k` : userData.xp;
-    const displayXpToGo = xpToNextLevel > 1000 ? `${(xpToNextLevel / 1000).toFixed(1)}k` : xpToNextLevel;
+    const displayXp = userData.xp > 1000 ? `${(userData.xp / 1000).toFixed(2)}k` : userData.xp;
+    const displayXpToGo = xpToNextLevel > 1000 ? `${(xpToNextLevel / 1000).toFixed(2)}k` : xpToNextLevel;
     const xpText = `${displayXp}/${displayXpToGo} XP`;
     const xpTextWidth = ctx.measureText(xpText).width;
     ctx.fillStyle = "#dddddd";
