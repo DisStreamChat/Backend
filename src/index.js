@@ -39,6 +39,7 @@ app.use(
 
 // add the routes stored in the 'routes' folder to the app
 app.use("/", require("./routes/index"));
+app.use("/public", express.static("public"))
 
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient } = require("./utils/initClients");
