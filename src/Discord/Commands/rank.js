@@ -1,11 +1,11 @@
 const { resolveUser } = require("../../utils/functions");
 const { MessageAttachment } = require("discord.js");
-const path = require("path")
+const path = require("path");
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 const { createCanvas, loadImage, registerFont } = require("canvas");
-console.log(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"))
-registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"), {family: "Poppins"})
+console.log(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"));
+registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"), { family: "Poppins" });
 
 const applyText = (canvas, text) => {
 	const ctx = canvas.getContext("2d");
@@ -66,16 +66,22 @@ module.exports = {
 		ctx.fillStyle = "#c31503";
 		roundRect(ctx, canvas.width / 2.75, 185, barWidth * percentDone, barHeight, barHeight / 2);
 
-
 		ctx.font = "28px Poppins";
 
-        
 		ctx.fillStyle = "#ffffff";
-        ctx.fillText(`${user.user.tag}`, canvas.width / 2.75, 170);
-        const levelText = `Level: ${userData.level}`
-        const levelTextWidth = ctx.measureText(levelText).width
-        const levelTextHeight = ctx.measureText(levelText).height
-        ctx.fillText(levelText, (canvas.width - levelTextWidth) - 100, 50)
+		ctx.fillText(`${user.user.tag}`, canvas.width / 2.75, 170);
+		ctx.font = "20px Poppins";
+		const displayXp = userData.xp > 1000 ? `${(userData.xp / 1000).toFixed(1)}k` : userData.xp;
+		const displayXpToGo = xpToNextLevel > 1000 ? `${(xpToNextLevel / 1000).toFixed(1)}k` : xpToNextLevel;
+		const xpText = `${displayXp}/${displayXpToGo} XP`;
+		const xpTextWidth = ctx.measureText(xpText).width;
+		ctx.fillStyle = "#dddddd";
+		ctx.fillText(xpText, canvas.width - xpTextWidth - 80, 170);
+		ctx.fillStyle = "#ffffff";
+		ctx.font = "42px Poppins";
+		const levelText = `Level: ${userData.level}`;
+		const levelTextWidth = ctx.measureText(levelText).width;
+		ctx.fillText(levelText, canvas.width - levelTextWidth - 80, 50);
 
 		ctx.fillStyle = "#000000";
 		ctx.beginPath();
