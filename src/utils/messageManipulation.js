@@ -117,6 +117,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			.replace(/([a-z])>/gi, "$1&gt;");
 	dirty = dirty.replace(urlRegex, `<a href="$&">$&</a>`);
 	if (tags.emotes) {
+        console.log(dirty)
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
@@ -154,7 +155,8 @@ const cleanRegex = function (str) {
 
 // TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
-	const emoteIds = Object.keys(emotes);
+    const emoteIds = Object.keys(emotes);
+    console.log(emotes)
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
 			const [start, end] = startEnd.split("-").map(Number);
@@ -166,13 +168,19 @@ const replaceTwitchEmotes = (message, original, emotes) => {
 		return starts;
 	}, {});
 	const parts = Array.from(message);
-	const emoteNames = {};
+    const emoteNames = {};
+    let emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/gi
+    let emojiDetected = 0
 	for (let i = 0; i < parts.length; i++) {
-		const emoteInfo = emoteStart[i];
+        const emoteInfo = emoteStart[i];
+        if(!![...parts[i].matchAll(emojiRegex)].length){
+            emojiDetected ++
+        }
 		if (emoteInfo) {
-			emoteNames[original.slice(i, emoteInfo.end + 1)] = emoteInfo.emoteUrl + ` title="${original.slice(i, emoteInfo.end + 1)}">`;
+			emoteNames[original.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)] = emoteInfo.emoteUrl + ` title="${original.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)}">`;
 		}
-	}
+    }
+    console.log(emoteNames)
 	for (let name in emoteNames) {
 		message = message.replace(new RegExp(`(?<=\\s|^)(${cleanRegex(name)})(?=\\s|$)`, "gm"), emoteNames[name]);
 	}
