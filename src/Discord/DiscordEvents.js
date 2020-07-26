@@ -30,7 +30,7 @@ module.exports = (DiscordClient, sockets, app) => {
 				let currentLevel = userLevelingData.level;
 				let newLevel = getLevel(userLevelingData.xp);
 				if(newLevel > currentLevel){
-                    message.channel.send(`Congrats ${message.author}, you leveled up to level: ${newLevel}`)
+                    message.channel.send(`Congrats ${message.author}, you leveled up to level ${newLevel}`)
                     userLevelingData.level = newLevel
                 }
 				levelingData[message.author.id] = userLevelingData;
