@@ -217,11 +217,11 @@ module.exports = (TwitchClient, sockets, app) => {
 			.map(cheerMote => {
 				const tiers = cheerMote.tiers;
 				const bits = cheerMote.bits;
-				if (!tiers || !bits) return;
+				if (!tiers || !bits || !cheerMote.prefix) return;
 				const cheeredTier = tiers.reduce((acc, tier) => (tier["min_bits"] <= bits ? tier : acc));
 				return {
 					prefix: cheerMote.prefix,
-					id: cheerMote.prefix + bits,
+					id: cheerMote.prefix.toLowerCase() + bits,
 					tier: cheeredTier,
 					image: cheeredTier.images.dark.animated["4"],
 					bits,
@@ -238,7 +238,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		// const HTMLCensoredMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
 
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
-			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match);
+			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match.toLowerCase());
 			if (!cheerMote) return match;
 			return `<img src="${cheerMote.image}" title="${cheerMote.prefix}" class="emote"> ${number}`;
 		});
