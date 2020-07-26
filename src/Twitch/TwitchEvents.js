@@ -4,13 +4,13 @@ const uuidv1 = require("uuidv1");
 const TPS = require("twitchps");
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { formatMessage } = require("./utils/messageManipulation");
+const { formatMessage } = require("../utils/messageManipulation");
 
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
 // TODO: move to firebase db
-const ranks = require("./ranks.json");
+const ranks = require("../ranks.json");
 const { default: fetch } = require("node-fetch");
 
 // intialize the twitch api class from the twitch-lib package
@@ -18,6 +18,8 @@ const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
+
+const CommandHandler = require("./CommandHandler")
 
 const DisTwitchChatProfile = "https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
@@ -90,8 +92,6 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("purgeuser", username));
 	});
 
-	//Bans and Timeouts can be treated the same on the app side, only need to purge the user.
-
 	TwitchClient.on("raided", async (channel, username, viewers) => {
 		console.log("raided");
 		const channelName = channel.slice(1).toLowerCase();
@@ -139,10 +139,15 @@ module.exports = (TwitchClient, sockets, app) => {
         // Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
         
+    
         
 
 		// remove the "#" form the begginning of the channel name
-		const channelName = channel.slice(1).toLowerCase();
+        const channelName = channel.slice(1).toLowerCase();
+        
+        if(channelName === "dav1dsnyder404"){
+            CommandHandler(message, TwitchClient, channelName)
+        }
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
 		if (!sockets.hasOwnProperty(channelName)) return;

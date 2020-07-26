@@ -21,7 +21,7 @@ const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0)
 
 const hasPermsission = (member, perms) => ArrayAny(member.permissions.toArray(), perms)
 
-const modWare = async (msg, args, client, permissions, cb) => {
+const modWare = async (msg, args, client, permissions, cb, {twitch} = {}) => {
     if (hasPermsission(msg.member, permissions)) {
         await cb(msg, args, client)
     } else {

@@ -6,9 +6,8 @@ const io = require("socket.io")(server);
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const helemt = require("helmet");
-const TwitchEvents = require("./TwitchEvents.js");
+const TwitchEvents = require("./Twitch/TwitchEvents.js");
 const crypto = require("crypto");
-const { formatMessage } = require("./utils/messageManipulation");
 const ranks = require('./ranks.json');
 const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
