@@ -259,10 +259,9 @@ module.exports = (TwitchClient, sockets, app) => {
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
-		// const plainMessage = await formatMessage(message, "twitch", tags);
+
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
-		// const censoredMessage = await formatMessage(message, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
+
 
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
 			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match.toLowerCase());
@@ -270,7 +269,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			return `<img src="${cheerMote.image}" title="${cheerMote.prefix}" class="emote"> ${number}`;
 		});
 
-		// TODO: make customizable
 		const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1 ? "s" : ""}!\n${HTMLCleanMessage}`;
 
 		const messageObject = {
@@ -301,25 +299,15 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const theMessage = `${username}, upgraded their subscription! (Originally from Anonymous)`;
 
-		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
-		// 	censor: true,
-		// });
-		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
-		// 	HTMLClean: true,
-		// 	censor: true,
-		// });
+
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -345,25 +333,14 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`;
 
-		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
 		});
-		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, {
-		// 	censor: true,
-		// });
-		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, {
-		// 	HTMLClean: true,
-		// 	censor: true,
-		// });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -397,7 +374,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			allRecipients = `@${recipient}`;
 		}
 		giftTimeout = setTimeout(async () => {
-			// const plainMessage = await formatMessage(`${username} has gifted ${lastGiftAmount} subscription(s) to ${allRecipients}!`, "twitch", tags);
 			let theMessage = ``;
 
 			if (subTypes[plan]) {
@@ -410,9 +386,6 @@ module.exports = (TwitchClient, sockets, app) => {
 				displayName: "DisStreamChat",
 				avatar: DisTwitchChatProfile,
 				body: theMessage,
-				// HTMLCleanMessage,
-				// censoredMessage,
-				// HTMLCensoredMessage,
 				platform: "twitch",
 				messageId: "subgift",
 				uuid: tags.id,
@@ -456,19 +429,10 @@ module.exports = (TwitchClient, sockets, app) => {
 				theMessage = `Thanks for the resub @${username}!`;
 			}
 		}
-
-		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
-		// let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
-
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -498,18 +462,12 @@ module.exports = (TwitchClient, sockets, app) => {
 			theMessage = `Thanks for subscribing @${username}!`;
 		}
 
-		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -538,18 +496,12 @@ module.exports = (TwitchClient, sockets, app) => {
 			theMessage = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
 		}
 
-		// const plainMessage = await formatMessage(theMessage, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
-		// const censoredMessage = await formatMessage(theMessage, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true, censor: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "subscription",
 			uuid: tags.id,
@@ -566,7 +518,7 @@ module.exports = (TwitchClient, sockets, app) => {
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-			// it's good
+			// it's from twitch
 			const data = req.body.data;
 			if (data) {
 				const body = data[0];
@@ -617,7 +569,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			res.json("success");
 		} else {
 			res.status("401").json("Looks like You aren't twitch");
-			// it's bad
+			// it's not from twitch
 		}
 	});
 
