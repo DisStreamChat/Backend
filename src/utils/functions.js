@@ -51,6 +51,10 @@ const walkSync = (files, fileDir, fileList = []) => {
     return fileList;
 } 
 
+const cleanRegex = function (str) {
+	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+};
+
 const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0)
 
 const hasPermsission = (member, perms) => ArrayAny(member.permissions.toArray(), perms)

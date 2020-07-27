@@ -5,6 +5,7 @@ const commandPath = path.join(__dirname, "Commands");
 const commandFiles = fs.readdirSync(commandPath);
 const commands = {};
 
+// TODO: use WalkSync to allow for nested folders in command directory
 commandFiles.forEach(command => {
 	if (command.endsWith(".js")) {
 		const commandObj = require(path.join(commandPath, command));

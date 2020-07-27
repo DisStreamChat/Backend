@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs")
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
-const { createCanvas, loadImage, registerFont } = require("canvas");
+const { registerFont } = require("canvas");
 registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"), { family: "Poppins" });
 
 
