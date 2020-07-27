@@ -315,7 +315,6 @@ io.on("connection", socket => {
 			} else {
 				try {
                     let UserClient = userClients[modName];
-                    console.log(!!UserClient)
 					if (!UserClient) {
 						const modPrivateDataRef = await admin
 							.firestore()
@@ -362,13 +361,73 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("banuser - twitch", async user => {
+	socket.on("banuser - twitch", async data => {
 		const { TwitchName } = socket.userInfo;
-		console.log(`Banning ${user} - Twitch`);
-		try {
-			await TwitchClient.ban(TwitchName, user);
-		} catch (err) {
-			console.log(err.message);
+
+		let user = data.user;
+		async function botBan(user) {
+			console.log(`Timeout ${user} - Twitch`);
+			try {
+				//Possible to do: let default timeouts be assigned in dashboard
+				await TwitchClient.ban(TwitchName, user);
+			} catch (err) {
+				console.log(err.message);
+			}
+		}
+		if (!user) {
+			botBan(data);
+		} else {
+			const modName = data.modName;
+			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
+			const modData = modRef.data();
+			if (!modData) {
+				botBan(user);
+			} else {
+				try {
+                    let UserClient = userClients[modName];
+					if (!UserClient) {
+						const modPrivateDataRef = await admin
+							.firestore()
+							.collection("Streamers")
+							.doc(modData.uid)
+							.collection("twitch")
+							.doc("data")
+							.get();
+						const modPrivateData = modPrivateDataRef.data();
+						if (!modPrivateData) {
+							throw new Error("no twitch auth");
+						}
+						const refreshToken = modPrivateData.refresh_token;
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const data = await response.json();
+						if (!data) {
+							throw new Error("bad refresh token");
+						}
+						const scopes = data.scope;
+						if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
+							throw new Error("bad scopes");
+						}
+						UserClient = new tmi.Client({
+							options: { debug: false },
+							connection: {
+								secure: true,
+								reconnect: true,
+							},
+							identity: {
+								username: modName,
+								password: data.access_token,
+							},
+							channels: [TwitchName],
+                        });
+                        userClients[modName] = UserClient
+						await UserClient.connect();
+					}
+					await UserClient.timeout(TwitchName, user, 300);
+				} catch (err) {
+					console.log(err.message);
+					botBan(user);
+				}
+			}
 		}
 	});
 
