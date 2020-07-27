@@ -15,16 +15,18 @@ const {handleLeveling} = require("./Leveling")
 module.exports = (DiscordClient, sockets, app) => {
 	// TODO: move discord events to separate file
 	DiscordClient.on("message", async message => {
-		if (message.guild == null) return;
+		if (!message.guild) return;
 		// if the message was sent by a bot it should be ignored
 		if (message.author.bot) return;
 
+        // handle commands and leveling, if they are enabled for the server
 		if (message.guild.id === "711238743213998091") {
 			// remove in the future to make it work on all guilds
 			await handleLeveling(message);
 			await CommandHandler(message, DiscordClient);
 		}
 
+        // after commands try to send message through the sockets, but only if there are sockets connected to the guild
 		if (!sockets.hasOwnProperty(message.guild.id)) return;
 
 		const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
@@ -36,6 +38,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
 		const badges = {};
 
+        // custom badges based on permissions or if the user is an admin
 		if (message.guild.ownerID == message.author.id) {
 			badges["owner"] = {
 				image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1",
@@ -66,10 +69,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
 		try {
 			const CleanMessage = message.cleanContent;
-			// const plainMessage = formatMessage(CleanMessage, "discord", {});
 			const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
-			// const censoredMessage = formatMessage(CleanMessage, "discord", {}, { censor: true });
-			// const HTMLCensoredMessage = formatMessage(CleanMessage, "discord", {}, { HTMLClean: true, censor: true });
 
 			const messageObject = {
 				displayName: senderName,
@@ -77,9 +77,6 @@ module.exports = (DiscordClient, sockets, app) => {
 				userId: message.author.id,
 				avatar: message.author.displayAvatarURL(),
 				body: HTMLCleanMessage,
-				// HTMLCleanMessage,
-				// censoredMessage,
-				// HTMLCensoredMessage,
 				platform: "discord",
 				messageId: "",
 				messageType: "chat",
@@ -87,7 +84,6 @@ module.exports = (DiscordClient, sockets, app) => {
 				id: message.id,
 				badges,
 				sentAt: message.createdAt.getTime(),
-				// TODO: improve with roles
 				userColor: message.member.displayHexColor === "#000000" ? "#FFFFFF" : message.member.displayHexColor,
 			};
 
@@ -99,6 +95,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		}
 	});
 
+    // TODO: add logging
 	DiscordClient.on("messageDelete", message => {
 		try {
 			if (sockets.hasOwnProperty(message.guild.id))
@@ -118,6 +115,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		});
 	});
 
+    // TODO: add logging
 	DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 		if (!sockets.hasOwnProperty(newMsg.channel.guild.id)) return;
 		const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
@@ -134,6 +132,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		}
 	});
 
+    // TODO: add in customizable welcome messages and logging
 	DiscordClient.on("guildMemberAdd", async member => {
 		if (member.guild.id === "711238743213998091") {
 			await member.send(
