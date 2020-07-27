@@ -200,11 +200,11 @@ io.on("connection", socket => {
 		}
 		try {
 			console.log(`Timeout ${user} - Discord`);
-			const member = connectGuild.members.resolve(user);
-			member.roles.add(muteRole);
+			// const member = connectGuild.members.resolve(user);
+			// member.roles.add(muteRole);
 			const _ = [...sockets[guildId]].forEach(async s => await s.emit("purgeuser", member.nickname));
-			await new Promise(resolve => setTimeout(resolve, 300000));
-			member.roles.remove(muteRole);
+			// await new Promise(resolve => setTimeout(resolve, 300000));
+			// member.roles.remove(muteRole);
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -280,29 +280,75 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("timeoutuser - twitch", async user => {
+	socket.on("timeoutuser - twitch", async data => {
 		const { TwitchName } = socket.userInfo;
-		try {
+
+		let user = data.user;
+		async function botTimeout(user) {
 			console.log(`Timeout ${user} - Twitch`);
-			//Possible to do: let default timeouts be assigned in dashboard
-			await TwitchClient.timeout(TwitchName, user, 300);
-		} catch (err) {
-			console.log(err.message);
+			try {
+				//Possible to do: let default timeouts be assigned in dashboard
+				await TwitchClient.timeout(TwitchName, user, 300);
+			} catch (err) {
+				console.log(err.message);
+			}
+		}
+		if (!user) {
+			botTimeout(data);
+		} else {
+			const modName = data.modName;
+			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
+			const modData = modRef.data();
+			if (!modData) {
+				botTimeout(user);
+			} else {
+				try {
+					const modPrivateDataRef = await admin.firestore().collection("Streamers").doc(modData.uid).collection("twitch").doc("data").get();
+					const modPrivateData = modPrivateDataRef.data();
+					if (!modPrivateData) {
+						throw new Error("no twitch auth");
+					}
+					const refreshToken = modPrivateData.refresh_token;
+					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+					const data = await response.json();
+					if (!data) {
+						throw new Error("bad refresh token");
+					}
+					const scopes = data.scope;
+					if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
+						throw new Error("bad scopes");
+					}
+					const UserClient = new tmi.Client({
+						options: { debug: false },
+						connection: {
+							secure: true,
+							reconnect: true,
+						},
+						identity: {
+							username: modName,
+							password: data.access_token,
+						},
+						channels: [TwitchName],
+					});
+					await UserClient.connect();
+					await UserClient.timeout(TwitchName, user, 300);
+					await UserClient.disconnect();
+				} catch (err) {
+					console.log(err.message);
+					botTimeout(user);
+				}
+			}
 		}
 	});
 
 	socket.on("banuser - twitch", async user => {
 		const { TwitchName } = socket.userInfo;
+		console.log(`Banning ${user} - Twitch`);
 		try {
-			console.log(`Banning ${user} - Twitch`);
 			await TwitchClient.ban(TwitchName, user);
 		} catch (err) {
 			console.log(err.message);
 		}
-	});
-
-	socket.on("heartbeart", () => {
-		socket.emit("pong");
 	});
 
 	socket.on("disconnect", () => {
