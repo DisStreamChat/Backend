@@ -1,5 +1,4 @@
 const { resolveUser, formatFromNow } = require("../../utils/functions");
-const { emojis } = require("../Constants");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
