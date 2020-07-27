@@ -200,6 +200,29 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
+    const AllcheerMotes = {}
+    const getCheerMotes = async () => {
+        const streamersRef = await admin.firestore().collection("Streamers").get()
+        const streamers = streamersRef.docs.map(doc => doc.data())
+        const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name)
+        for(const name of twitchNames){
+            try{
+                const userInfo = await Api.getUserInfo(channelName)
+                if(userInfo && userInfo.id){
+                    AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data
+                }
+                else{
+                    AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data
+                }
+            }catch(err){
+                console.log(err.message)
+            }
+        }
+        // console.log(streamers)
+    }
+    getCheerMotes()
+    setInterval(getCheerMotes, 3600000);
+
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
 		// TODO: improve Regex
@@ -210,8 +233,8 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-        const userInfo = await Api.getUserInfo(channelName)
-		const cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
+        let cheerMotes = AllcheerMotes[channelName]
+        if(!cheerMotes) cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({ bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix.toLowerCase() === match[1].toLowerCase()) }));
