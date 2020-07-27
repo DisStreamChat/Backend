@@ -146,6 +146,8 @@ const addSocket = (socket, id) => {
 	}
 };
 
+const userClients = {};
+
 io.on("connection", socket => {
 	console.log("a user connected");
 	socket.emit("imConnected");
@@ -242,36 +244,45 @@ io.on("connection", socket => {
 				botDelete(id);
 			} else {
 				try {
-					const modPrivateDataRef = await admin.firestore().collection("Streamers").doc(modData.uid).collection("twitch").doc("data").get();
-					const modPrivateData = modPrivateDataRef.data();
-					if (!modPrivateData) {
-						throw new Error("no twitch auth");
+					let userClient = userClients[modName];
+					if (!userClient) {
+						const modPrivateDataRef = await admin
+							.firestore()
+							.collection("Streamers")
+							.doc(modData.uid)
+							.collection("twitch")
+							.doc("data")
+							.get();
+						const modPrivateData = modPrivateDataRef.data();
+						if (!modPrivateData) {
+							throw new Error("no twitch auth");
+						}
+						const refreshToken = modPrivateData.refresh_token;
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const data = await response.json();
+						if (!data) {
+							throw new Error("bad refresh token");
+						}
+						const scopes = data.scope;
+						if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
+							throw new Error("bad scopes");
+						}
+						UserClient = new tmi.Client({
+							options: { debug: false },
+							connection: {
+								secure: true,
+								reconnect: true,
+							},
+							identity: {
+								username: modName,
+								password: data.access_token,
+							},
+							channels: [TwitchName],
+						});
+						userClients[modName] = UserClient;
+						await UserClient.connect();
 					}
-					const refreshToken = modPrivateData.refresh_token;
-					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
-					const data = await response.json();
-					if (!data) {
-						throw new Error("bad refresh token");
-					}
-					const scopes = data.scope;
-					if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
-						throw new Error("bad scopes");
-					}
-					const UserClient = new tmi.Client({
-						options: { debug: false },
-						connection: {
-							secure: true,
-							reconnect: true,
-						},
-						identity: {
-							username: modName,
-							password: data.access_token,
-						},
-						channels: [TwitchName],
-					});
-					await UserClient.connect();
 					await UserClient.deletemessage(TwitchName, id);
-					await UserClient.disconnect();
 				} catch (err) {
 					console.log(err.message);
 					botDelete(id);
@@ -303,36 +314,46 @@ io.on("connection", socket => {
 				botTimeout(user);
 			} else {
 				try {
-					const modPrivateDataRef = await admin.firestore().collection("Streamers").doc(modData.uid).collection("twitch").doc("data").get();
-					const modPrivateData = modPrivateDataRef.data();
-					if (!modPrivateData) {
-						throw new Error("no twitch auth");
+                    let UserClient = userClients[modName];
+                    console.log(!!UserClient)
+					if (!UserClient) {
+						const modPrivateDataRef = await admin
+							.firestore()
+							.collection("Streamers")
+							.doc(modData.uid)
+							.collection("twitch")
+							.doc("data")
+							.get();
+						const modPrivateData = modPrivateDataRef.data();
+						if (!modPrivateData) {
+							throw new Error("no twitch auth");
+						}
+						const refreshToken = modPrivateData.refresh_token;
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const data = await response.json();
+						if (!data) {
+							throw new Error("bad refresh token");
+						}
+						const scopes = data.scope;
+						if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
+							throw new Error("bad scopes");
+						}
+						UserClient = new tmi.Client({
+							options: { debug: false },
+							connection: {
+								secure: true,
+								reconnect: true,
+							},
+							identity: {
+								username: modName,
+								password: data.access_token,
+							},
+							channels: [TwitchName],
+                        });
+                        userClients[modName] = UserClient
+						await UserClient.connect();
 					}
-					const refreshToken = modPrivateData.refresh_token;
-					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
-					const data = await response.json();
-					if (!data) {
-						throw new Error("bad refresh token");
-					}
-					const scopes = data.scope;
-					if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
-						throw new Error("bad scopes");
-					}
-					const UserClient = new tmi.Client({
-						options: { debug: false },
-						connection: {
-							secure: true,
-							reconnect: true,
-						},
-						identity: {
-							username: modName,
-							password: data.access_token,
-						},
-						channels: [TwitchName],
-					});
-					await UserClient.connect();
 					await UserClient.timeout(TwitchName, user, 300);
-					await UserClient.disconnect();
 				} catch (err) {
 					console.log(err.message);
 					botTimeout(user);
