@@ -36,7 +36,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
         // custom badges based on permissions or if the user is an admin
 		if (message.guild.ownerID == message.author.id) {
-			badges["owner"] = {
+			badges["broadcaster"] = {
 				image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1",
 				title: "Server Owner",
 			};
