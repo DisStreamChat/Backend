@@ -116,7 +116,7 @@ const generateRankCard = async (userData, user) => {
     ctx.fillText(xpText, canvas.width - xpTextWidth - 80, 170);
     ctx.fillStyle = "#ffffff";
     ctx.font = "42px Poppins";
-    const levelText = `Level: ${userData.level}`;
+    const levelText = `Level ${userData.level}`;
     const levelTextWidth = ctx.measureText(levelText).width;
     ctx.fillText(levelText, canvas.width - levelTextWidth - 80, 50);
 
