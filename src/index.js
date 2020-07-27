@@ -192,7 +192,8 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("timeoutuser - discord", async user => {
+	socket.on("timeoutuser - discord", async data => {
+        let user = data.user || data
 		const { guildId } = socket.userInfo;
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		let muteRole = connectGuild.roles.cache.find(role => role.name === "Muted");
@@ -212,7 +213,8 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("banuser - discord", async user => {
+	socket.on("banuser - discord", async data => {
+        let user = data.user || data
 		const { guildId } = socket.userInfo;
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		try {
