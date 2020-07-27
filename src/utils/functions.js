@@ -210,5 +210,6 @@ module.exports = {
     getLevel,
     getXp,
     roundRect,
-    applyText
+    applyText,
+    cleanRegex,
 }
