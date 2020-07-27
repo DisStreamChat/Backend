@@ -207,7 +207,7 @@ module.exports = (TwitchClient, sockets, app) => {
         const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name)
         for(const name of twitchNames){
             try{
-                const userInfo = await Api.getUserInfo(channelName)
+                const userInfo = await Api.getUserInfo(name)
                 if(userInfo && userInfo.id){
                     AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data
                 }
