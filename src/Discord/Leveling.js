@@ -1,3 +1,9 @@
+// the admin app has already been initialized in routes/index.js
+const admin = require("firebase-admin");
+const { Random } = require("../utils/functions");
+
+const {getXp} = require("../utils/functions")
+
 module.exports = {
     handleLeveling: async message => {
 		const levelingDataRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();

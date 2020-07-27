@@ -5,11 +5,7 @@ const CommandHandler = require("./CommandHandler");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 
-// the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
-const { Random } = require("../utils/functions");
 
-const {getXp} = require("../utils/functions")
 const {handleLeveling} = require("./Leveling")
 
 module.exports = (DiscordClient, sockets, app) => {
