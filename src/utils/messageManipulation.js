@@ -126,7 +126,7 @@ const getAllEmotes = async () => {
         }
 	}
 };
-getAllEmotes()
+await getAllEmotes()
 setInterval(getAllEmotes, 60000);
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
@@ -151,7 +151,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 			// const userData = user.data();
 			const customEmotes = true //userData.appSettings.ShowCustomEmotes;
 			if (customEmotes) {
-				// TODO: cache these emotes so we don't have to check them every time and move to frontend
+                // TODO: cache these emotes so we don't have to check them every time and move to frontend
 				const { bttvEmotes, bttvRegex } = allBTTVEmotes[channelName];
 				const { ffzEmotes, ffzRegex } = allFFZEmotes[channelName];
 				allBTTVEmotes[channelName].messageSent = true;
