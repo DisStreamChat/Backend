@@ -128,6 +128,8 @@ const getAllEmotes = async () => {
 };
 getAllEmotes().then(() => {
     setInterval(getAllEmotes, 60000);
+}).catch(() => {
+    setInterval(getAllEmotes, 60000);
 })
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
