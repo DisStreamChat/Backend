@@ -519,7 +519,7 @@ router.get("/stats/twitch", async (req, res, next) => {
 	const stream = streamData[0];
 	if (stream) {
 		stream.all_viewers = stream.viewer_count;
-		stream.viewer_count = json.chatter_count;
+		// stream.viewer_count = json.chatter_count;
 		stream.isLive = true;
 		return res.json(stream);
 	} else if (isNew) {
