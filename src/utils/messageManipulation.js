@@ -126,8 +126,9 @@ const getAllEmotes = async () => {
         }
 	}
 };
-getAllEmotes()
-setInterval(getAllEmotes, 60000);
+getAllEmotes().then(() => {
+    setInterval(getAllEmotes, 60000);
+})
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
@@ -141,7 +142,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
-	if (platform === "twitch" && channelName) {
+	if (platform === "twitch" && channelName && allBTTVEmotes[channelName] && allFFZEmotes[channelName]) {
 		const info = true//await Api.getUserInfo(channelName);
 		if (info) {
 			// const { id } = info;
