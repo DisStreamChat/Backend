@@ -10,10 +10,10 @@ const DOMPurify = createDOMPurify(window);
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
 const admin = require("firebase-admin");
-const {cleanRegex} = require("../utils/functions")
+const { cleanRegex } = require("../utils/functions");
 
 // const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/gm;
-const urlRegex = require('url-regex')()
+const urlRegex = require("url-regex")();
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
@@ -109,6 +109,26 @@ async function getFfzEmotes(channelName) {
 	return { ffzEmotes, ffzRegex };
 }
 
+const allBTTVEmotes = {};
+const allFFZEmotes = {};
+const getAllEmotes = async () => {
+	const streamersRef = await admin.firestore().collection("Streamers").get();
+	const streamers = streamersRef.docs.map(doc => doc.data());
+	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
+	for (const name of twitchNames) {
+        if(!allBTTVEmotes[name] || (allBTTVEmotes[name] && allBTTVEmotes[name].messageSent)){
+            console.log("refreshing bttv, "+name)
+            allBTTVEmotes[name] = { ...(await getBttvEmotes(name)), messageSent: false };
+        }
+        if(!allFFZEmotes[name] || (allFFZEmotes[name] && allFFZEmotes[name].messageSent)){
+            console.log("refreshing ffz, "+name)
+            allFFZEmotes[name] = { ...(await getFfzEmotes(name)), messageSent: false };
+        }
+	}
+};
+getAllEmotes()
+setInterval(getAllEmotes, 60000);
+
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
 	if (HTMLClean)
@@ -122,18 +142,24 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	if (platform === "twitch" && channelName) {
-		const info = await Api.getUserInfo(channelName);
+		const info = true//await Api.getUserInfo(channelName);
 		if (info) {
-			const { id } = info;
-			const databaseId = sha1(id);
-			const db = admin.firestore();
-			const user = await db.collection("Streamers").doc(databaseId).get();
-			const userData = user.data();
-			const customEmotes = userData.appSettings.ShowCustomEmotes;
+			// const { id } = info;
+			// const databaseId = sha1(id);
+			// const db = admin.firestore();
+			// const user = await db.collection("Streamers").doc(databaseId).get();
+			// const userData = user.data();
+			const customEmotes = true //userData.appSettings.ShowCustomEmotes;
 			if (customEmotes) {
 				// TODO: cache these emotes so we don't have to check them every time and move to frontend
-				const { bttvEmotes, bttvRegex } = await getBttvEmotes(channelName);
-				const { ffzEmotes, ffzRegex } = await getFfzEmotes(channelName);
+				const { bttvEmotes, bttvRegex } = allBTTVEmotes[channelName];
+				const { ffzEmotes, ffzRegex } = allFFZEmotes[channelName];
+				allBTTVEmotes[channelName].messageSent = true;
+				allFFZEmotes[channelName].messageSent = true;
+				setTimeout(() => {
+					allBTTVEmotes[channelName].messageSent = false;
+					allFFZEmotes[channelName].messageSent = false;
+				}, 120000);
 				dirty = dirty.replace(
 					bttvRegex,
 					name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
@@ -150,7 +176,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 };
 
 const parseEmotes = (message, emotes) => {
-    const emoteIds = Object.keys(emotes);
+	const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
 			const [start, end] = startEnd.split("-").map(Number);
@@ -162,24 +188,25 @@ const parseEmotes = (message, emotes) => {
 		return starts;
 	}, {});
 	const parts = Array.from(message);
-    const emoteNames = {};
-    let emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/gi
-    let emojiDetected = 0
+	const emoteNames = {};
+	let emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/gi;
+	let emojiDetected = 0;
 	for (let i = 0; i < parts.length; i++) {
-        const emoteInfo = emoteStart[i];
-        if(!![...parts[i].matchAll(emojiRegex)].length){
-            emojiDetected ++
-        }
+		const emoteInfo = emoteStart[i];
+		if (!![...parts[i].matchAll(emojiRegex)].length) {
+			emojiDetected++;
+		}
 		if (emoteInfo) {
-			emoteNames[message.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)] = emoteInfo.emoteUrl + ` title="${message.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)}">`;
-        }
-    }
-    return emoteNames
-} 
+			emoteNames[message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)] =
+				emoteInfo.emoteUrl + ` title="${message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)}">`;
+		}
+	}
+	return emoteNames;
+};
 
 // TODO: fix bugs
 const replaceTwitchEmotes = (message, original, emotes) => {
-    const emoteNames = parseEmotes(original, emotes)
+	const emoteNames = parseEmotes(original, emotes);
 	for (let name in emoteNames) {
 		message = message.replace(new RegExp(`(?<=\\s|^)(${cleanRegex(name)})(?=\\s|$)`, "gm"), emoteNames[name]);
 	}
