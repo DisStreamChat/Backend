@@ -212,4 +212,5 @@ module.exports = {
     roundRect,
     applyText,
     cleanRegex,
+    hoursToMillis: hrs => hrs*3600000
 }
