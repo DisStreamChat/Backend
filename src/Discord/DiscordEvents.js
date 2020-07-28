@@ -24,6 +24,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
         // after commands try to send message through the sockets, but only if there are sockets connected to the guild
 		if (!sockets.hasOwnProperty(message.guild.id)) return;
+        if(![...sockets[message.guild.id]].length) return
 
 		const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
 
