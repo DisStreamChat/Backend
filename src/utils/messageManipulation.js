@@ -149,7 +149,10 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	return dirty;
 };
 
-const parseEmotes = (message, emotes) => {
+
+
+// TODO: fix bugs
+const replaceTwitchEmotes = (message, original, emotes) => {
     const emoteIds = Object.keys(emotes);
 	const emoteStart = emoteIds.reduce((starts, id) => {
 		emotes[id].forEach(startEnd => {
@@ -171,16 +174,9 @@ const parseEmotes = (message, emotes) => {
             emojiDetected ++
         }
 		if (emoteInfo) {
-			emoteNames[message.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)] = emoteInfo.emoteUrl + ` title="${message.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)}">`;
-            i = emoteInfo.end + 1+emojiDetected
-        }
+			emoteNames[original.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)] = emoteInfo.emoteUrl + ` title="${original.slice(i+emojiDetected, emoteInfo.end + 1+emojiDetected)}">`;
+		}
     }
-    return emoteNames
-} 
-
-// TODO: fix bugs
-const replaceTwitchEmotes = (message, original, emotes) => {
-    const emoteNames = parseEmotes(original, emotes)
 	for (let name in emoteNames) {
 		message = message.replace(new RegExp(`(?<=\\s|^)(${cleanRegex(name)})(?=\\s|$)`, "gm"), emoteNames[name]);
 	}
