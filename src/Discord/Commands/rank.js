@@ -14,7 +14,11 @@ module.exports = {
 	description: "get your level",
 	execute: async (message, args, client) => {
 		let user = resolveUser(message, args.join(" "));
-        if (!user) user = message.member;
+        if (!user) {
+            if(args.length){
+                message.channel.send("user not found, here are your stats")
+            }
+            user = message.member};
         if (user.user.bot){
             return await message.channel.send(`❌ ${user} is a bot and bot's don't level`)
         }
