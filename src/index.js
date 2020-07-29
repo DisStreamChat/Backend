@@ -146,7 +146,7 @@ const addSocket = (socket, id) => {
 	}
 };
 
-const userClients = {};
+const UserClients = {};
 
 io.on("connection", socket => {
 	console.log("a user connected");
@@ -246,78 +246,7 @@ io.on("connection", socket => {
 				botDelete(id);
 			} else {
 				try {
-					let userClient = userClients[modName];
-					if (!userClient) {
-						const modPrivateDataRef = await admin
-							.firestore()
-							.collection("Streamers")
-							.doc(modData.uid)
-							.collection("twitch")
-							.doc("data")
-							.get();
-						const modPrivateData = modPrivateDataRef.data();
-						if (!modPrivateData) {
-							throw new Error("no twitch auth");
-						}
-						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
-						const data = await response.json();
-						if (!data) {
-							throw new Error("bad refresh token");
-						}
-						const scopes = data.scope;
-						if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
-							throw new Error("bad scopes");
-						}
-						UserClient = new tmi.Client({
-							options: { debug: false },
-							connection: {
-								secure: true,
-								reconnect: true,
-							},
-							identity: {
-								username: modName,
-								password: data.access_token,
-							},
-							channels: [TwitchName],
-						});
-						userClients[modName] = UserClient;
-						await UserClient.connect();
-                    }
-                    console.log(userClient, modName)
-					await UserClient.deletemessage(TwitchName, id);
-				} catch (err) {
-					console.log(err.message);
-					botDelete(id);
-				}
-			}
-		}
-	});
-
-	socket.on("timeoutuser - twitch", async data => {
-		const { TwitchName } = socket.userInfo;
-
-		let user = data.user;
-		async function botTimeout(user) {
-			console.log(`Timeout ${user} - Twitch`);
-			try {
-				//Possible to do: let default timeouts be assigned in dashboard
-				await TwitchClient.timeout(TwitchName, user, 300);
-			} catch (err) {
-				console.log(err.message);
-			}
-		}
-		if (!user) {
-			botTimeout(data);
-		} else {
-			const modName = data.modName;
-			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
-			const modData = modRef.data();
-			if (!modData) {
-				botTimeout(user);
-			} else {
-				try {
-					let UserClient = userClients[modName];
+					let UserClient = UserClients[modName];
 					if (!UserClient) {
 						const modPrivateDataRef = await admin
 							.firestore()
@@ -352,7 +281,77 @@ io.on("connection", socket => {
 							},
 							channels: [TwitchName],
 						});
-						userClients[modName] = UserClient;
+						UserClients[modName] = UserClient;
+						await UserClient.connect();
+                    }
+					await UserClient.deletemessage(TwitchName, id);
+				} catch (err) {
+					console.log(err.message);
+					botDelete(id);
+				}
+			}
+		}
+	});
+
+	socket.on("timeoutuser - twitch", async data => {
+		const { TwitchName } = socket.userInfo;
+
+		let user = data.user;
+		async function botTimeout(user) {
+			console.log(`Timeout ${user} - Twitch`);
+			try {
+				//Possible to do: let default timeouts be assigned in dashboard
+				await TwitchClient.timeout(TwitchName, user, 300);
+			} catch (err) {
+				console.log(err.message);
+			}
+		}
+		if (!user) {
+			botTimeout(data);
+		} else {
+			const modName = data.modName;
+			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
+			const modData = modRef.data();
+			if (!modData) {
+				botTimeout(user);
+			} else {
+				try {
+					let UserClient = UserClients[modName];
+					if (!UserClient) {
+						const modPrivateDataRef = await admin
+							.firestore()
+							.collection("Streamers")
+							.doc(modData.uid)
+							.collection("twitch")
+							.doc("data")
+							.get();
+						const modPrivateData = modPrivateDataRef.data();
+						if (!modPrivateData) {
+							throw new Error("no twitch auth");
+						}
+						const refreshToken = modPrivateData.refresh_token;
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const data = await response.json();
+						if (!data) {
+							throw new Error("bad refresh token");
+						}
+						const scopes = data.scope;
+						if (!ArrayAny(scopes, ["chat:edit", "chat:read", "channel:moderate"])) {
+							throw new Error("bad scopes");
+						}
+						UserClient = new tmi.Client({
+							options: { debug: false },
+							connection: {
+								secure: true,
+								reconnect: true,
+							},
+							identity: {
+								username: modName,
+								password: data.access_token,
+							},
+							channels: [TwitchName],
+						});
+						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
 					await UserClient.timeout(TwitchName, user, 300);
@@ -387,7 +386,7 @@ io.on("connection", socket => {
 				botBan(user);
 			} else {
 				try {
-					let UserClient = userClients[modName];
+					let UserClient = UserClients[modName];
 					if (!UserClient) {
 						const modPrivateDataRef = await admin
 							.firestore()
@@ -422,7 +421,7 @@ io.on("connection", socket => {
 							},
 							channels: [TwitchName],
 						});
-						userClients[modName] = UserClient;
+						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
 					await UserClient.timeout(TwitchName, user, 300);
@@ -442,7 +441,7 @@ io.on("connection", socket => {
 			try {
 				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", sender).get()).docs[0];
 				const modData = modRef.data();
-				let UserClient = userClients[sender];
+				let UserClient = UserClients[sender];
 				if (!UserClient) {
 					const modPrivateDataRef = await admin.firestore().collection("Streamers").doc(modData.uid).collection("twitch").doc("data").get();
 					const modPrivateData = modPrivateDataRef.data();
@@ -471,7 +470,7 @@ io.on("connection", socket => {
 						},
 						channels: [TwitchName],
 					});
-					userClients[sender] = UserClient;
+					UserClients[sender] = UserClient;
 					await UserClient.connect();
 				}
 				try {
