@@ -14,7 +14,10 @@ module.exports = {
 	description: "get your level",
 	execute: async (message, args, client) => {
 		let user = resolveUser(message, args.join(" "));
-		if (!user) user = message.member;
+        if (!user) user = message.member;
+        if (user.user.bot){
+            return await message.channel.send(`❌ ${user} is a bot and bot's don't level`)
+        }
 		const guildRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
 		const guildData = guildRef.data();
 		let userData = guildData[user.id];
