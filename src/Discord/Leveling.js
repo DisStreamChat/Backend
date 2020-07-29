@@ -23,7 +23,7 @@ module.exports = {
 				let xpToNextLevel = getXp(userLevelingData.level+1)
 				if(userLevelingData.xp >= xpToNextLevel){
                     userLevelingData.level++
-                    message.channel.send(`Congrats ${message.author}, you leveled up to level ${userLevelingData.level}`)
+                    message.channel.send(`Congrats ${message.author}, you leveled up to level ${userLevelingData.level+1}`)
                 }
 				levelingData[message.author.id] = userLevelingData;
 				await admin.firestore().collection("Leveling").doc(message.guild.id).update(levelingData);
