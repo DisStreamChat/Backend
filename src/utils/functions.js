@@ -103,20 +103,20 @@ const generateRankCard = async (userData, user) => {
 	const barHeight = 25;
 
 	ctx.fillStyle = "#484b4e";
-	roundRect(ctx, canvas.width / 3, 165, barWidth, barHeight, barHeight / 2);
+	roundRect(ctx, canvas.width / 3, 175, barWidth, barHeight, barHeight / 2);
 	ctx.fillStyle = "#c31503";
-	roundRect(ctx, canvas.width / 3, 165, barWidth * percentDone, barHeight, barHeight / 2);
+	roundRect(ctx, canvas.width / 3, 175, barWidth * percentDone, barHeight, barHeight / 2);
 
 	ctx.font = "24px Poppins";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText(`${user.user.tag}`, canvas.width / 3, 150);
+	ctx.fillText(`${user.user.tag}`, canvas.width / 3, 160);
 	ctx.font = "18px Poppins";
 	const displayXp = userData.xp > 1000 ? `${(userData.xp / 1000).toFixed(2)}k` : userData.xp;
 	const displayXpToGo = xpToNextLevel > 1000 ? `${(xpToNextLevel / 1000).toFixed(2)}k` : xpToNextLevel;
 	const xpText = `${displayXp}/${displayXpToGo} XP`;
 	const xpTextWidth = ctx.measureText(xpText).width;
 	ctx.fillStyle = "#dddddd";
-	ctx.fillText(xpText, canvas.width - xpTextWidth - 80, 150);
+	ctx.fillText(xpText, canvas.width - xpTextWidth - 80, 160);
 	ctx.fillStyle = "#ffffff";
 	ctx.font = "42px Poppins";
 	const levelText = `Level ${userData.level + 1}`;
