@@ -465,12 +465,12 @@ io.on("connection", socket => {
 							reconnect: true,
 						},
 						identity: {
-							username: modName,
+							username: sender,
 							password: data.access_token,
 						},
 						channels: [TwitchName],
 					});
-					userClients[modName] = UserClient;
+					userClients[sender] = UserClient;
 					await UserClient.connect();
 				}
 				try {
