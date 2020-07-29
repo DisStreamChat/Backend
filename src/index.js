@@ -283,7 +283,8 @@ io.on("connection", socket => {
 						});
 						userClients[modName] = UserClient;
 						await UserClient.connect();
-					}
+                    }
+                    console.log(userClient, modName)
 					await UserClient.deletemessage(TwitchName, id);
 				} catch (err) {
 					console.log(err.message);
