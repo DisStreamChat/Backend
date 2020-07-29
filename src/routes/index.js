@@ -499,7 +499,7 @@ router.get("/chatters", async (req, res, next) => {
     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
     const onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
     let count = 0
-    for(let [key, value] of Object.entries(json.chatters)){
+    for(let [key, value] of Object.entries(json.chatters || {})){
         json.chatters[key] = value.filter(name => !onlineBots.includes(name))
         count += json.chatters[key].length
     }
