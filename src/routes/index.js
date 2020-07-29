@@ -32,17 +32,6 @@ const oauth = new DiscordOauth2({
 	redirectUri: process.env.REDIRECT_URI + "/?discord=true",
 });
 
-/**
- * This is a function.
- *
- * @param {number} channelID - a twitch channel id
- * @param {number} leaseSeconds - how long the subscription will last, in seconds. max 864000, min 0
- * @returns {number} - leaseSeconds
- *
- * @example
- *
- *     subscribeToFollowers(32168215)
- */
 const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
@@ -67,17 +56,7 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
-/**
- * This is a function.
- *
- * @param {number} channelID - a twitch channel id
- * @param {number} leaseSeconds - how long the subscription will last, in seconds. max 864000, min 0
- * @returns {number} - leaseSeconds
- *
- * @example
- *
- *     subscribeToFollowers(32168215)
- */
+
 const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
