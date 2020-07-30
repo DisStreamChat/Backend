@@ -172,7 +172,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 		}
 	} else if (platform === "discord") {
 		dirty = dirty.replace(customEmojiRegex, (match, p1, p2, p3) => {
-			return `<img class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
+			return `<img alt="${p1}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
 		});
 	}
 	return dirty;
