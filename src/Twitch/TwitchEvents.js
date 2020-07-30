@@ -169,7 +169,6 @@ module.exports = (TwitchClient, sockets, app) => {
 				title: "DisStreamchat Staff",
 			};
 		}
-        console.log(badges)
 		// the messageId is currently only used for higlighted messages
 		let messageId = tags["msg-id"] || "";
 
