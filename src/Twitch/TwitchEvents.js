@@ -197,9 +197,13 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
-    const AllcheerMotes = {};
-    
-	const getCheerMotes = async () => {
+	const globalCheerMotes = [];
+	const getGlobalCheerMotes = async () => {
+		globalCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
+	};
+
+	const CustomCheerMotes = {};
+	const getCustomCheerMotes = async () => {
 		const streamersRef = await admin.firestore().collection("Streamers").get();
 		const streamers = streamersRef.docs.map(doc => doc.data());
 		const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
@@ -207,17 +211,24 @@ module.exports = (TwitchClient, sockets, app) => {
 			try {
 				const userInfo = await Api.getUserInfo(name);
 				if (userInfo && userInfo.id) {
-					AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
-				} else {
-					AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
+					const userCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
+					const userCustomEmotes = userCheerMotes.filter(
+						cheerMote => !globalCheerMotes.find(globalCheerMote => cheerMote.prefix === globalCheerMote.prefix)
+                    );
+                    if(userCustomEmotes.length){
+                        CustomCheerMotes[name] = userCustomEmotes
+                    }
 				}
 			} catch (err) {
 				console.log(err.message);
 			}
 		}
 	};
-	getCheerMotes();
-	setInterval(getCheerMotes, hoursToMillis(4));
+	getGlobalCheerMotes().then(() => {
+		getCustomCheerMotes();
+		setInterval(getCustomCheerMotes, hoursToMillis(4));
+		setInterval(getGlobalCheerMotes, hoursToMillis(24));
+	});
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
@@ -229,12 +240,10 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		let cheerMotes;
-		if (!AllcheerMotes[channelName]) {
-			cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
-		}else{
-            cheerMotes = {...AllcheerMotes[channelName]}
-        }
+		let cheerMotes = [...globalCheerMotes];
+		if (CustomCheerMotes[channelName]) {
+			cheerMotes = [ ...CustomCheerMotes[channelName], ...cheerMotes ];
+		}
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({
