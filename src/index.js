@@ -284,7 +284,8 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
                     }
-					await UserClient.deletemessage(TwitchName, id);
+                    await UserClient.deletemessage(TwitchName, id);
+                    UserClient = null
 				} catch (err) {
 					console.log(err.message);
 					botDelete(id);
@@ -354,7 +355,8 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
-					await UserClient.timeout(TwitchName, user, 300);
+                    await UserClient.timeout(TwitchName, user, 300);
+                    UserClient = null
 				} catch (err) {
 					console.log(err.message);
 					botTimeout(user);
@@ -424,7 +426,8 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
-					await UserClient.timeout(TwitchName, user, 300);
+                    await UserClient.timeout(TwitchName, user, 300);
+                    UserClient = null
 				} catch (err) {
 					console.log(err.message);
 					botBan(user);
@@ -478,7 +481,8 @@ io.on("connection", socket => {
 					await UserClient.say(TwitchName, message);
 				} catch (err) {
 					await UserClient.say(TwitchName, message);
-				}
+                }
+                UserClient = null
 			} catch (err) {
 				console.log(err.message);
 			}

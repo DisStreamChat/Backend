@@ -116,21 +116,24 @@ const getAllEmotes = async () => {
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
 	for (const name of twitchNames) {
-        if(!allBTTVEmotes[name] || (allBTTVEmotes[name] && allBTTVEmotes[name].messageSent)){
-            console.log("refreshing bttv, "+name)
-            allBTTVEmotes[name] = { ...(await getBttvEmotes(name)), messageSent: false };
-        }
-        if(!allFFZEmotes[name] || (allFFZEmotes[name] && allFFZEmotes[name].messageSent)){
-            console.log("refreshing ffz, "+name)
-            allFFZEmotes[name] = { ...(await getFfzEmotes(name)), messageSent: false };
-        }
+		if (!allBTTVEmotes[name] || (allBTTVEmotes[name] && allBTTVEmotes[name].messageSent)) {
+			console.log("refreshing bttv, " + name);
+			allBTTVEmotes[name] = { ...(await getBttvEmotes(name)), messageSent: false };
+		}
+		if (!allFFZEmotes[name] || (allFFZEmotes[name] && allFFZEmotes[name].messageSent)) {
+			console.log("refreshing ffz, " + name);
+			allFFZEmotes[name] = { ...(await getFfzEmotes(name)), messageSent: false };
+		}
 	}
 };
-getAllEmotes().then(() => {
-    setInterval(getAllEmotes, 60000);
-}).catch(() => {
-    setInterval(getAllEmotes, 60000);
-})
+const emoteRefresh = 60000 * 4;
+getAllEmotes()
+	.then(() => {
+		setInterval(getAllEmotes, emoteRefresh);
+	})
+	.catch(() => {
+		setInterval(getAllEmotes, emoteRefresh);
+	});
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
@@ -145,34 +148,24 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	if (platform === "twitch" && channelName && allBTTVEmotes[channelName] && allFFZEmotes[channelName]) {
-		const info = true//await Api.getUserInfo(channelName);
-		if (info) {
-			// const { id } = info;
-			// const databaseId = sha1(id);
-			// const db = admin.firestore();
-			// const user = await db.collection("Streamers").doc(databaseId).get();
-			// const userData = user.data();
-			const customEmotes = true //userData.appSettings.ShowCustomEmotes;
-			if (customEmotes) {
-                // TODO: cache these emotes so we don't have to check them every time and move to frontend
-				const { bttvEmotes, bttvRegex } = allBTTVEmotes[channelName];
-				const { ffzEmotes, ffzRegex } = allFFZEmotes[channelName];
-				allBTTVEmotes[channelName].messageSent = true;
-				allFFZEmotes[channelName].messageSent = true;
-				setTimeout(() => {
-					allBTTVEmotes[channelName].messageSent = false;
-					allFFZEmotes[channelName].messageSent = false;
-				}, 120000);
-				dirty = dirty.replace(
-					bttvRegex,
-					name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
-				);
-				dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
-			}
-		}
+		const { bttvEmotes, bttvRegex } = { ...allBTTVEmotes[channelName] };
+		const { ffzEmotes, ffzRegex } = { ...allFFZEmotes[channelName] };
+		allBTTVEmotes[channelName].messageSent = true;
+		allFFZEmotes[channelName].messageSent = true;
+		setTimeout(() => {
+			allBTTVEmotes[channelName].messageSent = false;
+			allFFZEmotes[channelName].messageSent = false;
+		}, emoteRefresh * 2);
+		dirty = dirty.replace(
+			bttvRegex,
+			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
+		);
+		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
 	} else if (platform === "discord") {
 		dirty = dirty.replace(customEmojiRegex, (match, p1, p2, p3) => {
-			return `<img alt="${p2 ? p1.slice(1) : p1}" title="${p2 ? p1.slice(1) : p1}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
+			return `<img alt="${p2 ? p1.slice(1) : p1}" title="${p2 ? p1.slice(1) : p1}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${
+				p2 ? "gif" : "png"
+			}?v=1">`;
 		});
 	}
 	return dirty;

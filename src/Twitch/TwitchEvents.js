@@ -137,18 +137,15 @@ module.exports = (TwitchClient, sockets, app) => {
 	});
 
 	TwitchClient.on("message", async (channel, tags, message, self) => {
-        // Ignore echoed messages and commands.
+		// Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
-        
-    
-        
 
 		// remove the "#" form the begginning of the channel name
-        const channelName = channel.slice(1).toLowerCase();
-        
-        if(channelName === "dav1dsnyder404"){
-            CommandHandler(message, TwitchClient, channelName)
-        }
+		const channelName = channel.slice(1).toLowerCase();
+
+		if (channelName === "dav1dsnyder404") {
+			CommandHandler(message, TwitchClient, channelName);
+		}
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
 		if (!sockets.hasOwnProperty(channelName)) return;
@@ -200,28 +197,27 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
-    const AllcheerMotes = {}
-    const getCheerMotes = async () => {
-        const streamersRef = await admin.firestore().collection("Streamers").get()
-        const streamers = streamersRef.docs.map(doc => doc.data())
-        const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name)
-        for(const name of twitchNames){
-            try{
-                const userInfo = await Api.getUserInfo(name)
-                if(userInfo && userInfo.id){
-                    AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data
-                }
-                else{
-                    AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data
-                }
-            }catch(err){
-                console.log(err.message)
-            }
-        }
-        // console.log(streamers)
-    }
-    getCheerMotes()
-    setInterval(getCheerMotes, hoursToMillis(4));
+    const AllcheerMotes = {};
+    
+	const getCheerMotes = async () => {
+		const streamersRef = await admin.firestore().collection("Streamers").get();
+		const streamers = streamersRef.docs.map(doc => doc.data());
+		const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
+		for (const name of twitchNames) {
+			try {
+				const userInfo = await Api.getUserInfo(name);
+				if (userInfo && userInfo.id) {
+					AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
+				} else {
+					AllcheerMotes[name] = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
+				}
+			} catch (err) {
+				console.log(err.message);
+			}
+		}
+	};
+	getCheerMotes();
+	setInterval(getCheerMotes, hoursToMillis(4));
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
@@ -233,12 +229,18 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-        let cheerMotes = AllcheerMotes[channelName]
-        if(!cheerMotes) cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data
+		let cheerMotes;
+		if (!AllcheerMotes[channelName]) {
+			cheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
+		}else{
+            cheerMotes = {...AllcheerMotes[channelName]}
+        }
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
-		const cheerMoteMatches = cheerMatches.map(match => ({ bits: +match[2], ...cheerMotes.find(cheer => cheer.prefix.toLowerCase() === match[1].toLowerCase()) }));
-
+		const cheerMoteMatches = cheerMatches.map(match => ({
+			bits: +match[2],
+			...cheerMotes.find(cheer => cheer.prefix.toLowerCase() === match[1].toLowerCase()),
+		}));
 
 		const cheerMoteMatchTiers = cheerMoteMatches
 			.map(cheerMote => {
@@ -255,13 +257,11 @@ module.exports = (TwitchClient, sockets, app) => {
 				};
 			})
 			.filter(c => !!c);
-        
+
 		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
-
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
-
 
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
 			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match.toLowerCase());
@@ -288,7 +288,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			bits, // << added this to the messageObject
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("anongiftpaidupgrade", async (channel, username, sender, tags) => {
@@ -303,7 +303,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			HTMLClean: true,
 		});
 
-
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
@@ -317,7 +316,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject));
 	});
 
 	const subTypes = {
@@ -350,7 +349,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	let giftTimeout = null;
@@ -395,7 +394,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				userColor: "#ff0029",
 			};
 
-			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 
 			lastGiftAmount = 0;
 			allRecipients = ``;
@@ -411,7 +410,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		let theMessage = "";
 
 		let cumulativeMonths = ~~tags["msg-param-cumulative-months"];
-		
+
 		if ((tags["msg-param-should-share-streak"] = true)) {
 			if (prime) {
 				theMessage = `Thanks for the Twitch Prime re-sub for ${cumulativeMonths} months @${username}!`;
@@ -442,7 +441,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			userColor: "#ff0029",
 		};
 
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
@@ -478,7 +477,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		};
 
 		if (messageObject.body.length <= 0) return;
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("primepaidupgrade", async (channel, username, { prime, plan, planName }, tags) => {
@@ -512,7 +511,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		};
 
 		if (messageObject.body.length <= 0) return;
-		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	// TODO: move to separate file
@@ -573,63 +572,66 @@ module.exports = (TwitchClient, sockets, app) => {
 		}
 	});
 
-    // TODO: refactor so it doesn't fire on follow
-    // get channel point redemptions for each channel
-    pubsubbedChannels = [];
+	// TODO: refactor so it doesn't fire on follow
+	// get channel point redemptions for each channel
+	pubsubbedChannels = [];
 	(async () => {
-		admin.firestore().collection("Streamers").onSnapshot(async allStreamersRef => {
-            const allStreamersTwitchData = await (await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))).map(doc => doc.data());
-            const authorizedStreamers = allStreamersTwitchData.filter(s => s);
-            pubsubbedChannels.forEach(channel => {
-                channel.listener.removeTopic([{topic: `channel-points-channel-v1.${channel.id}`}]);
-            })
-            authorizedStreamers.forEach(async streamer => {
-                const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
-                const json = await res.json();
-                const access_token = json.access_token;
-                const init_topics = [
-                    {
-                        topic: `channel-points-channel-v1.${streamer.user_id}`,
-                        token: access_token,
-                    },
-                ];
-                const pubSub = new TPS({
-                    init_topics,
-                    reconnect: false,
-                    debug: false,
-                });
-                pubsubbedChannels.push({listener: pubSub, id: streamer.user_id})
-                pubSub.on("channel-points", async data => {
-                    try {
-                        const { redemption, channel_id } = data;
-                        const firebaseId = sha1(channel_id)
-                        const user = await (await admin.firestore().collection("Streamers").doc(firebaseId).get()).data()
-                        const channelName = user.name
-                        if (!sockets.hasOwnProperty(channelName)) return
-                        const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
-                            redemption.reward.title
-                        } - ${redemption.reward.prompt}`;
-                        const messageObject = {
-                            displayName: "DisStreamChat",
-                            avatar: DisTwitchChatProfile,
-                            body: message,
-                            platform: "twitch",
-                            messageId: "subscription",
-                            messageType: "channel-points",
-                            uuid: uuidv1(),
-                            id: uuidv1(),
-                            badges: {},
-                            sentAt: new Date().getTime(),
-                            userColor: "#ff0029",
-                        };
-                        const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject)); 
-    
-                    } catch (error) {
-                        console.log("error sending redemption message", data, error.message);
-                    }
-                });
-            });
-        })
-    
+		admin
+			.firestore()
+			.collection("Streamers")
+			.onSnapshot(async allStreamersRef => {
+				const allStreamersTwitchData = await (
+					await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
+				).map(doc => doc.data());
+				const authorizedStreamers = allStreamersTwitchData.filter(s => s);
+				pubsubbedChannels.forEach(channel => {
+					channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
+				});
+				authorizedStreamers.forEach(async streamer => {
+					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
+					const json = await res.json();
+					const access_token = json.access_token;
+					const init_topics = [
+						{
+							topic: `channel-points-channel-v1.${streamer.user_id}`,
+							token: access_token,
+						},
+					];
+					const pubSub = new TPS({
+						init_topics,
+						reconnect: false,
+						debug: false,
+					});
+					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+					pubSub.on("channel-points", async data => {
+						try {
+							const { redemption, channel_id } = data;
+							const firebaseId = sha1(channel_id);
+							const user = await (await admin.firestore().collection("Streamers").doc(firebaseId).get()).data();
+							const channelName = user.name;
+							if (!sockets.hasOwnProperty(channelName)) return;
+							const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} - ${
+								redemption.reward.prompt
+							}`;
+							const messageObject = {
+								displayName: "DisStreamChat",
+								avatar: DisTwitchChatProfile,
+								body: message,
+								platform: "twitch",
+								messageId: "subscription",
+								messageType: "channel-points",
+								uuid: uuidv1(),
+								id: uuidv1(),
+								badges: {},
+								sentAt: new Date().getTime(),
+								userColor: "#ff0029",
+							};
+							const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+						} catch (error) {
+							console.log("error sending redemption message", data, error.message);
+						}
+					});
+				});
+			});
 	})();
 };
