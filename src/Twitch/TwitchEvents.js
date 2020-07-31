@@ -197,7 +197,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
-	const globalCheerMotes = [];
+	let globalCheerMotes = [];
 	const getGlobalCheerMotes = async () => {
 		globalCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
 	};
