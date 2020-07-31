@@ -214,21 +214,28 @@ module.exports = (TwitchClient, sockets, app) => {
 					const userCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
 					const userCustomEmotes = userCheerMotes.filter(
 						cheerMote => !globalCheerMotes.find(globalCheerMote => cheerMote.prefix === globalCheerMote.prefix)
-                    );
-                    if(userCustomEmotes.length){
-                        CustomCheerMotes[name] = userCustomEmotes
-                    }
+					);
+					if (userCustomEmotes.length) {
+						CustomCheerMotes[name] = userCustomEmotes;
+					}
 				}
 			} catch (err) {
 				console.log(err.message);
 			}
 		}
-	};
-	getGlobalCheerMotes().then(() => {
-		getCustomCheerMotes();
-		setInterval(getCustomCheerMotes, hoursToMillis(4));
-		setInterval(getGlobalCheerMotes, hoursToMillis(24));
-	});
+    };
+    
+    let globalCheerMoteID = 0, customCheerMoteID = 0
+
+	const getAllCheerMotes = async () => {
+		await getGlobalCheerMotes();
+        await getCustomCheerMotes();
+        clearInterval(customCheerMoteID)
+        clearInterval(globalCheerMoteID)
+		customCheerMoteID = setInterval(getCustomCheerMotes, hoursToMillis(4));
+		globalCheerMoteID = setInterval(getGlobalCheerMotes, hoursToMillis(24));
+    };
+    getAllCheerMotes()
 
 	TwitchClient.on("cheer", async (channel, tags, message, self) => {
 		const channelName = channel.slice(1).toLowerCase();
@@ -240,12 +247,16 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		let cheerMotes = [...globalCheerMotes];
-		if (CustomCheerMotes[channelName]) {
-			cheerMotes = [ ...CustomCheerMotes[channelName], ...cheerMotes ];
+        let cheerMotes = [...globalCheerMotes];
+        if(cheerMotes.length === 0){
+            await getAllCheerMotes()
+            cheerMotes = [...globalCheerMotes]
         }
-        
-        console.log(cheerMotes)
+		if (CustomCheerMotes[channelName]) {
+			cheerMotes = [...CustomCheerMotes[channelName], ...cheerMotes];
+		}
+
+		console.log(cheerMotes);
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({
