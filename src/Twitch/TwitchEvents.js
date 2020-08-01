@@ -257,7 +257,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			cheerMotes = [...CustomCheerMotes[channelName], ...cheerMotes];
 		}
 
-		console.log(cheerMotes);
 
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({
