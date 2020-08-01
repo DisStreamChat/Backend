@@ -280,7 +280,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			})
 			.filter(c => !!c);
 
-		let messageId = tags["msg-id"] || "";
 		let bits = tags.bits;
 
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
@@ -297,9 +296,6 @@ module.exports = (TwitchClient, sockets, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
 			body: theMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: "cheer",
 			uuid: tags.id,

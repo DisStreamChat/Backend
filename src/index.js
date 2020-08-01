@@ -76,59 +76,59 @@ DiscordEvents(DiscordClient, sockets, app);
 // Youtube Events
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.get("/youtube/events", async (req, res, next) => {
-	try {
-		const events = await getAllEvents(req.query.id);
-		return res.json(events);
-	} catch (error) {
-		return next(error);
-	}
-});
+// app.get("/youtube/events", async (req, res, next) => {
+// 	try {
+// 		const events = await getAllEvents(req.query.id);
+// 		return res.json(events);
+// 	} catch (error) {
+// 		return next(error);
+// 	}
+// });
 
-let listening = false;
-async function listenChat(channelId) {
-	if (!channelId) {
-		return {
-			listening: false,
-		};
-	}
-	if (listening) {
-		return {
-			listening: true,
-		};
-	}
-	const liveEvent = (await getAllEvents(channelId)).find(event => event.liveStreamingDetails.concurrentViewers);
-	if (liveEvent) {
-		listening = true;
-		const {
-			snippet: { liveChatId },
-		} = liveEvent;
-		const listener = listenMessages(liveChatId);
-		listener.on("messages", async newMessages => {
-			if (!sockets.hasOwnProperty(channelId)) return;
-			newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
-			newMessages.forEach(message => {
-				const _ = [...sockets[channelId]].forEach(async s => await s.emit("chatmessage", message));
-			});
-		});
-		listener.on("event-end", data => {
-			listening = false;
-			if (!sockets.hasOwnProperty(channelId)) return;
-			const _ = [...sockets[channelId]].forEach(async s => await s.emit("event-end", data));
-		});
-		return {
-			listening: true,
-		};
-	}
-	return {
-		listening: false,
-	};
-}
+// let listening = false;
+// async function listenChat(channelId) {
+// 	if (!channelId) {
+// 		return {
+// 			listening: false,
+// 		};
+// 	}
+// 	if (listening) {
+// 		return {
+// 			listening: true,
+// 		};
+// 	}
+// 	const liveEvent = (await getAllEvents(channelId)).find(event => event.liveStreamingDetails.concurrentViewers);
+// 	if (liveEvent) {
+// 		listening = true;
+// 		const {
+// 			snippet: { liveChatId },
+// 		} = liveEvent;
+// 		const listener = listenMessages(liveChatId);
+// 		listener.on("messages", async newMessages => {
+// 			if (!sockets.hasOwnProperty(channelId)) return;
+// 			newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
+// 			newMessages.forEach(message => {
+// 				const _ = [...sockets[channelId]].forEach(async s => await s.emit("chatmessage", message));
+// 			});
+// 		});
+// 		listener.on("event-end", data => {
+// 			listening = false;
+// 			if (!sockets.hasOwnProperty(channelId)) return;
+// 			const _ = [...sockets[channelId]].forEach(async s => await s.emit("event-end", data));
+// 		});
+// 		return {
+// 			listening: true,
+// 		};
+// 	}
+// 	return {
+// 		listening: false,
+// 	};
+// }
 
-app.get("/youtube/listen", async (req, res) => {
-	const result = await listenChat(req.query.id);
-	return res.json(result);
-});
+// app.get("/youtube/listen", async (req, res) => {
+// 	const result = await listenChat(req.query.id);
+// 	return res.json(result);
+// });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
