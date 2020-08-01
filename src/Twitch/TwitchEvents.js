@@ -287,7 +287,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
 			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match.toLowerCase());
 			if (!cheerMote) return match;
-			return `<img src="${cheerMote.image}" title="${cheerMote.prefix}" class="emote"> ${number}`;
+			return `<img src="${cheerMote.image}" title="${cheerMote.prefix}" class="emote">${number}`;
 		});
 
 		const theMessage = `${tags["display-name"]} cheered ${bits} bit${bits > 1 ? "s" : ""}!\n${HTMLCleanMessage}`;
