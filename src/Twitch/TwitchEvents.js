@@ -604,7 +604,8 @@ module.exports = (TwitchClient, sockets, app) => {
 				const authorizedStreamers = allStreamersTwitchData.filter(s => s);
 				pubsubbedChannels.forEach(channel => {
 					channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
-				});
+                });
+                pubsubbedChannels = []
 				authorizedStreamers.forEach(async streamer => {
 					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
 					const json = await res.json();
@@ -630,7 +631,8 @@ module.exports = (TwitchClient, sockets, app) => {
 							if (!sockets.hasOwnProperty(channelName)) return;
 							const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} - ${
 								redemption.reward.prompt
-							}`;
+                            }`;
+                            const id = uuidv1()
 							const messageObject = {
 								displayName: "DisStreamChat",
 								avatar: DisTwitchChatProfile,
@@ -638,8 +640,8 @@ module.exports = (TwitchClient, sockets, app) => {
 								platform: "twitch",
 								messageId: "subscription",
 								messageType: "channel-points",
-								uuid: uuidv1(),
-								id: uuidv1(),
+								uuid: id,
+								id,
 								badges: {},
 								sentAt: new Date().getTime(),
 								userColor: "#ff0029",
