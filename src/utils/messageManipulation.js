@@ -204,7 +204,7 @@ const parseEmotes = (message, emotes) => {
 const replaceTwitchEmotes = (message, original, emotes) => {
 	const emoteNames = parseEmotes(original, emotes);
 	for (let name in emoteNames) {
-		message = message.replace(new RegExp(`(?<=\\s|^)(${cleanRegex(name)})(?=\\s|$)`, "gm"), emoteNames[name]);
+		message = message.replace(new RegExp(`(?<=\\W|^)(${cleanRegex(name)})(?=\\W|$)`, "gm"), emoteNames[name]);
 	}
 	return message;
 };
