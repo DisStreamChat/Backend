@@ -105,7 +105,7 @@ async function getFfzEmotes(channelName) {
 		const setnum = room.set;
 		channelSets[setnum].emoticons.forEach(appendEmotes);
 	}
-	ffzRegex = new RegExp(`(?<=^|\\W)(${regexStr})(?=$|\\W)`, "g");
+	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
 	return { ffzEmotes, ffzRegex };
 }
 
