@@ -81,7 +81,7 @@ async function getBttvEmotes(channelName) {
 		bttvEmotes[code] = id;
 		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
 	});
-	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	bttvRegex = new RegExp(`(?<=^|\\W)(${regexStr})(?=$|\\W)`, "g");
 
 	return { bttvEmotes, bttvRegex };
 }
@@ -105,7 +105,7 @@ async function getFfzEmotes(channelName) {
 		const setnum = room.set;
 		channelSets[setnum].emoticons.forEach(appendEmotes);
 	}
-	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	ffzRegex = new RegExp(`(?<=^|\\W)(${regexStr})(?=$|\\W)`, "g");
 	return { ffzEmotes, ffzRegex };
 }
 
