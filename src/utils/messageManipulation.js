@@ -81,7 +81,7 @@ async function getBttvEmotes(channelName) {
 		bttvEmotes[code] = id;
 		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
 	});
-	bttvRegex = new RegExp(`(?<=^|\\W)(${regexStr})(?=$|\\W)`, "g");
+	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
 
 	return { bttvEmotes, bttvRegex };
 }
