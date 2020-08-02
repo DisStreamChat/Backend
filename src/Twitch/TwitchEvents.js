@@ -12,7 +12,7 @@ const admin = require("firebase-admin");
 
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
-const { default: fetch } = require("node-fetch");
+const fetch = require("node-fetch");
 
 // intialize the twitch api class from the twitch-lib package
 

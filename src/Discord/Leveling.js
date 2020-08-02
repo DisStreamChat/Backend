@@ -2,7 +2,7 @@
 const admin = require("firebase-admin");
 const { Random } = require("../utils/functions");
 
-const {getXp} = require("../utils/functions")
+const { getXp } = require("../utils/functions")
 
 module.exports = {
     handleLeveling: async message => {

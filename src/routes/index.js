@@ -1,17 +1,14 @@
 require("dotenv").config()
-const express = require("express");
+import express from "express"
 const router = express.Router();
-const sha1 = require("sha1");
-const fetch = require("node-fetch");
-const TwitchApi = require("twitch-lib");
-const admin = require("firebase-admin");
-const DiscordOauth2 = require("discord-oauth2");
-const { getUserInfo } = require("../utils/DiscordClasses");
-const { DiscordClient, TwitchClient } = require("../utils/initClients");
-const Discord = require("discord.js");
-const { firestore } = require("firebase-admin");
-const tmi = require("tmi.js");
-const path = require("path");
+import sha1 from "sha1"
+import fetch from "node-fetch"
+import TwitchApi from "twitch-lib"
+import admin from "firebase-admin"
+import DiscordOauth2 from "discord-oauth2"
+import {getUserInfo} from "../utils/DiscordClasses"
+import { DiscordClient, TwitchClient } from "../utils/initClients";
+import path from "path"
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -362,7 +359,7 @@ router.get("/token", async (req, res, next) => {
 
 			// automatically mod the bot in the users channel on sign in
 			try {
-				const UserClient = new tmi.Client({
+                const UserClient = new tmi.Client({
 					options: { debug: false },
 					connection: {
 						secure: true,
@@ -474,7 +471,6 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/chatters", async (req, res, next) => {
-	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
     const json = await response.json();
     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
     const onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
