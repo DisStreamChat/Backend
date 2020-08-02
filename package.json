@@ -38,6 +38,7 @@
     "firebase-admin": "^8.12.1",
     "helmet": "^3.22.0",
     "jsdom": "^16.2.2",
+    "memory-cache": "^0.2.0",
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",

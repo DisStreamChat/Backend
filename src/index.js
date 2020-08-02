@@ -7,8 +7,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const helemt = require("helmet");
 const TwitchEvents = require("./Twitch/TwitchEvents.js");
+const DiscordEvents = require("./Discord/DiscordEvents.js");
 const crypto = require("crypto");
-const ranks = require("./ranks.json");
 const fetch = require("node-fetch");
 const tmi = require("tmi.js");
 // const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
@@ -46,17 +46,11 @@ app.use("/images", express.static("images"));
 
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient } = require("./utils/initClients");
-const DiscordEvents = require("./Discord/DiscordEvents.js");
 const admin = require("firebase-admin");
 const { ArrayAny } = require("./utils/functions.js");
 
 // initialize the object that will store all sockets currently connected
 const sockets = {};
-
-io.origins((origin, callback) => {
-	console.log(origin);
-	callback(null, true);
-});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
