@@ -1,16 +1,18 @@
 require("dotenv").config();
 import express from "express"
 const app = express();
-const server = require("http").Server(app);
-const io = require("socket.io")(server);
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const helemt = require("helmet");
-const TwitchEvents = require("./Twitch/TwitchEvents.js");
-const DiscordEvents = require("./Discord/DiscordEvents.js");
-const crypto = require("crypto");
-const fetch = require("node-fetch");
-const tmi = require("tmi.js");
+import http from "http"
+const server = http.Server(app);
+import socketio from "socket.io"
+const io = socketio(server);
+import cors from "cors"
+import bodyParser from "body-parser"
+import helmet from "helmet"
+import TwitchEvents from "./Twitch/TwitchEvents"
+import DiscordEvents from "./Discord/DiscordEvents"
+import crypto from "crypto"
+import fetch from "node-fetch"
+import tmi from "tmi.js"
 // const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,7 +20,7 @@ const tmi = require("tmi.js");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // add the basic middleware to the express app
-app.use(helemt());
+app.use(helmet());
 app.use(cors());
 
 // this function is used to verify twitch webhook requests

@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+require("dotenv").config()
 
 const createDOMPurify = require("dompurify");
 
