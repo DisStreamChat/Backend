@@ -592,7 +592,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 	// TODO: refactor so it doesn't fire on follow
 	// get channel point redemptions for each channel
-	pubsubbedChannels = [];
+	let pubsubbedChannels = [];
 	(async () => {
 		admin
 			.firestore()
