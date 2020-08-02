@@ -1,64 +1,77 @@
 {
-  "name": "distwitchchat",
-  "version": "1.1.1",
-  "description": "a discord/twitch bot for integrating discord chat with twitch chat",
-  "main": "index.js",
-  "scripts": {
-    "start": "babel-node src/index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/GypsyDangerous/DisTwitchChat.git"
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-env"
-    ]
-  },
-  "keywords": [
-    "discord",
-    "twitch",
-    "bot"
-  ],
-  "author": "David Snyder",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/GypsyDangerous/DisTwitchChat/issues"
-  },
-  "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme",
-  "dependencies": {
-    "@babel/preset-env": "^7.11.0",
-    "axios": "^0.19.2",
-    "bad-words": "^3.0.3",
-    "body-parser": "^1.19.0",
-    "canvas": "^2.6.1",
-    "cors": "^2.8.5",
-    "crypto": "^1.0.1",
-    "date-fns": "^2.14.0",
-    "discord-anti-spam": "^2.4.1",
-    "discord-oauth2": "^2.2.0",
-    "discord.js": "^12.2.0",
-    "dompurify": "^2.0.11",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "firebase-admin": "^8.12.1",
-    "helmet": "^3.22.0",
-    "jsdom": "^16.2.2",
-    "memory-cache": "^0.2.0",
-    "morgan": "^1.10.0",
-    "node-fetch": "^2.6.0",
-    "nodemon": "^2.0.3",
-    "pretty-ms": "^7.0.0",
-    "sha1": "^1.1.1",
-    "socket.io": "^2.3.0",
-    "tmi.js": "^1.5.0",
-    "twitch-lib": "^0.2.4",
-    "twitchps": "^1.5.1",
-    "url-regex": "^5.0.0",
-    "uuidv1": "^1.6.14"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.11.0",
-    "@babel/node": "^7.10.5"
-  }
+	"name": "distwitchchat",
+	"version": "1.1.1",
+	"description": "a discord/twitch bot for integrating discord chat with twitch chat",
+	"main": "index.js",
+	"scripts": {
+		"start": "npm run prod",
+		"build": "npm-run-all clean transpile",
+		"server": "node ./dist-server/index.js",
+		"dev": "npm-run-all build server",
+		"prod": "npm-run-all build server",
+		"transpile": "babel ./src --out-dir dist-server --copy-files",
+		"clean": "rimraf dist-server"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/GypsyDangerous/DisTwitchChat.git"
+	},
+	"babel": {
+		"presets": [
+			"@babel/preset-env"
+		],
+		"plugins": [
+			"@babel/transform-runtime"
+		]
+	},
+	"keywords": [
+		"discord",
+		"twitch",
+		"bot"
+	],
+	"author": "David Snyder",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/GypsyDangerous/DisTwitchChat/issues"
+	},
+	"homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme",
+	"dependencies": {
+		"@babel/preset-env": "^7.11.0",
+		"axios": "^0.19.2",
+		"bad-words": "^3.0.3",
+		"body-parser": "^1.19.0",
+		"canvas": "^2.6.1",
+		"cors": "^2.8.5",
+		"crypto": "^1.0.1",
+		"date-fns": "^2.14.0",
+		"discord-anti-spam": "^2.4.1",
+		"discord-oauth2": "^2.2.0",
+		"discord.js": "^12.2.0",
+		"dompurify": "^2.0.11",
+		"dotenv": "^8.2.0",
+		"express": "^4.17.1",
+		"firebase-admin": "^8.12.1",
+		"helmet": "^3.22.0",
+		"jsdom": "^16.2.2",
+		"memory-cache": "^0.2.0",
+		"morgan": "^1.10.0",
+		"node-fetch": "^2.6.0",
+		"nodemon": "^2.0.3",
+		"npm-run-all": "^4.1.5",
+		"pretty-ms": "^7.0.0",
+		"rimraf": "^3.0.2",
+		"sha1": "^1.1.1",
+		"socket.io": "^2.3.0",
+		"tmi.js": "^1.5.0",
+		"twitch-lib": "^0.2.4",
+		"twitchps": "^1.5.1",
+		"url-regex": "^5.0.0",
+		"uuidv1": "^1.6.14"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.10.5",
+		"@babel/core": "^7.11.0",
+		"@babel/plugin-transform-runtime": "^7.11.0",
+		"babel-plugin-transform-runtime": "^6.23.0"
+	}
 }
