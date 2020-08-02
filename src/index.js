@@ -494,8 +494,8 @@ io.on("connection", socket => {
 		// remove the socket from the object
 		const { TwitchName, guildId } = socket.userInfo;
 
-		guildSockets = sockets[guildId];
-		channelSockets = sockets[TwitchName];
+		const guildSockets = sockets[guildId];
+		const channelSockets = sockets[TwitchName];
 
 		if (guildSockets instanceof Set) guildSockets.delete(socket);
 		if (channelSockets instanceof Set) channelSockets.delete(socket);
