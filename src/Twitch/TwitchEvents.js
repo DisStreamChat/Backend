@@ -627,7 +627,7 @@ module.exports = (TwitchClient, sockets, app) => {
 					pubSub.on("channel-points", async data => {
 						try {
 							const { redemption, channel_id } = data;
-							const user = (await Api.fetch(`https://api.twitch.tv/helix/users?id=${channel_id}`)).data[0];
+							const user = (await Api.getUserInfo(channel_id));
 							const channelName = user.login;
 							if (!sockets.hasOwnProperty(channelName)) return;
 							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
