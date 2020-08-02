@@ -1,3 +1,4 @@
+require("dotenv").config()
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
@@ -14,10 +15,12 @@ const ranks = require("../ranks.json");
 const { default: fetch } = require("node-fetch");
 
 // intialize the twitch api class from the twitch-lib package
+
 const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
+
 
 const CommandHandler = require("./CommandHandler");
 const { hoursToMillis } = require("../utils/functions");
@@ -592,7 +595,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 	// TODO: refactor so it doesn't fire on follow
 	// get channel point redemptions for each channel
-	pubsubbedChannels = [];
+	let pubsubbedChannels = [];
 	(async () => {
 		admin
 			.firestore()

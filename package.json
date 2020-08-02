@@ -4,11 +4,16 @@
   "description": "a discord/twitch bot for integrating discord chat with twitch chat",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "babel-node src/index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GypsyDangerous/DisTwitchChat.git"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
   },
   "keywords": [
     "discord",
@@ -22,6 +27,7 @@
   },
   "homepage": "https://github.com/GypsyDangerous/DisTwitchChat#readme",
   "dependencies": {
+    "@babel/preset-env": "^7.11.0",
     "axios": "^0.19.2",
     "bad-words": "^3.0.3",
     "body-parser": "^1.19.0",
@@ -38,6 +44,7 @@
     "firebase-admin": "^8.12.1",
     "helmet": "^3.22.0",
     "jsdom": "^16.2.2",
+    "memory-cache": "^0.2.0",
     "morgan": "^1.10.0",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",
@@ -49,5 +56,9 @@
     "twitchps": "^1.5.1",
     "url-regex": "^5.0.0",
     "uuidv1": "^1.6.14"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.11.0",
+    "@babel/node": "^7.10.5"
   }
 }

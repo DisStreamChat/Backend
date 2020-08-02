@@ -1,5 +1,6 @@
 const EventEmitter = require("events");
 const axios = require("axios");
+require("dotenv").config()
 
 const {
     // GOOGLE_CLIENT_ID: client_id, // not needed yet

@@ -1,3 +1,4 @@
+require("dotenv").config()
 const discord = require("discord.js");
 const tmi = require("tmi.js");
 const { hoursToMillis } = require("./functions");
