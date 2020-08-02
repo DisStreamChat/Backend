@@ -471,6 +471,7 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/chatters", async (req, res, next) => {
+    const response = await fetch(`https://tmi.twitch.tv/group/user/${req.user}/chatters`)
     const json = await response.json();
     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
     const onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
