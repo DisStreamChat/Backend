@@ -1,4 +1,4 @@
-require("dotenv").config()
+require("dotenv").config();
 const TwitchApi = require("twitch-lib");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
@@ -20,7 +20,6 @@ const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
 	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
 });
-
 
 const CommandHandler = require("./CommandHandler");
 const { hoursToMillis } = require("../utils/functions");
@@ -631,9 +630,10 @@ module.exports = (TwitchClient, sockets, app) => {
 							const user = (await Api.fetch(`https://api.twitch.tv/helix/users?id=${channel_id}`)).data[0];
 							const channelName = user.login;
 							if (!sockets.hasOwnProperty(channelName)) return;
-							const message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} - ${
-								redemption.reward.prompt
-							}`;
+							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
+							if (redemption.reward.prompt > 0) {
+								message = `${message} - ${redemption.reward.prompt}`;
+							}
 							const id = uuidv1();
 							const messageObject = {
 								displayName: "DisStreamChat",
