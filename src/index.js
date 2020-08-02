@@ -11,7 +11,7 @@ const crypto = require("crypto");
 const ranks = require("./ranks.json");
 const fetch = require("node-fetch");
 const tmi = require("tmi.js");
-const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
+// const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP

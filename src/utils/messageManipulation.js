@@ -127,13 +127,15 @@ const getAllEmotes = async () => {
 	}
 };
 const emoteRefresh = 60000 * 4;
-getAllEmotes()
-	.then(() => {
-		setInterval(getAllEmotes, emoteRefresh);
-	})
-	.catch(() => {
-		setInterval(getAllEmotes, emoteRefresh);
-	});
+setTimeout(() => {
+	getAllEmotes()
+		.then(() => {
+			setInterval(getAllEmotes, emoteRefresh);
+		})
+		.catch(() => {
+			setInterval(getAllEmotes, emoteRefresh);
+		});
+}, emoteRefresh / 2);
 
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
@@ -141,8 +143,8 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 		dirty = dirty
 			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
 			.replace(/<([a-z])/gi, "&lt;$1")
-			.replace(/([a-z])>/gi, "$1&gt;");
-	dirty = dirty.replace(urlRegex, `<a href="$&">$&</a>`);
+			.replace(/([a-z])>/gi, "$1&gt;")
+	        .replace(urlRegex, `<a href="$&">$&</a>`);
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
@@ -155,7 +157,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 		setTimeout(() => {
 			allBTTVEmotes[channelName].messageSent = false;
 			allFFZEmotes[channelName].messageSent = false;
-		}, emoteRefresh * 2);
+		}, emoteRefresh * 1.5);
 		dirty = dirty.replace(
 			bttvRegex,
 			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
