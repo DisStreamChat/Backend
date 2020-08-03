@@ -68,7 +68,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
 		if (message.author.bot) {
 			badges["bot"] = {
-				image: "https://cdn.frankerfacez.com/badge/2/1",
+				image: "https://cdn.betterttv.net/tags/bot.png",
 				title: "Discord Bot"
 			}
 		}
