@@ -603,7 +603,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				const allStreamersTwitchData = (
 					await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
 				).map(doc => doc.data());
-				const authorizedStreamers = allStreamersTwitchData.filter(s => s).filter(streamer => pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id));
+				const authorizedStreamers = allStreamersTwitchData.filter(s => s).filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id));
                 console.log("Authorized Streamers: ", authorizedStreamers.length)
                 // pubsubbedChannels.forEach(channel => {
 				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
