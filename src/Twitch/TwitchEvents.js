@@ -604,11 +604,11 @@ module.exports = (TwitchClient, sockets, app) => {
 					await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
 				).map(doc => doc.data());
 				const authorizedStreamers = allStreamersTwitchData.filter(s => s);
-				pubsubbedChannels.forEach(channel => {
-					channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
-				});
-				pubsubbedChannels = [];
-				authorizedStreamers.forEach(async streamer => {
+				// pubsubbedChannels.forEach(channel => {
+				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
+				// });
+				// pubsubbedChannels = [];
+				authorizedStreamers.filter(streamer => pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id).forEach(async streamer => {
 					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
 					const json = await res.json();
 					const access_token = json.access_token;
