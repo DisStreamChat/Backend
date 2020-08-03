@@ -433,6 +433,7 @@ io.on("connection", socket => {
 	});
 
 	socket.on("sendchat", async data => {
+        console.log(`send chat: `, data)
 		const sender = data.sender;
 		const message = data.message;
 		const { TwitchName } = socket.userInfo;
