@@ -74,7 +74,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		}
 
 		//Setting Override/Default Color (Webhooks aren't members, so we default to this)
-		const userHexColor = "#FFFFFF" 
+		let userHexColor = "#FFFFFF" 
 
 		if (message.member) {
 			userHexColor = message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor
