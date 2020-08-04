@@ -222,6 +222,7 @@ io.on("connection", socket => {
 	});
 
 	socket.on("deletemsg - twitch", async data => {
+        console.log("delete data: ", data)
 		const { TwitchName } = socket.userInfo;
 		function botDelete(id) {
 			try {
