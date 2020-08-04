@@ -237,7 +237,7 @@ io.on("connection", socket => {
 			botDelete(data);
 		} else {
 			const modName = data.modName;
-			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
+			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName || " ").get()).docs[0];
 			const modData = modRef.data();
 			if (!modData) {
 				botDelete(id);
