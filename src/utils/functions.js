@@ -133,7 +133,7 @@ const generateRankCard = async (userData, user) => {
 	ctx.drawImage(avatar, 25 * 1.75, 25 * 1.75, 200 / 1.25, 200 / 1.25);
 	const discordAdmins = adminIds.discord.developers;
 	const isAdmin = discordAdmins.includes(user.id);
-	statuses = {
+	const statuses = {
 		online: "https://cdn.discordapp.com/emojis/726982918064570400.png?v=1",
 		idle: "https://cdn.discordapp.com/emojis/726982942181818450.png?v=1",
 		dnd: "https://cdn.discordapp.com/emojis/726982954580181063.png?v=1",
