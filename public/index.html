@@ -80,7 +80,7 @@
                         info.textContent = 'Failed to Log you in';
                     }
                 } catch (err) {
-                    info.textContent = 'Failed to Log you in';
+                    info.textContent = 'Failed to Log you in '+err.message;
                 }
             } else {
                 window.location.replace(signInUrl)
