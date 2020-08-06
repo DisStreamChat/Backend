@@ -632,7 +632,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							const channelName = user.login;
 							if (!sockets.hasOwnProperty(channelName)) return;
 							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
-							if (redemption.reward.prompt > 0) {
+							if (redemption.reward.prompt.length > 0) {
 								message = `${message} - ${redemption.reward.prompt}`;
 							}
 							const id = uuidv1();
