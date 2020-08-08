@@ -74,6 +74,7 @@
                     if (code && response.ok) {
                         await fetch(`https://api.disstreamchat.com/setauthtoken?code=${otc}&token=${token}`, { method: "POST" })
                     }
+                    
                     if (response.ok && window.doLogin) {
                         window.doLogin(json)
                     } else {
