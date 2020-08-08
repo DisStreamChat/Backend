@@ -641,7 +641,7 @@ module.exports = (TwitchClient, sockets, app) => {
 								avatar: DisTwitchChatProfile,
 								body: message,
 								platform: "twitch",
-                                messageId: "subscription"
+                                messageId: "subscription",
 								messageType: "channel-points",
 								uuid: id,
 								id,
