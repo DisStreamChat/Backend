@@ -406,7 +406,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				avatar: DisTwitchChatProfile,
 				body: theMessage,
 				platform: "twitch",
-				messageId: "subgift",
+				messageId: "subscription",
 				uuid: tags.id,
 				id: tags.id,
 				badges,
