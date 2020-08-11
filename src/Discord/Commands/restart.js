@@ -3,7 +3,8 @@ require("dotenv").config()
 module.exports = {
 	name: "restart",
 	aliases: [],
-	description: "Restarts the bot",
+    description: "Restarts the bot",
+    usage: "restart",
 	adminOnly: true,
 	execute: async (message, args, client) => {
 		const msg = await message.channel.send("Restarting...");
