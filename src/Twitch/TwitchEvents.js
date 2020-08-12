@@ -317,7 +317,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		const theMessage = `${username}, upgraded their subscription! (Originally from Anonymous)`;
+		const theMessage = `${username}, is continuing their gift sub! (Originally from Anonymous)`;
 
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
@@ -350,7 +350,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const badges = {};
 
-		const theMessage = `${username}, upgraded their subscription! (Originally from ${sender}).`;
+		const theMessage = `${username}, is continuing their gift sub! (Originally from ${sender}).`;
 
 		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
 			HTMLClean: true,
