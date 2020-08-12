@@ -10,6 +10,7 @@ module.exports = {
         const levelingData = levelingDataRef.data();
 		if (levelingData) {
             const levelingChannelId = levelingData["notifications"] || message.channel.id;
+            console.log(levelingChannelId)
 			let userLevelingData = levelingData[message.author.id];
 			if (!userLevelingData) {
 				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
