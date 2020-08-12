@@ -12,11 +12,9 @@ module.exports = (DiscordClient, sockets, app) => {
 	// TODO: move discord events to separate file
 	DiscordClient.on("message", async message => {
 		if (!message.guild) return;
-		// if the message was sent by a bot it should be ignored
-		//if (message.author.bot) return;
 
         // handle commands and leveling, if they are enabled for the server
-		if ((message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") && !message.author.bot) {
+		if (false && (message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") && !message.author.bot) {
 			// remove in the future to make it work on all guilds
 			await handleLeveling(message);
 			await CommandHandler(message, DiscordClient);
