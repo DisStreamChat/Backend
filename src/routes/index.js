@@ -486,8 +486,13 @@ router.get("/resolveuser", async (req, res, next) => {
 router.get("/chatters", async (req, res, next) => {
     const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`)
     const json = await response.json();
-    const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
-    const onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+    let onlineBots = []
+    try{
+        const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
+        onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+    }catch(err){
+
+    }
     let count = 0
     for(let [key, value] of Object.entries(json.chatters || {})){
         json.chatters[key] = value.filter(name => !onlineBots.includes(name))
