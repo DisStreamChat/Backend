@@ -290,7 +290,7 @@ router.get("/checkmod", async (req, res, next) => {
 			return res.json(null);
 		}
 	} catch (err) {
-        console.log("failed to join: ", err.message)
+        console.log("failed to join: ", err)
 		const results = await TwitchClient.mods("#" + channelName);
 		console.log(results);
 		const isMod = !!userName && results.includes(userName.toLowerCase());
