@@ -276,8 +276,8 @@ router.get("/guildcount", async (req, res, next) => {
 });
 
 router.get("/checkmod", async (req, res, next) => {
-    return res.json(await Api.getUserInfo(channelName))
 	const channelName = req.query.channel;
+    return res.json(await Api.getUserInfo(channelName))
 	const userName = req.query.user;
 	try {
 		await TwitchClient.join("#" + channelName);
