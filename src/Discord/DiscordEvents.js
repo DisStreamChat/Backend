@@ -5,24 +5,25 @@ const CommandHandler = require("./CommandHandler");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 
-
-const {handleLeveling} = require("./Leveling")
+const { handleLeveling } = require("./Leveling");
 
 module.exports = (DiscordClient, sockets, app) => {
 	// TODO: move discord events to separate file
 	DiscordClient.on("message", async message => {
 		if (!message.guild) return;
 
-        // handle commands and leveling, if they are enabled for the server
+		// handle commands and leveling, if they are enabled for the server
+		if (!message.author.bot) {
+			await handleLeveling(message);
+		}
 		if ((message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") && !message.author.bot) {
 			// remove in the future to make it work on all guilds
-			await handleLeveling(message);
 			await CommandHandler(message, DiscordClient);
 		}
 
-        // after commands try to send message through the sockets, but only if there are sockets connected to the guild
+		// after commands try to send message through the sockets, but only if there are sockets connected to the guild
 		if (!sockets.hasOwnProperty(message.guild.id)) return;
-        if(![...sockets[message.guild.id]].length) return
+		if (![...sockets[message.guild.id]].length) return;
 
 		const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
 
@@ -67,15 +68,15 @@ module.exports = (DiscordClient, sockets, app) => {
 		if (message.author.bot) {
 			badges["bot"] = {
 				image: "https://cdn.betterttv.net/tags/bot.png",
-				title: "Discord Bot"
-			}
+				title: "Discord Bot",
+			};
 		}
 
 		//Setting Override/Default Color (Webhooks aren't members, so we default to this)
-		let userHexColor = "#FFFFFF" 
+		let userHexColor = "#FFFFFF";
 
 		if (message.member) {
-			userHexColor = message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor
+			userHexColor = message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor;
 		}
 
 		try {
@@ -106,7 +107,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		}
 	});
 
-    // TODO: add logging
+	// TODO: add logging
 	DiscordClient.on("messageDelete", message => {
 		try {
 			if (sockets.hasOwnProperty(message.guild.id))
@@ -119,14 +120,15 @@ module.exports = (DiscordClient, sockets, app) => {
 	DiscordClient.on("messageDeleteBulk", message => {
 		message.forEach(msg => {
 			try {
-				if (sockets.hasOwnProperty(msg.guild.id)) [...sockets[msg.guild.id]].forEach(async s => await s.emit("deletemessage", msg.id));
+				if (sockets.hasOwnProperty(msg.guild.id))
+					[...sockets[msg.guild.id]].forEach(async s => await s.emit("deletemessage", msg.id));
 			} catch (err) {
 				console.log(err.message);
 			}
 		});
 	});
 
-    // TODO: add logging
+	// TODO: add logging
 	DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
 		if (!sockets.hasOwnProperty(newMsg.channel.guild.id)) return;
 		const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
@@ -143,7 +145,7 @@ module.exports = (DiscordClient, sockets, app) => {
 		}
 	});
 
-    // TODO: add in customizable welcome messages and logging
+	// TODO: add in customizable welcome messages and logging
 	DiscordClient.on("guildMemberAdd", async member => {
 		if (member.guild.id === "711238743213998091") {
 			await member.send(
