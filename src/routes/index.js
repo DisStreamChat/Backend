@@ -1,14 +1,14 @@
-require("dotenv").config()
-import express from "express"
+require("dotenv").config();
+import express from "express";
 const router = express.Router();
-import sha1 from "sha1"
-import fetch from "node-fetch"
-import TwitchApi from "twitch-lib"
-import admin from "firebase-admin"
-import DiscordOauth2 from "discord-oauth2"
-import {getUserInfo} from "../utils/DiscordClasses"
+import sha1 from "sha1";
+import fetch from "node-fetch";
+import TwitchApi from "twitch-lib";
+import admin from "firebase-admin";
+import DiscordOauth2 from "discord-oauth2";
+import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
-import path from "path"
+import path from "path";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -54,7 +54,6 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
-
 const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
@@ -94,8 +93,9 @@ const tenDays = 8.64e8;
 
 (async () => {
 	try {
-		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs.find(doc => doc.id === "lastConnection").data()
-			.value;
+		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs
+			.find(doc => doc.id === "lastConnection")
+			.data().value;
 
 		const now = new Date().getTime();
 		const nextConnectionTime = lastConnection + sevenDays;
@@ -278,28 +278,27 @@ router.get("/guildcount", async (req, res, next) => {
 router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
 	const userName = req.query.user;
-	try{
-		
-	await TwitchClient.join("#" + channelName);
-	console.log("joined " + channelName);
-	const results = await TwitchClient.mods("#" + channelName);
-	console.log(results);
-	const isMod = !!userName && results.includes(userName.toLowerCase());
-	if (isMod) {
-		return res.json(await Api.getUserInfo(channelName));
-	} else {
-		return res.json(null);
-	}
-	}catch(err){
-	const results = await TwitchClient.mods("#" + channelName);
-	console.log(results);
-	const isMod = !!userName && results.includes(userName.toLowerCase());
-	if (isMod) {
-		return res.json(await Api.getUserInfo(channelName));
-	} else {
-		return res.json(null);
-	}	
-		
+	try {
+		await TwitchClient.join("#" + channelName);
+		console.log("joined " + channelName);
+		const results = await TwitchClient.mods("#" + channelName);
+		console.log(results);
+		const isMod = !!userName && results.includes(userName.toLowerCase());
+		if (isMod) {
+			return res.json(await Api.getUserInfo(channelName));
+		} else {
+			return res.json(null);
+		}
+	} catch (err) {
+        console.log("failed to join")
+		const results = await TwitchClient.mods("#" + channelName);
+		console.log(results);
+		const isMod = !!userName && results.includes(userName.toLowerCase());
+		if (isMod) {
+			return res.json(await Api.getUserInfo(channelName));
+		} else {
+			return res.json(null);
+		}
 	}
 	res.json(null);
 });
@@ -372,7 +371,7 @@ router.get("/token", async (req, res, next) => {
 
 			// automatically mod the bot in the users channel on sign in
 			try {
-                const UserClient = new tmi.Client({
+				const UserClient = new tmi.Client({
 					options: { debug: false },
 					connection: {
 						secure: true,
@@ -454,7 +453,8 @@ router.get("/token", async (req, res, next) => {
 			});
 
 			// setup the follow webhook if there isn't already one
-			const hasConnection = (await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
+			const hasConnection =
+				(await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
 				admin.firestore().collection("webhookConnections").doc(uid).set({
@@ -484,21 +484,21 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/chatters", async (req, res, next) => {
-    const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`)
-    const json = await response.json();
-    let onlineBots = []
-    // try{
-    //     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
-    //     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
-    // }catch(err){
+	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
+	const json = await response.json();
+	let onlineBots = [];
+	// try{
+	//     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
+	//     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+	// }catch(err){
 
-    // }
-    let count = 0
-    for(let [key, value] of Object.entries(json.chatters || {})){
-        json.chatters[key] = value.filter(name => !onlineBots.includes(name))
-        count += json.chatters[key].length
-    }
-    json.chatter_count = count
+	// }
+	let count = 0;
+	for (let [key, value] of Object.entries(json.chatters || {})) {
+		json.chatters[key] = value.filter(name => !onlineBots.includes(name));
+		count += json.chatters[key].length;
+	}
+	json.chatter_count = count;
 	res.json(json);
 });
 
