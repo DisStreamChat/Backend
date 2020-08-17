@@ -423,7 +423,7 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
-                    await UserClient.timeout(TwitchName, user, 300);
+                    await UserClient.ban(TwitchName, user);
                     UserClient = null
 				} catch (err) {
 					console.log(err.message);
