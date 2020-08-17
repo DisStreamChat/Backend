@@ -26,8 +26,9 @@ module.exports = {
 				if (userLevelingData.xp >= xpToNextLevel) {
 					userLevelingData.level++;
 					if (levelingData.type !== 1) {
-						const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
-							.replace("{player}", message.author)
+                        const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
+                            .replace("{ping}", message.author)
+							.replace("{player}", message.member.displayName)
 							.replace("{level}", userLevelingData.level + 1);
 						try {
 							const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
