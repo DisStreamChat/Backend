@@ -303,7 +303,7 @@ router.get("/checkmod", async (req, res, next) => {
                 return res.json(null);
             }
         }catch(err){
-            res.status(500).json(null)
+            return res.status(500).json(null)
         }
         
 	}
