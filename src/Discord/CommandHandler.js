@@ -18,9 +18,16 @@ commandFiles.forEach(command => {
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const prefix = "!";
+// const prefix = "!";
 
 module.exports = async (message, client) => {
+    let prefix = "!"
+    try{
+        const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get())?.data()
+        prefix = settings?.prefix || "!"
+    }catch(err){
+
+    }
 	if (!message.content.startsWith(prefix)) return;
 	const args = message.content.split(" ");
 	const command = args.shift().slice(1);
