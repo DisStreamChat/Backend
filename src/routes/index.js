@@ -297,15 +297,16 @@ router.get("/checkmod", async (req, res, next) => {
             const results = await TwitchClient.mods("#" + channelName);
             console.log(results);
             const isMod = !!userName && results.includes(userName.toLowerCase());
+            TwitchClient.part("#" + channelName)
             if (isMod) {
                 return res.json(await Api.getUserInfo(channelName));
             } else {
                 return res.json(null);
             }
         }catch(err){
+            TwitchClient.part("#" + channelName)
             return res.status(500).json(null)
         }
-        
 	}
 	res.json(null);
 });
