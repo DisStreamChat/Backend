@@ -281,9 +281,9 @@ router.get("/checkmod", async (req, res, next) => {
     // return res.json(await Api.getUserInfo(channelName))
 	const userName = req.query.user;
 	try {
-		await TwitchClient.join("#" + channelName);
+		await TwitchClient.join(channelName);
 		console.log("joined " + channelName);
-		const results = await TwitchClient.mods("#" + channelName);
+		const results = await TwitchClient.mods(channelName);
 		console.log(results);
 		const isMod = !!userName && results.includes(userName.toLowerCase());
 		if (isMod) {
@@ -294,17 +294,18 @@ router.get("/checkmod", async (req, res, next) => {
 	} catch (err) {
         try{
             console.log("failed to join: ", err)
-            const results = await TwitchClient.mods("#" + channelName);
+            const results = await TwitchClient.mods(channelName);
             console.log(results);
             const isMod = !!userName && results.includes(userName.toLowerCase());
-            TwitchClient.part("#" + channelName)
+            TwitchClient.part(channelName)
             if (isMod) {
                 return res.json(await Api.getUserInfo(channelName));
             } else {
                 return res.json(null);
             }
         }catch(err){
-            TwitchClient.part("#" + channelName)
+            console.log(err, err.message)
+            TwitchClient.part(channelName)
             return res.status(500).json(null)
         }
 	}
