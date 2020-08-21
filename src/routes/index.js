@@ -212,9 +212,12 @@ router.get("/discord/token/refresh", async (req, res, next) => {
 			refreshToken: token,
 			scope: "identify guilds",
 			grantType: "refresh_token",
-        });
-        console.log(tokenData)
-		res.json({userData: await getUserInfo(tokenData), tokenData});
+			clientId: process.env.DISCORD_CLIENT_ID,
+			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+		});
+		console.log(tokenData);
+		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
 		next(err);
 	}
@@ -229,12 +232,17 @@ router.get("/discord/token", async (req, res, next) => {
 				status: 401,
 				message: "Missing Auth Token",
 			});
-		}
-		const tokenData = await oauth.tokenRequest({
+        }
+        const body = {
 			code: code,
 			scope: "identify guilds",
 			grantType: "authorization_code",
-		});
+			clientId: process.env.DISCORD_CLIENT_ID,
+			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+        }
+        console.log(body)
+		const tokenData = await oauth.tokenRequest(body);
 		res.json(await getUserInfo(tokenData));
 	} catch (err) {
 		// res.send
@@ -247,39 +255,41 @@ router.get("/guildcount", async (req, res, next) => {
 });
 
 router.get("/emotes", async (req, res, next) => {
-    const user = req.query.user
-    if(!user){
-        return res.status(400).json({message: "missing user", code: 400})
-    }
-    const userInfo = await Api.getUserInfo(user)
-    const id = userInfo.id
-    const firebaseId = sha1(id)
-    const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId)
-    const userTwitchDataRef = userDataRef.collection("twitch").doc("data")
-    const userTwitchData = (await userTwitchDataRef.get()).data()
-    const refreshToken = userTwitchData.refresh_token
-    const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`)
-    const json = await response.json()
-    const scopes = json.scope
-    if(!scopes.includes("user_subscriptions")){
-        return res.status(401).json({message: "missing scopes", code: 401})
-    }
-    const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`
-    const userApi = new TwitchApi({
-        clientId: process.env.TWITCH_CLIENT_ID,
-        authorizationToken: json.access_token,
-        kraken: true
-    });
-    const emotes = await userApi.fetch(apiUrl, {headers: {
-        Accept: "application/vnd.twitchtv.v5+json",
-        Authorization: `OAuth ${json.access_token}`
-    }})
-    res.json(emotes)
-})
+	const user = req.query.user;
+	if (!user) {
+		return res.status(400).json({ message: "missing user", code: 400 });
+	}
+	const userInfo = await Api.getUserInfo(user);
+	const id = userInfo.id;
+	const firebaseId = sha1(id);
+	const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId);
+	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
+	const userTwitchData = (await userTwitchDataRef.get()).data();
+	const refreshToken = userTwitchData.refresh_token;
+	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+	const json = await response.json();
+	const scopes = json.scope;
+	if (!scopes.includes("user_subscriptions")) {
+		return res.status(401).json({ message: "missing scopes", code: 401 });
+	}
+	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
+	const userApi = new TwitchApi({
+		clientId: process.env.TWITCH_CLIENT_ID,
+		authorizationToken: json.access_token,
+		kraken: true,
+	});
+	const emotes = await userApi.fetch(apiUrl, {
+		headers: {
+			Accept: "application/vnd.twitchtv.v5+json",
+			Authorization: `OAuth ${json.access_token}`,
+		},
+	});
+	res.json(emotes);
+});
 
 router.get("/checkmod", async (req, res, next) => {
 	const channelName = req.query.channel;
-    // return res.json(await Api.getUserInfo(channelName))
+	// return res.json(await Api.getUserInfo(channelName))
 	const userName = req.query.user;
 	try {
 		await TwitchClient.join(channelName);
@@ -293,20 +303,20 @@ router.get("/checkmod", async (req, res, next) => {
 			return res.json(null);
 		}
 	} catch (err) {
-        try{
-            console.log("failed to join: ", err)
-            const isMod = TwitchClient.isMod(channelName, userName);
-            TwitchClient.part(channelName)
-            if (isMod) {
-                return res.json(await Api.getUserInfo(channelName));
-            } else {
-                return res.json(null);
-            }
-        }catch(err){
-            console.log(err, err.message)
-            TwitchClient.part(channelName)
-            return res.status(500).json(null)
-        }
+		try {
+			console.log("failed to join: ", err);
+			const isMod = TwitchClient.isMod(channelName, userName);
+			TwitchClient.part(channelName);
+			if (isMod) {
+				return res.json(await Api.getUserInfo(channelName));
+			} else {
+				return res.json(null);
+			}
+		} catch (err) {
+			console.log(err, err.message);
+			TwitchClient.part(channelName);
+			return res.status(500).json(null);
+		}
 	}
 	res.json(null);
 });
@@ -608,10 +618,10 @@ async function getFfzEmotes(channelName) {
 }
 
 router.get("/customemotes", async (req, res, next) => {
-    const channelName = req.query.channel || req.query.name
-    if(!channelName) return res.status(400).json({message: "missing channel name", code: 400})
-    const [bttv, ffz] = await Promise.all([getBttvEmotes(channelName), getFfzEmotes(channelName)])
-    res.json({bttv, ffz})
-})
+	const channelName = req.query.channel || req.query.name;
+	if (!channelName) return res.status(400).json({ message: "missing channel name", code: 400 });
+	const [bttv, ffz] = await Promise.all([getBttvEmotes(channelName), getFfzEmotes(channelName)]);
+	res.json({ bttv, ffz });
+});
 
 module.exports = router;
