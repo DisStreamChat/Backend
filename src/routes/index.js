@@ -212,8 +212,9 @@ router.get("/discord/token/refresh", async (req, res, next) => {
 			refreshToken: token,
 			scope: "identify guilds",
 			grantType: "refresh_token",
-		});
-		res.json(await getUserInfo(tokenData));
+        });
+        console.log(tokenData)
+		res.json({userData: await getUserInfo(tokenData), tokenData});
 	} catch (err) {
 		next(err);
 	}
