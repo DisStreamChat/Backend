@@ -9,6 +9,7 @@ import DiscordOauth2 from "discord-oauth2";
 import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
+import {UserManager} from "discord.js"
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -498,7 +499,13 @@ router.get("/resolveuser", async (req, res, next) => {
 	if (!req.query.platform) return res.status(400).json({ message: "missing platform" });
 	if (req.query.platform === "twitch") {
 		res.json(await Api.getUserInfo(req.query.user));
-	}
+	}else if (req.query.platform === "discord"){
+        try{
+            res.json(await DiscordClient.users.fetch(req.query.user))
+        }catch(err){
+            next(err)
+        }
+    }
 });
 
 router.get("/chatters", async (req, res, next) => {
