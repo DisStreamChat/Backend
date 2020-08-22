@@ -1,7 +1,8 @@
 module.exports = {
 	name: "purge",
 	aliases: ["massdelete", "prune"],
-	description: "delete multiple messages",
+	description: "Delete multiple messages at once.",
+	usage: "<amount>",
 	permissions: ["MANAGE_MESSAGES"],
 	//TODO: check MANAGE_MESSAGES for the channel not the server
 	execute: async (message, args, client) => {
