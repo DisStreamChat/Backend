@@ -508,6 +508,15 @@ router.get("/resolveuser", async (req, res, next) => {
     }
 });
 
+router.get("/resolveguild", async (req, res, next) => {
+    if(!req.query.guild) return res.status(400).json({message: "missing guild id"})
+    try{
+        res.json(await DiscordClient.guilds.resolve(req.query.guild))
+    }catch(err){
+        next(err)
+    }
+})
+
 router.get("/chatters", async (req, res, next) => {
 	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
 	const json = await response.json();
