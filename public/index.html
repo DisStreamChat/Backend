@@ -73,15 +73,18 @@
                     const token = json.token
                     if (code && response.ok) {
                         await fetch(`https://api.disstreamchat.com/setauthtoken?code=${otc}&token=${token}`, { method: "POST" })
+                    } else {
+
+                        info.textContent = 'Failed to Log you in';
                     }
-                    
+
                     if (response.ok && window.doLogin) {
                         window.doLogin(json)
-                    } else {
+                    } else if (!response.ok) {
                         info.textContent = 'Failed to Log you in';
                     }
                 } catch (err) {
-                    info.textContent = 'Failed to Log you in '+err.message;
+                    info.textContent = 'Failed to Log you in ' + err.message;
                 }
             } else {
                 window.location.replace(signInUrl)
