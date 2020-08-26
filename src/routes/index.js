@@ -9,7 +9,7 @@ import DiscordOauth2 from "discord-oauth2";
 import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
-import {UserManager} from "discord.js"
+import { UserManager } from "discord.js";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -233,16 +233,16 @@ router.get("/discord/token", async (req, res, next) => {
 				status: 401,
 				message: "Missing Auth Token",
 			});
-        }
-        const body = {
+		}
+		const body = {
 			code: code,
 			scope: "identify guilds",
 			grantType: "authorization_code",
 			clientId: process.env.DISCORD_CLIENT_ID,
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
-        }
-        console.log(body)
+		};
+		console.log(body);
 		const tokenData = await oauth.tokenRequest(body);
 		res.json(await getUserInfo(tokenData));
 	} catch (err) {
@@ -499,23 +499,23 @@ router.get("/resolveuser", async (req, res, next) => {
 	if (!req.query.platform) return res.status(400).json({ message: "missing platform" });
 	if (req.query.platform === "twitch") {
 		res.json(await Api.getUserInfo(req.query.user));
-	}else if (req.query.platform === "discord"){
-        try{
-            res.json(await DiscordClient.users.fetch(req.query.user))
-        }catch(err){
-            next(err)
-        }
-    }
+	} else if (req.query.platform === "discord") {
+		try {
+			res.json(await DiscordClient.users.fetch(req.query.user));
+		} catch (err) {
+			next(err);
+		}
+	}
 });
 
 router.get("/resolveguild", async (req, res, next) => {
-    if(!req.query.guild) return res.status(400).json({message: "missing guild id"})
-    try{
-        res.json(await DiscordClient.guilds.resolve(req.query.guild))
-    }catch(err){
-        next(err)
-    }
-})
+	if (!req.query.guild) return res.status(400).json({ message: "missing guild id" });
+	try {
+		res.json(await DiscordClient.guilds.resolve(req.query.guild));
+	} catch (err) {
+		next(err);
+	}
+});
 
 router.get("/chatters", async (req, res, next) => {
 	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
