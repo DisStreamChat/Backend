@@ -640,4 +640,8 @@ router.get("/customemotes", async (req, res, next) => {
 	res.json({ bttv, ffz });
 });
 
+router.get("/twitch/channels", async (req, res, next) => {
+    res.json(await TwitchClient.getChannels())
+})
+
 module.exports = router;
