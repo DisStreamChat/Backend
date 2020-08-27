@@ -8,7 +8,7 @@ DisStreamChat is currently in early alpha, but you can add it at [disstreamchat.
 
 # Contributions
 
-Contributions and suggestions are welcome, if you have any suggestion go ahead and make an issue and if we like your suggestion we will add it to the [todo](#Todo) list. If you want to contribute feel free to make a PR we will take a look at it as soon as we get a chance and we'll see if we can merge it.
+Contributions and suggestions are welcome, if you have any suggestion go ahead and make an issue and if we like your suggestion we will add it to the todo list. You can also join the [discord](https://discord.disstreamchat.com) to give suggestion and get help, either with using it or contributing. If you want to contribute feel free to make a PR we will take a look at it as soon as we get a chance and we'll see if we can merge it.
 
 # Installation
 
