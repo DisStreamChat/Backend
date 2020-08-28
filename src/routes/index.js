@@ -9,6 +9,7 @@ import DiscordOauth2 from "discord-oauth2";
 import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
+import { v4 as uuidv4 } from 'uuid';
 import { UserManager } from "discord.js";
 
 // get the serviceAccount details from the base64 string stored in environment variables
@@ -121,6 +122,21 @@ const tenDays = 8.64e8;
 	}
 })();
 
+const validateRequest = async(req, res, next) => {
+    const apiKey = req.header("Api_Key")
+    if(apiKey === process.env.DSC_API_KEY) return next()
+    const userId = req.query.id
+    const otc = req.query.otc
+    const otcData = (await admin.firestore().collection("oneTimeCodes").doc(userId).get()).data()
+    const otcFromDb = otcData?.value
+    if(otcFromDb === otc){
+        const newOtc = uuidv4()
+        await admin.firestore().collection("oneTimeCodes").doc(userId).set({value: newOtc})
+        return next()
+    }
+    res.status(401).json({message: "Missing or invalid credentials", code: 401})
+}
+
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
 
@@ -206,7 +222,7 @@ router.get("/app", async (req, res) => {
 	// }
 });
 
-router.get("/discord/token/refresh", async (req, res, next) => {
+router.get("/discord/token/refresh", validateRequest, async (req, res, next) => {
 	try {
 		const token = req.query.token;
 		const tokenData = await oauth.tokenRequest({
@@ -368,7 +384,7 @@ router.get("/modchannels", async (req, res, next) => {
 	}
 });
 
-router.get("/twitch/token/refresh", async (req, res, next) => {
+router.get("/twitch/token/refresh", validateRequest, async (req, res, next) => {
 	const refresh_token = req.query.token;
 	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
 	const response = await fetch(apiURL, { method: "POST" });
