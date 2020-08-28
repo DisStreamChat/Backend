@@ -123,7 +123,7 @@ const tenDays = 8.64e8;
 })();
 
 const validateRequest = async(req, res, next) => {
-    const apiKey = req.header("Api_Key")
+    const apiKey = req.query.key
     if(apiKey === process.env.DSC_API_KEY) return next()
     const userId = req.query.id
     const otc = req.query.otc
@@ -283,7 +283,7 @@ router.get("/emotes", async (req, res, next) => {
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData.refresh_token;
-	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 	const json = await response.json();
 	const scopes = json.scope;
 	if (!scopes.includes("user_subscriptions")) {

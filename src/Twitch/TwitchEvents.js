@@ -610,7 +610,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				// });
 				// pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
-					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}`);
+					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`);
 					const json = await res.json();
 					const access_token = json.access_token;
 					const init_topics = [

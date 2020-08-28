@@ -257,7 +257,7 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -328,7 +328,7 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -399,7 +399,7 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -450,7 +450,7 @@ io.on("connection", socket => {
 						throw new Error("no twitch auth");
 					}
 					const refreshToken = modPrivateData.refresh_token;
-					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}`);
+					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 					const data = await response.json();
 					if (!data) {
 						throw new Error("bad refresh token");
