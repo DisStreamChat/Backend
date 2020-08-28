@@ -289,30 +289,46 @@ router.get("/emotes", async (req, res, next) => {
 });
 
 router.get("/checkmod", async (req, res, next) => {
-	const channelName = req.query.channel;
-	// return res.json(await Api.getUserInfo(channelName))
+    let channelName = req.query.channel;
+    
+	if (!channelName) {
+		return res.status(400).json({ message: "missing channel name", code: 400 });
+	}
+	if (!channelName.startsWith("#")) {
+        channelName = "#"+channelName
+    }
+
 	const userName = req.query.user;
 	try {
-		await TwitchClient.join(channelName);
-		console.log("joined " + channelName);
+		const inChannels = await TwitchClient.getChannels();
+		const alreadyJoined = inChannels.includes(channelName);
+
+        if(!alreadyJoined){
+            const userData = await Api.getUserInfo(channelName.substring(1))
+            if(userData){
+                await TwitchClient.join(channelName)
+            }else{
+                return res.status(400).json({message: "invalid channel name, it seems like that isn't a twitch channel", code: 400})
+            }
+        }
 		const results = await TwitchClient.mods(channelName);
-		console.log(results);
+
 		const isMod = !!userName && results.includes(userName.toLowerCase());
 		if (isMod) {
-			return res.json(await Api.getUserInfo(channelName));
+			return res.json(await Api.getUserInfo(channelName.substring(1)));
 		} else {
 			return res.json(null);
 		}
 	} catch (err) {
 		try {
 			console.log("failed to join: ", err);
-			const isMod = TwitchClient.isMod(channelName, userName);
-			TwitchClient.part(channelName);
+			let isMod = TwitchClient.isMod(channelName, userName);
+            const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`)
+            isMod = chatters?.moderators?.includes?.(userName) || isMod
+            TwitchClient.part(channelName);
 			if (isMod) {
-				return res.json(await Api.getUserInfo(channelName));
-			} else {
-				return res.json(null);
-			}
+				return res.json(await Api.getUserInfo(channelName.substring(1)));
+            }
 		} catch (err) {
 			console.log(err, err.message);
 			TwitchClient.part(channelName);
@@ -641,7 +657,7 @@ router.get("/customemotes", async (req, res, next) => {
 });
 
 router.get("/twitch/channels", async (req, res, next) => {
-    res.json(await TwitchClient.getChannels())
-})
+	res.json(await TwitchClient.getChannels());
+});
 
 module.exports = router;
