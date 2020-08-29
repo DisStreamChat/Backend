@@ -127,11 +127,11 @@ const validateRequest = async(req, res, next) => {
     if(apiKey === process.env.DSC_API_KEY) return next()
     const userId = req.query.id
     const otc = req.query.otc
-    const otcData = (await admin.firestore().collection("oneTimeCodes").doc(userId).get()).data()
+    const otcData = (await admin.firestore().collection("Secret").doc(userId).get()).data()
     const otcFromDb = otcData?.value
     if(otcFromDb === otc){
         const newOtc = uuidv4()
-        await admin.firestore().collection("oneTimeCodes").doc(userId).set({value: newOtc})
+        await admin.firestore().collection("Secret").doc(userId).set({value: newOtc})
         return next()
     }
     res.status(401).json({message: "Missing or invalid credentials", code: 401})
