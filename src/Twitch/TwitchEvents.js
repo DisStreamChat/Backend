@@ -24,7 +24,8 @@ const Api = new TwitchApi({
 const CommandHandler = require("./CommandHandler");
 const { hoursToMillis } = require("../utils/functions");
 
-const DisTwitchChatProfile = "https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
+const DisTwitchChatProfile =
+	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
@@ -213,7 +214,8 @@ module.exports = (TwitchClient, sockets, app) => {
 			try {
 				const userInfo = await Api.getUserInfo(name);
 				if (userInfo && userInfo.id) {
-					const userCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)).data;
+					const userCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`))
+						.data;
 					const userCustomEmotes = userCheerMotes.filter(
 						cheerMote => !globalCheerMotes.find(globalCheerMote => cheerMote.prefix === globalCheerMote.prefix)
 					);
@@ -340,8 +342,8 @@ module.exports = (TwitchClient, sockets, app) => {
 	});
 
 	const subTypes = {
-		"2000": "Tier 2",
-		"3000": "Tier 3",
+		2000: "Tier 2",
+		3000: "Tier 3",
 	};
 
 	TwitchClient.on("giftpaidupgrade", async (channel, username, sender, tags) => {
@@ -537,58 +539,66 @@ module.exports = (TwitchClient, sockets, app) => {
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-			// it's from twitch
-			const data = req.body.data;
-			if (data) {
-				const body = data[0];
-				const streamer = body.to_name.toLowerCase();
-				const follower = body.from_name;
-				const followerId = body.from_id;
-				const followedAt = body.followed_at;
+			const type = req.query.type;
+            const data = req.body.data;
+            if (!type) return res.json({ message: "missing type", code: 400 });
+            if (!data) return res.json({ message: "missing data", code: 400 })
+			if (type === "follow") {
+				if (data) {
+					const body = data[0];
+					const streamer = body.to_name.toLowerCase();
+					const follower = body.from_name;
+					const followerId = body.from_id;
+					const followedAt = body.followed_at;
 
-				console.log(`${follower} followed ${streamer}`);
+					console.log(`${follower} followed ${streamer}`);
 
-				// long term TODO: add follower count/goal overlay
-				if (!sockets.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
+					// long term TODO: add follower count/goal overlay
+					if (!sockets.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
 
-				const streamerDatabaseId = sha1(body.to_id);
+					const streamerDatabaseId = sha1(body.to_id);
 
-				const db = admin.firestore();
-				const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
-				const streamerData = streamerRef.data();
-				const previouslyNotified = streamerData.previouslyNotified || [];
+					const db = admin.firestore();
+					const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
+					const streamerData = streamerRef.data();
+					const previouslyNotified = streamerData.previouslyNotified || [];
 
-				if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
+					if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
 
-				previouslyNotified.push(followerId);
-				await db.collection("Streamers").doc(streamerDatabaseId).update({
-					previouslyNotified,
-				});
+					previouslyNotified.push(followerId);
+					await db.collection("Streamers").doc(streamerDatabaseId).update({
+						previouslyNotified,
+					});
 
-				const badges = {};
+					const badges = {};
 
-				// TODO add custom message handler in seperate file
-				const theMessage = `Thanks for following ${follower}!`;
+					// TODO add custom message handler in seperate file
+					const theMessage = `Thanks for following ${follower}!`;
 
-				const messageObject = {
-					displayName: "DisStreamChat",
-					avatar: DisTwitchChatProfile,
-					body: theMessage,
-					platform: "twitch",
-					messageId: "follow",
-					uuid: uuidv1(),
-					id: uuidv1(),
-					badges,
-					sentAt: new Date(followedAt).getTime(),
-					userColor: "#ff0029",
-				};
+					const messageObject = {
+						displayName: "DisStreamChat",
+						avatar: DisTwitchChatProfile,
+						body: theMessage,
+						platform: "twitch",
+						messageId: "follow",
+						uuid: uuidv1(),
+						id: uuidv1(),
+						badges,
+						sentAt: new Date(followedAt).getTime(),
+						userColor: "#ff0029",
+					};
 
-				const _ = [...sockets[streamer]].forEach(async s => await s.emit("chatmessage", messageObject));
-			}
-			res.json("success");
+					const _ = [...sockets[streamer]].forEach(async s => await s.emit("chatmessage", messageObject));
+				}
+				res.json("success");
+			}else if (type === "stream"){
+                const stream = data[0]
+                if(!stream) return res.json("no stream")
+                
+            }
 		} else {
-			res.status("401").json("Looks like You aren't twitch");
 			// it's not from twitch
+			res.status("401").json("Looks like You aren't twitch");
 		}
 	});
 
@@ -603,14 +613,18 @@ module.exports = (TwitchClient, sockets, app) => {
 				const allStreamersTwitchData = (
 					await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
 				).map(doc => doc.data());
-				const authorizedStreamers = allStreamersTwitchData.filter(s => s).filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id));
-                console.log("Authorized Streamers: ", authorizedStreamers.length)
-                // pubsubbedChannels.forEach(channel => {
+				const authorizedStreamers = allStreamersTwitchData
+					.filter(s => s)
+					.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id));
+				console.log("Authorized Streamers: ", authorizedStreamers.length);
+				// pubsubbedChannels.forEach(channel => {
 				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
 				// });
 				// pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
-					const res = await fetch(`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`);
+					const res = await fetch(
+						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
+					);
 					const json = await res.json();
 					const access_token = json.access_token;
 					const init_topics = [
@@ -628,10 +642,12 @@ module.exports = (TwitchClient, sockets, app) => {
 					pubSub.on("channel-points", async data => {
 						try {
 							const { redemption, channel_id } = data;
-							const user = (await Api.getUserInfo(channel_id));
+							const user = await Api.getUserInfo(channel_id);
 							const channelName = user.login;
 							if (!sockets.hasOwnProperty(channelName)) return;
-							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
+							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
+								redemption.reward.title
+							} `;
 							if (redemption.reward.prompt.length > 0) {
 								message = `${message} - ${redemption.reward.prompt}`;
 							}
@@ -641,7 +657,7 @@ module.exports = (TwitchClient, sockets, app) => {
 								avatar: DisTwitchChatProfile,
 								body: message,
 								platform: "twitch",
-                                messageId: "subscription",
+								messageId: "subscription",
 								messageType: "channel-points",
 								uuid: id,
 								id,
