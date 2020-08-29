@@ -56,6 +56,30 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
+const subscribeToStreams = async (channelID, leaseSeconds = 864000) => {
+	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
+	const body = {
+		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=stream",
+		"hub.mode": "subscribe",
+		"hub.topic": `https://api.twitch.tv/helix/streams?user_id=${channelID}`,
+		"hub.lease_seconds": leaseSeconds,
+		"hub.secret": process.env.WEBHOOK_SECRET,
+	};
+	try {
+		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (err) {
+		console.log(err.message);
+	}
+
+	return leaseSeconds;
+};
+
 const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
