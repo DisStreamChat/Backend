@@ -20,7 +20,7 @@ module.exports = async (member, client) => {
 		.setColor("#11ee11");
 
 	if (!channelId) return;
-	const channel = guild.channels.resolve(channelId);
+	const logChannel = guild.channels.resolve(channelId);
 
-	channel.send(embed);
+	logChannel.send(embed);
 };
