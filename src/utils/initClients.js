@@ -4,7 +4,7 @@ const tmi = require("tmi.js");
 const { hoursToMillis } = require("./functions");
 const path = require("path")
 const fs = require("fs")
-const eventPath = path.join(__dirname, "../Discord/logging");
+const eventPath = path.join(__dirname, "../Discord/Events");
 const eventFiles = fs.readdirSync(eventPath);
 const events = {};
 

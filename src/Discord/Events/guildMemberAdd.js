@@ -14,13 +14,13 @@ module.exports = async (member, client) => {
 	const embed = new MessageEmbed()
 		.setAuthor(member.user.tag, member.user.displayAvatarURL())
 		.setThumbnail(member.user.displayAvatarURL())
-		.setDescription(`:outbox_tray: ${member} **left the server**`)
+		.setDescription(`:inbox_tray: ${member} **joined the server**`)
 		.setFooter(`ID: ${member.id}`)
 		.setTimestamp(new Date())
-		.setColor("#ee1111");
+		.setColor("#11ee11");
 
 	if (!channelId) return;
-	const channel = guild.channels.resolve(channelId);
+	const logChannel = guild.channels.resolve(channelId);
 
-	channel.send(embed);
+	logChannel.send(embed);
 };
