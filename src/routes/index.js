@@ -233,7 +233,6 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
 		});
-		console.log(tokenData);
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
 		next(err);
