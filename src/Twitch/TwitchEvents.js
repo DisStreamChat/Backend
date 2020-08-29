@@ -594,11 +594,11 @@ module.exports = (TwitchClient, sockets, app) => {
 			}else if (type === "stream"){
                 const stream = data[0]
                 if(!stream) return res.json("no stream")
-                
+
             }
 		} else {
 			// it's not from twitch
-			res.status("401").json("Looks like You aren't twitch");
+			res.status("401").json({message: "Looks like You aren't twitch"});
 		}
 	});
 
