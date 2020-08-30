@@ -13,6 +13,8 @@ const admin = require("firebase-admin");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 const fetch = require("node-fetch");
+const fs = require("fs")
+const path = require("path")
 
 // intialize the twitch api class from the twitch-lib package
 
@@ -536,6 +538,7 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
+    const notifiedStreams = require("../notifiedStreams.json")
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
@@ -594,7 +597,21 @@ module.exports = (TwitchClient, sockets, app) => {
 			}else if (type === "stream"){
                 const stream = data[0]
                 if(!stream) return res.json("no stream")
+                const streamId = stream.id
+                const streamerId = stream.user_id
+                const streamerName = stream.user_name
+                const type = stream.type
+                const title = stream.title
+                
+                console.log(`stream type: ${type}`)
+                console.log(`${streamerName} went live: ${title}`)
 
+                if(new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
+
+                notifiedStreams.push(streamId)
+                await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams))
+
+                // todo: send the notification
             }
 		} else {
 			// it's not from twitch
