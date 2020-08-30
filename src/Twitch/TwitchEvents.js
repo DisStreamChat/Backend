@@ -193,7 +193,11 @@ module.exports = (TwitchClient, sockets, app) => {
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: tags.color,
-			messageType: tags["message-type"],
+            messageType: tags["message-type"],
+            replyParentDisplayName: tags['reply-parent-display-name'],
+            replyParentMessageBody: tags['reply-parent-msg-body'],
+            replyParentMessageId: tags['reply-parent-msg-id'],
+            replyParentMessageUserId: tags['reply-parent-user-id'],
 		};
 
 		if (messageObject.body.length <= 0) return;
