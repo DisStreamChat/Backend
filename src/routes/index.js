@@ -131,7 +131,8 @@ const tenDays = 8.64e8;
 			const value = new Date().getTime();
 			allConnections.forEach(data => {
 				const id = data.channelId;
-				subscribeToFollowers(id, tenDays);
+                subscribeToFollowers(id, tenDays);
+                subscribeToStreams(id, tenDays)
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
