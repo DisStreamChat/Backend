@@ -42,13 +42,16 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 		"hub.secret": process.env.WEBHOOK_SECRET,
 	};
 	try {
-		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+		const response = await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: {
 				"Content-Type": "application/json",
 			},
 		});
+		if(!response.ok){
+			console.log(await response.json())	
+		}
 	} catch (err) {
 		console.log(err.message);
 	}
