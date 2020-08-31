@@ -35,7 +35,7 @@ const oauth = new DiscordOauth2({
 const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
-		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow&new=true",
+		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
 		"hub.mode": "subscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
