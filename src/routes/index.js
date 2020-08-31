@@ -131,6 +131,7 @@ const tenDays = 8.64e8;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
 		console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection);
 		const updateConnections = () => {
+			console.log(allConnections)
 			const value = new Date().getTime();
 			allConnections.forEach(data => {
 				const id = data.channelId;
