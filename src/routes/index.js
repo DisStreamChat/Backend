@@ -35,20 +35,23 @@ const oauth = new DiscordOauth2({
 const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
 	const body = {
-		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
+		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow&new=true",
 		"hub.mode": "subscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
 		"hub.secret": process.env.WEBHOOK_SECRET,
 	};
 	try {
-		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+		const response = await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: {
 				"Content-Type": "application/json",
 			},
 		});
+		if(!response.ok){
+			console.log(await response.json())	
+		}
 	} catch (err) {
 		console.log(err.message);
 	}
@@ -118,6 +121,7 @@ const sevenDays = 604800000;
 const tenDays = 8.64e8;
 
 (async () => {
+	await new Promise(resolve => setTimeout(resolve, 1000))
 	try {
 		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs
 			.find(doc => doc.id === "lastConnection")
@@ -128,11 +132,13 @@ const tenDays = 8.64e8;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
 		console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection);
 		const updateConnections = () => {
+			console.log(allConnections)
 			const value = new Date().getTime();
 			allConnections.forEach(data => {
 				const id = data.channelId;
+				console.log(id)
                 subscribeToFollowers(id, tenDays);
-                subscribeToStreams(id, tenDays)
+                //subscribeToStreams(id, tenDays)
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
