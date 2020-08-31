@@ -134,6 +134,7 @@ const tenDays = 8.64e8;
 			const value = new Date().getTime();
 			allConnections.forEach(data => {
 				const id = data.channelId;
+				console.log(id)
                 subscribeToFollowers(id, tenDays);
                 //subscribeToStreams(id, tenDays)
 			});
