@@ -121,6 +121,7 @@ const sevenDays = 604800000;
 const tenDays = 8.64e8;
 
 (async () => {
+	await new Promise(resolve => setTimeout(resolve, 1000))
 	try {
 		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs
 			.find(doc => doc.id === "lastConnection")
