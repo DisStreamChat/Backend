@@ -600,6 +600,7 @@ module.exports = (TwitchClient, sockets, app) => {
 				}
 				res.json("success");
 			}else if (type === "stream"){
+                console.log(data)
                 const stream = data[0]
                 if(!stream) return res.json("no stream")
                 const streamId = stream.id
