@@ -545,7 +545,6 @@ module.exports = (TwitchClient, sockets, app) => {
     const notifiedStreams = require("../notifiedStreams.json")
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
-		if(!req.query.new) return res.json("old request")
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
 			const type = req.query.type;
             const data = req.body.data;
