@@ -107,6 +107,30 @@ const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000) => {
 	return leaseSeconds;
 };
 
+const unsubscribeFromStreams = async (channelID, leaseSeconds = 864000) => {
+	leaseSeconds = Math.min(864000, Math.max(0, leaseSeconds));
+	const body = {
+		"hub.callback": "https://api.disstreamchat.com/webhooks/twitch?type=follow",
+		"hub.mode": "unsubscribe",
+		"hub.topic": `https://api.twitch.tv/helix/streams?user_id=${channelID}`,
+		"hub.lease_seconds": leaseSeconds,
+		"hub.secret": process.env.WEBHOOK_SECRET,
+	};
+	try {
+		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+			method: "POST",
+			body: JSON.stringify(body),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	} catch (err) {
+		console.log(err.message);
+	}
+
+	return leaseSeconds;
+};
+
 let allConnections = [];
 admin
 	.firestore()
@@ -134,11 +158,13 @@ const tenDays = 8.64e8;
 		const updateConnections = () => {
 			console.log(allConnections)
 			const value = new Date().getTime();
-			allConnections.forEach(data => {
+			allConnections.forEach(async data => {
 				const id = data.channelId;
-				console.log(id)
-                subscribeToFollowers(id, tenDays);
-                //subscribeToStreams(id, tenDays)
+                console.log(id)
+                await unsubscribeFromFollowers(id, tenDays)
+                await subscribeToFollowers(id, tenDays);
+                await unsubscribeFromStreams(id, tenDays)
+                await subscribeToStreams(id, tenDays)
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
