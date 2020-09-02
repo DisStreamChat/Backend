@@ -75,6 +75,15 @@ const getBadges = async (channelName, tags) => {
 };
 
 module.exports = (TwitchClient, sockets, app) => {
+    twitchclient.on("automod", (channel, msgid, msg) => {
+        if (msgid == "msg_rejected") {
+          // MSG was caught by AUTOMOD but can still be rejected by a human interaction
+        }
+        if (msgid == "msg_rejected_mandatory") {
+          // MSG was automatically rejected due to moderation settings
+        }
+      });
+
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
