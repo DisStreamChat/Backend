@@ -75,7 +75,7 @@ const getBadges = async (channelName, tags) => {
 };
 
 module.exports = (TwitchClient, sockets, app) => {
-    twitchclient.on("automod", (channel, msgid, msg) => {
+    TwitchClient.on("automod", (channel, msgid, msg) => {
         if (msgid == "msg_rejected") {
           // MSG was caught by AUTOMOD but can still be rejected by a human interaction
         }
