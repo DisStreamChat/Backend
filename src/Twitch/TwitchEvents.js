@@ -716,7 +716,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							console.log("error sending redemption message", data, error.message);
 						}
 					});
-					pubSub.on("automod_rejected", data => {
+					pubSub.on("automod_rejected", async data => {
 						console.log("User", data.user);
 						console.log("UserID", data.user_id);
 						console.log("messageID", data.message_id);
