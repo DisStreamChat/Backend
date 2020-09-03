@@ -717,18 +717,11 @@ module.exports = (TwitchClient, sockets, app) => {
 						}
 					});
 					pubSub.on("automod_rejected", async data => {
-						console.log("User", data.user);
-						console.log("UserID", data.user_id);
-						console.log("messageID", data.message_id);
-						console.log("message", data.message);
-						console.log("reason", data.reason);
 						try {
                             const { channelName } = pubSub;
-                            console.log({channelName})
 							if (!sockets.hasOwnProperty(channelName)) return;
 
 							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
-                            console.log(theMessage)
 							const id = uuidv1();
 							const messageObject = {
 								displayName: "DisStreamChat",
