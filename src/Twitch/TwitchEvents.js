@@ -659,7 +659,8 @@ module.exports = (TwitchClient, sockets, app) => {
 						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
 					);
 					const json = await res.json();
-					const access_token = json.access_token;
+                    const access_token = json.access_token;
+                    console.log(json)
 					const init_topics = [
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
