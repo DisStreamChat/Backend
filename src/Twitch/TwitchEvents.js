@@ -743,7 +743,7 @@ module.exports = (TwitchClient, sockets, app) => {
 								sentAt: new Date().getTime(),
 								userColor: "#ff0029",
 							};
-							const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+							const _ = [...sockets[channelName]].forEach(async s => await s.emit("auto-mod", messageObject));
 						} catch (error) {
 							console.log("error sending automod message", data, error.message);
 						}
