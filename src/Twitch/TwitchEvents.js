@@ -731,7 +731,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							const messageObject = {
 								displayName: "DisStreamChat",
 								avatar: DisTwitchChatProfile,
-								body: message,
+								body: theMessage,
 								platform: "twitch",
 								messageId: "",
 								messageType: "auto-mod-reject",
