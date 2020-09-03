@@ -662,7 +662,11 @@ module.exports = (TwitchClient, sockets, app) => {
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
 							token: access_token,
-						},
+                        },
+                        {
+                            topic: `chat_moderator_actions.${streamer.user_id}`,
+                            token: access_token
+                        }
 					];
 					const pubSub = new TPS({
 						init_topics,
