@@ -651,8 +651,9 @@ module.exports = (TwitchClient, sockets, app) => {
 				// pubsubbedChannels.forEach(channel => {
 				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
 				// });
-				// pubsubbedChannels = [];
+                // pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
+                    const streamerData = await Api.getUserInfo(streamer.user_id)
 					const res = await fetch(
 						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
 					);
@@ -666,6 +667,8 @@ module.exports = (TwitchClient, sockets, app) => {
                         {
                             topic: `chat_moderator_actions.${streamer.user_id}`,
                             token: access_token
+                        },{
+                            topic: `video-playback.${streamerData.login}`
                         }
 					];
 					const pubSub = new TPS({
@@ -673,7 +676,12 @@ module.exports = (TwitchClient, sockets, app) => {
 						reconnect: false,
 						debug: false,
 					});
-					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+                    pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+                    pubSub.on("stream-up", async (data) => {
+                        console.log(data)
+                        // send notifications
+
+                    })
 					pubSub.on("channel-points", async data => {
 						try {
 							const { redemption, channel_id } = data;
