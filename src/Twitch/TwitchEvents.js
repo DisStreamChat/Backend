@@ -13,8 +13,8 @@ const admin = require("firebase-admin");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 const fetch = require("node-fetch");
-const fs = require("fs")
-const path = require("path")
+const fs = require("fs");
+const path = require("path");
 
 // intialize the twitch api class from the twitch-lib package
 
@@ -75,14 +75,14 @@ const getBadges = async (channelName, tags) => {
 };
 
 module.exports = (TwitchClient, sockets, app) => {
-    TwitchClient.on("automod", (channel, msgid, msg) => {
-        if (msgid == "msg_rejected") {
-          // MSG was caught by AUTOMOD but can still be rejected by a human interaction
-        }
-        if (msgid == "msg_rejected_mandatory") {
-          // MSG was automatically rejected due to moderation settings
-        }
-      });
+	TwitchClient.on("automod", (channel, msgid, msg) => {
+		if (msgid == "msg_rejected") {
+			// MSG was caught by AUTOMOD but can still be rejected by a human interaction
+		}
+		if (msgid == "msg_rejected_mandatory") {
+			// MSG was automatically rejected due to moderation settings
+		}
+	});
 
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
@@ -202,11 +202,11 @@ module.exports = (TwitchClient, sockets, app) => {
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: tags.color,
-            messageType: tags["message-type"],
-            replyParentDisplayName: tags['reply-parent-display-name'],
-            replyParentMessageBody: tags['reply-parent-msg-body'],
-            replyParentMessageId: tags['reply-parent-msg-id'],
-            replyParentMessageUserId: tags['reply-parent-user-id'],
+			messageType: tags["message-type"],
+			replyParentDisplayName: tags["reply-parent-display-name"],
+			replyParentMessageBody: tags["reply-parent-msg-body"],
+			replyParentMessageId: tags["reply-parent-msg-id"],
+			replyParentMessageUserId: tags["reply-parent-user-id"],
 		};
 
 		if (messageObject.body.length <= 0) return;
@@ -551,14 +551,14 @@ module.exports = (TwitchClient, sockets, app) => {
 		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
-    const notifiedStreams = require("../notifiedStreams.json")
+	const notifiedStreams = require("../notifiedStreams.json");
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
 			const type = req.query.type;
-            const data = req.body.data;
-            if (!type) return res.json({ message: "missing type", code: 400 });
-            if (!data) return res.json({ message: "missing data", code: 400 })
+			const data = req.body.data;
+			if (!type) return res.json({ message: "missing type", code: 400 });
+			if (!data) return res.json({ message: "missing data", code: 400 });
 			if (type === "follow") {
 				if (data) {
 					const body = data[0];
@@ -607,29 +607,29 @@ module.exports = (TwitchClient, sockets, app) => {
 					const _ = [...sockets[streamer]].forEach(async s => await s.emit("chatmessage", messageObject));
 				}
 				res.json("success");
-			}else if (type === "stream"){
-                console.log(data)
-                const stream = data[0]
-                if(!stream) return res.json("no stream")
-                const streamId = stream.id
-                const streamerId = stream.user_id
-                const streamerName = stream.user_name
-                const type = stream.type
-                const title = stream.title
-                
-                console.log(`stream type: ${type}`)
-                console.log(`${streamerName} went live: ${title}`)
+			} else if (type === "stream") {
+				console.log(data);
+				const stream = data[0];
+				if (!stream) return res.json("no stream");
+				const streamId = stream.id;
+				const streamerId = stream.user_id;
+				const streamerName = stream.user_name;
+				const type = stream.type;
+				const title = stream.title;
 
-                if(new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
+				console.log(`stream type: ${type}`);
+				console.log(`${streamerName} went live: ${title}`);
 
-                notifiedStreams.push(streamId)
-                await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams))
+				if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
 
-                // todo: send the notification
-            }
+				notifiedStreams.push(streamId);
+				await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
+
+				// todo: send the notification
+			}
 		} else {
 			// it's not from twitch
-			res.status("401").json({message: "Looks like You aren't twitch"});
+			res.status("401").json({ message: "Looks like You aren't twitch" });
 		}
 	});
 
@@ -651,9 +651,9 @@ module.exports = (TwitchClient, sockets, app) => {
 				// pubsubbedChannels.forEach(channel => {
 				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
 				// });
-                // pubsubbedChannels = [];
+				// pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
-                    const streamerData = await Api.getUserInfo(streamer.user_id)
+					const streamerData = await Api.getUserInfo(streamer.user_id);
 					const res = await fetch(
 						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
 					);
@@ -663,25 +663,25 @@ module.exports = (TwitchClient, sockets, app) => {
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
 							token: access_token,
-                        },
-                        {
-                            topic: `chat_moderator_actions.${streamer.user_id}`,
-                            token: access_token
-                        },{
-                            topic: `video-playback.${streamerData.login}`
-                        }
+						},
+						{
+							topic: `chat_moderator_actions.${streamer.user_id}`,
+							token: access_token,
+						},
+						{
+							topic: `video-playback.${streamerData.login}`,
+						},
 					];
 					const pubSub = new TPS({
 						init_topics,
 						reconnect: false,
 						debug: false,
 					});
-                    pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
-                    pubSub.on("stream-up", async (data) => {
-                        console.log(data)
-                        // send notifications
-
-                    })
+					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+					pubSub.on("stream-up", async data => {
+						console.log(data);
+						// send notifications
+					});
 					pubSub.on("channel-points", async data => {
 						try {
 							const { redemption, channel_id } = data;
@@ -712,6 +712,53 @@ module.exports = (TwitchClient, sockets, app) => {
 						} catch (error) {
 							console.log("error sending redemption message", data, error.message);
 						}
+					});
+					ps.on("automod_rejected", data => {
+						console.log("User", data.user);
+						console.log("UserID", data.user_id);
+						console.log("messageID", data.message_id);
+						console.log("message", data.message);
+						console.log("reason", data.reason);
+					});
+
+					ps.on("approved_automod_message", data => {
+						console.log("Mod", data.created_by);
+						console.log("Mod ID", data.created_by_user_id);
+						console.log("Approved MessageID", data.message_id);
+						console.log("TargetUser", data.target_user_login);
+						console.log("TargetUserID", data.target_user_id);
+					});
+
+					ps.on("denied_automod_message", data => {
+						console.log("Mod", data.created_by);
+						console.log("Mod ID", data.created_by_user_id);
+						console.log("Denied MessageID", data.message_id);
+						console.log("TargetUser", data.target_user_login);
+						console.log("TargetUserID", data.target_user_id);
+					});
+
+					ps.on("add_blocked_term", data => {
+						console.log("Mod", data.created_by);
+						console.log("ModID", data.created_by_user_id);
+						console.log("Added Blocked Term", data.approved_term);
+					});
+
+					ps.on("delete_blocked_term", data => {
+						console.log("Mod", data.created_by);
+						console.log("ModID", data.created_by_user_id);
+						console.log("Deleted Blocked Term", data.blocked_term);
+					});
+
+					ps.on("add_permitted_term", data => {
+						console.log("Mod", data.created_by);
+						console.log("ModID", data.created_by_user_id);
+						console.log("Added Permitted Term", data.approved_term);
+					});
+
+					ps.on("delete_permitted_term", data => {
+						console.log("Mod", data.created_by);
+						console.log("ModID", data.created_by_user_id);
+						console.log("Deleted Permitted Term", data.blocked_term);
 					});
 				});
 			});
