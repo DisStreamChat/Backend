@@ -723,7 +723,8 @@ module.exports = (TwitchClient, sockets, app) => {
 						console.log("message", data.message);
 						console.log("reason", data.reason);
 						try {
-							const { channelName } = pubSub;
+                            const { channelName } = pubSub;
+                            console.log({channelName})
 							if (!sockets.hasOwnProperty(channelName)) return;
 
 							const theMessage = formatMessage(data.message, "twitch", {}, { HTMLClean: true });
