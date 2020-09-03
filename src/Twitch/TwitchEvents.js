@@ -727,7 +727,8 @@ module.exports = (TwitchClient, sockets, app) => {
                             console.log({channelName})
 							if (!sockets.hasOwnProperty(channelName)) return;
 
-							const theMessage = formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+                            console.log(theMessage)
 							const id = uuidv1();
 							const messageObject = {
 								displayName: "DisStreamChat",
