@@ -653,14 +653,14 @@ module.exports = (TwitchClient, sockets, app) => {
 				// });
 				// pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
-                    if(!streamer.user_id) return
+					if (!streamer.user_id) return;
 					const streamerData = await Api.getUserInfo(streamer.user_id);
 					const res = await fetch(
 						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
 					);
 					const json = await res.json();
-                    const access_token = json.access_token;
-                    if(!json.scope.includes("channel:moderate")) return 
+					const access_token = json.access_token;
+					if (!json.scope.includes("channel:moderate")) return;
 					const init_topics = [
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
@@ -679,6 +679,7 @@ module.exports = (TwitchClient, sockets, app) => {
 						reconnect: false,
 						debug: false,
 					});
+					pubSub.channelName = streamerData.login;
 					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
 					pubSub.on("stream-up", async data => {
 						console.log(data);
@@ -721,6 +722,29 @@ module.exports = (TwitchClient, sockets, app) => {
 						console.log("messageID", data.message_id);
 						console.log("message", data.message);
 						console.log("reason", data.reason);
+						try {
+							const { channelName } = pubSub;
+							if (!sockets.hasOwnProperty(channelName)) return;
+
+							const theMessage = formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+							const id = uuidv1();
+							const messageObject = {
+								displayName: "DisStreamChat",
+								avatar: DisTwitchChatProfile,
+								body: message,
+								platform: "twitch",
+								messageId: "",
+								messageType: "auto-mod-reject",
+								uuid: id,
+								id,
+								badges: {},
+								sentAt: new Date().getTime(),
+								userColor: "#ff0029",
+							};
+							const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+						} catch (error) {
+							console.log("error sending automod message", data, error.message);
+						}
 					});
 
 					pubSub.on("approved_automod_message", data => {
