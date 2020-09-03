@@ -713,7 +713,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							console.log("error sending redemption message", data, error.message);
 						}
 					});
-					ps.on("automod_rejected", data => {
+					pubSub.on("automod_rejected", data => {
 						console.log("User", data.user);
 						console.log("UserID", data.user_id);
 						console.log("messageID", data.message_id);
@@ -721,7 +721,7 @@ module.exports = (TwitchClient, sockets, app) => {
 						console.log("reason", data.reason);
 					});
 
-					ps.on("approved_automod_message", data => {
+					pubSub.on("approved_automod_message", data => {
 						console.log("Mod", data.created_by);
 						console.log("Mod ID", data.created_by_user_id);
 						console.log("Approved MessageID", data.message_id);
@@ -729,7 +729,7 @@ module.exports = (TwitchClient, sockets, app) => {
 						console.log("TargetUserID", data.target_user_id);
 					});
 
-					ps.on("denied_automod_message", data => {
+					pubSub.on("denied_automod_message", data => {
 						console.log("Mod", data.created_by);
 						console.log("Mod ID", data.created_by_user_id);
 						console.log("Denied MessageID", data.message_id);
@@ -737,25 +737,25 @@ module.exports = (TwitchClient, sockets, app) => {
 						console.log("TargetUserID", data.target_user_id);
 					});
 
-					ps.on("add_blocked_term", data => {
+					pubSub.on("add_blocked_term", data => {
 						console.log("Mod", data.created_by);
 						console.log("ModID", data.created_by_user_id);
 						console.log("Added Blocked Term", data.approved_term);
 					});
 
-					ps.on("delete_blocked_term", data => {
+					pubSub.on("delete_blocked_term", data => {
 						console.log("Mod", data.created_by);
 						console.log("ModID", data.created_by_user_id);
 						console.log("Deleted Blocked Term", data.blocked_term);
 					});
 
-					ps.on("add_permitted_term", data => {
+					pubSub.on("add_permitted_term", data => {
 						console.log("Mod", data.created_by);
 						console.log("ModID", data.created_by_user_id);
 						console.log("Added Permitted Term", data.approved_term);
 					});
 
-					ps.on("delete_permitted_term", data => {
+					pubSub.on("delete_permitted_term", data => {
 						console.log("Mod", data.created_by);
 						console.log("ModID", data.created_by_user_id);
 						console.log("Deleted Permitted Term", data.blocked_term);
