@@ -336,9 +336,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const theMessage = `${username}, is continuing their gift sub! (Originally from Anonymous)`;
 
-		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
-			HTMLClean: true,
-		});
+		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {	HTMLClean: true, });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
@@ -369,9 +367,7 @@ module.exports = (TwitchClient, sockets, app) => {
 
 		const theMessage = `${username}, is continuing their gift sub! (Originally from ${sender}).`;
 
-		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {
-			HTMLClean: true,
-		});
+		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {HTMLClean: true,});
 
 		const messageObject = {
 			displayName: "DisStreamChat",
@@ -465,6 +461,11 @@ module.exports = (TwitchClient, sockets, app) => {
 				theMessage = `Thanks for the resub @${username}!`;
 			}
 		}
+
+		let HTMLCleanMessage = await formatMessage(msg, "twitch", tags, { HTMLClean: true });
+
+		theMessage += `\n${HTMLCleanMessage}`;
+
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisTwitchChatProfile,
@@ -498,7 +499,9 @@ module.exports = (TwitchClient, sockets, app) => {
 			theMessage = `Thanks for subscribing @${username}!`;
 		}
 
-		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
+		let HTMLCleanMessage = await formatMessage(msg, "twitch", tags, { HTMLClean: true });
+
+		theMessage += `\n${HTMLCleanMessage}`;
 
 		const messageObject = {
 			displayName: "DisStreamChat",
@@ -532,7 +535,7 @@ module.exports = (TwitchClient, sockets, app) => {
 			theMessage = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
 		}
 
-		let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
+		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
