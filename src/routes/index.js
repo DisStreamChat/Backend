@@ -9,7 +9,7 @@ import DiscordOauth2 from "discord-oauth2";
 import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { UserManager } from "discord.js";
 
 // get the serviceAccount details from the base64 string stored in environment variables
@@ -49,8 +49,8 @@ const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
 				"Content-Type": "application/json",
 			},
 		});
-		if(!response.ok){
-			console.log(await response.json())	
+		if (!response.ok) {
+			console.log(await response.json());
 		}
 	} catch (err) {
 		console.log(err.message);
@@ -145,7 +145,7 @@ const sevenDays = 604800000;
 const tenDays = 8.64e8;
 
 (async () => {
-	await new Promise(resolve => setTimeout(resolve, 1000))
+	await new Promise(resolve => setTimeout(resolve, 1000));
 	try {
 		const lastConnection = (await admin.firestore().collection("webhookConnections").get()).docs
 			.find(doc => doc.id === "lastConnection")
@@ -156,15 +156,15 @@ const tenDays = 8.64e8;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
 		console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection);
 		const updateConnections = () => {
-			console.log(allConnections)
+			console.log(allConnections);
 			const value = new Date().getTime();
 			allConnections.forEach(async data => {
 				const id = data.channelId;
-                console.log(id)
-                await unsubscribeFromFollowers(id, tenDays)
-                await subscribeToFollowers(id, tenDays);
-                await unsubscribeFromStreams(id, tenDays)
-                await subscribeToStreams(id, tenDays)
+				console.log(id);
+				await unsubscribeFromFollowers(id, tenDays);
+				await subscribeToFollowers(id, tenDays);
+				await unsubscribeFromStreams(id, tenDays);
+				await subscribeToStreams(id, tenDays);
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
@@ -179,20 +179,23 @@ const tenDays = 8.64e8;
 	}
 })();
 
-const validateRequest = async(req, res, next) => {
-    const apiKey = req.query.key
-    if(apiKey === process.env.DSC_API_KEY) return next()
-    const userId = req.query.id
-    const otc = req.query.otc
-    const otcData = (await admin.firestore().collection("Secret").doc(userId).get()).data()
-    const otcFromDb = otcData?.value
-    if(otcFromDb === otc){
-        const newOtc = uuidv4()
-        await admin.firestore().collection("Secret").doc(userId).set({value: newOtc})
-        return next()
+const validateRequest = async (req, res, next) => {
+	const apiKey = req.query.key;
+	if (apiKey === process.env.DSC_API_KEY) return next();
+    const userId = req.query.id;
+    if(!userId){
+        return res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
     }
-    res.status(401).json({message: "Missing or invalid credentials", code: 401})
-}
+	const otc = req.query.otc;
+	const otcData = (await admin.firestore().collection("Secret").doc(userId).get()).data();
+	const otcFromDb = otcData?.value;
+	if (otcFromDb === otc) {
+		const newOtc = uuidv4();
+		await admin.firestore().collection("Secret").doc(userId).set({ value: newOtc });
+		return next();
+	}
+	res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
+};
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.use("/oauth/twitch", express.static("public"));
@@ -361,28 +364,28 @@ router.get("/emotes", async (req, res, next) => {
 });
 
 router.get("/checkmod", async (req, res, next) => {
-    let channelName = req.query.channel;
-    
+	let channelName = req.query.channel;
+
 	if (!channelName) {
 		return res.status(400).json({ message: "missing channel name", code: 400 });
 	}
 	if (!channelName.startsWith("#")) {
-        channelName = "#"+channelName
-    }
+		channelName = "#" + channelName;
+	}
 
 	const userName = req.query.user;
 	try {
 		const inChannels = await TwitchClient.getChannels();
 		const alreadyJoined = inChannels.includes(channelName);
 
-        if(!alreadyJoined){
-            const userData = await Api.getUserInfo(channelName.substring(1))
-            if(userData){
-                await TwitchClient.join(channelName)
-            }else{
-                return res.status(400).json({message: "invalid channel name, it seems like that isn't a twitch channel", code: 400})
-            }
-        }
+		if (!alreadyJoined) {
+			const userData = await Api.getUserInfo(channelName.substring(1));
+			if (userData) {
+				await TwitchClient.join(channelName);
+			} else {
+				return res.status(400).json({ message: "invalid channel name, it seems like that isn't a twitch channel", code: 400 });
+			}
+		}
 		const results = await TwitchClient.mods(channelName);
 
 		const isMod = !!userName && results.includes(userName.toLowerCase());
@@ -395,12 +398,12 @@ router.get("/checkmod", async (req, res, next) => {
 		try {
 			console.log("failed to join: ", err);
 			let isMod = TwitchClient.isMod(channelName, userName);
-            const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`)
-            isMod = chatters?.moderators?.includes?.(userName) || isMod
-            TwitchClient.part(channelName);
+			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
+			isMod = chatters?.moderators?.includes?.(userName) || isMod;
+			TwitchClient.part(channelName);
 			if (isMod) {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
-            }
+			}
 		} catch (err) {
 			console.log(err, err.message);
 			TwitchClient.part(channelName);
@@ -730,6 +733,91 @@ router.get("/customemotes", async (req, res, next) => {
 
 router.get("/twitch/channels", async (req, res, next) => {
 	res.json(await TwitchClient.getChannels());
+});
+
+const KrakenApi = new TwitchApi({
+	clientId: process.env.TWITCH_CLIENT_ID,
+	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	kraken: true,
+});
+
+router.get("/twitch/follows", async (req, res, next) => {
+	const user = req.query.user;
+	const userData = await Api.getUserInfo(user);
+	const id = userData.id;
+	const json = await KrakenApi.fetch(`https://api.twitch.tv/kraken/users/${id}/follows/channels`, {
+		headers: {
+			Accept: "application/vnd.twitchtv.v5+json",
+		},
+	});
+	res.json(json);
+});
+
+router.put("/twitch/follow", validateRequest, async (req, res, next) => {
+	const user = req.query.user;
+	const channel = req.query.channel;
+	const userInfo = await Api.getUserInfo(user);
+	const channelInfo = await Api.getUserInfo(channel);
+    const firebaseId = sha1(userInfo.id);
+    try{
+        const userFirebaseData = (
+            await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
+        ).data();
+        const refreshData = await Api.fetch(
+            `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+        );
+        console.log(refreshData)
+        const userApi = new TwitchApi({
+            clientId: process.env.TWITCH_CLIENT_ID,
+            authorizationToken: refreshData.access_token,
+            kraken: true,
+        });
+        await userApi.fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
+            method: "PUT",
+            headers: {
+                Accept: "application/vnd.twitchtv.v5+json",
+                "Client-ID": process.env.TWITCH_CLIENT_ID,
+                Authorization: `OAuth ${refreshData.access_token}`
+            },
+        });
+        res.json("success");
+    }catch(err){
+        next(err)
+    }
+});
+
+router.delete("/twitch/follow", validateRequest,  async (req, res, next) => {
+	const user = req.query.user;
+	const channel = req.query.channel;
+	const userInfo = await Api.getUserInfo(user);
+	const channelInfo = await Api.getUserInfo(channel);
+    const firebaseId = sha1(userInfo.id);
+    try{
+        const userFirebaseData = (
+            await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
+        ).data();
+        const refreshData = await Api.fetch(
+            `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+        );
+        console.log(refreshData)
+        const userApi = new TwitchApi({
+            clientId: process.env.TWITCH_CLIENT_ID,
+            authorizationToken: refreshData.access_token,
+            kraken: true,
+        });
+        await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
+            method: "DELETE",
+            headers: {
+                Accept: "application/vnd.twitchtv.v5+json",
+
+                Authorization: `OAuth ${refreshData.access_token}`
+            },
+            body: ""
+        });
+        res.json("success");
+    }catch(err){
+        next(err)
+    }
 });
 
 module.exports = router;
