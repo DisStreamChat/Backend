@@ -766,7 +766,6 @@ router.put("/twitch/follow", validateRequest, async (req, res, next) => {
         const refreshData = await Api.fetch(
             `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
         );
-        console.log(refreshData)
         const userApi = new TwitchApi({
             clientId: process.env.TWITCH_CLIENT_ID,
             authorizationToken: refreshData.access_token,
@@ -799,7 +798,6 @@ router.delete("/twitch/follow", validateRequest,  async (req, res, next) => {
         const refreshData = await Api.fetch(
             `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
         );
-        console.log(refreshData)
         const userApi = new TwitchApi({
             clientId: process.env.TWITCH_CLIENT_ID,
             authorizationToken: refreshData.access_token,
