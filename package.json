@@ -43,6 +43,7 @@
 		"axios": "^0.19.2",
 		"babel-plugin-transform-runtime": "^6.23.0",
 		"bad-words": "^3.0.3",
+		"base65536": "^3.0.3",
 		"body-parser": "^1.19.0",
 		"canvas": "^2.6.1",
 		"cors": "^2.8.5",
