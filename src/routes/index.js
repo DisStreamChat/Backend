@@ -755,7 +755,7 @@ router.get("/twitch/follows", async (req, res, next) => {
 	});
 	try {
 		let followedChannels = [];
-		const key = req.key;
+		const key = req.query.key;
 		if (!key) {
 			followedChannels = json.follows;
 		} else {
