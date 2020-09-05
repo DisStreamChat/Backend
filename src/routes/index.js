@@ -742,7 +742,10 @@ const KrakenApi = new TwitchApi({
 });
 
 router.get("/twitch/follows", async (req, res, next) => {
-	const user = req.query.user;
+    const user = req.query.user;
+    if(!user){
+        res.status(400).json({messages: "missing user", code: 400})
+    }
 	const userData = await Api.getUserInfo(user);
 	const id = userData.id;
 	const json = await KrakenApi.fetch(`https://api.twitch.tv/kraken/users/${id}/follows/channels`, {
