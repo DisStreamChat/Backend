@@ -741,7 +741,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
 							const id = uuidv1();
 							const messageObject = {
-								displayName: "DisStreamChat",
+								displayName: "Auto Mod",
 								avatar: DisTwitchChatProfile,
 								body: theMessage,
 								platform: "twitch",
