@@ -685,7 +685,21 @@ module.exports = (TwitchClient, sockets, app) => {
 					pubSub.channelName = streamerData.login;
 					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
 					pubSub.on("stream-up", async data => {
+						const name = "dscnotifications";
 						console.log(data);
+                        if (!sockets.hasOwnProperty(name)) return;
+                        console.log("notifications")
+                        const intervalId = setInterval(async () => {
+                            console.log("fetching stream")
+                            const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
+                            const streamDataResponse = await Api.fetch(apiUrl);
+                            const streamData = streamDataResponse.data;
+                            const stream = streamData[0];
+                            if(stream){
+                                clearInterval(intervalId)
+                                const _ = [...sockets[name]].forEach(async s => await s.emit("stream-up", {stream, ...data}));
+                            }
+                        }, 60000)
 						// send notifications
 					});
 					pubSub.on("channel-points", async data => {
@@ -721,7 +735,7 @@ module.exports = (TwitchClient, sockets, app) => {
 					});
 					pubSub.on("automod_rejected", async data => {
 						try {
-                            const { channelName } = pubSub;
+							const { channelName } = pubSub;
 							if (!sockets.hasOwnProperty(channelName)) return;
 
 							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
