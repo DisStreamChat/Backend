@@ -182,10 +182,10 @@ const tenDays = 8.64e8;
 const validateRequest = async (req, res, next) => {
 	const apiKey = req.query.key;
 	if (apiKey === process.env.DSC_API_KEY) return next();
-    const userId = req.query.id;
-    if(!userId){
-        return res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
-    }
+	const userId = req.query.id;
+	if (!userId) {
+		return res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
+	}
 	const otc = req.query.otc;
 	const otcData = (await admin.firestore().collection("Secret").doc(userId).get()).data();
 	const otcFromDb = otcData?.value;
@@ -742,10 +742,10 @@ const KrakenApi = new TwitchApi({
 });
 
 router.get("/twitch/follows", async (req, res, next) => {
-    const user = req.query.user;
-    if(!user){
-        res.status(400).json({messages: "missing user", code: 400})
-    }
+	const user = req.query.user;
+	if (!user) {
+		res.status(400).json({ messages: "missing user", code: 400 });
+	}
 	const userData = await Api.getUserInfo(user);
 	const id = userData.id;
 	const json = await KrakenApi.fetch(`https://api.twitch.tv/kraken/users/${id}/follows/channels`, {
@@ -753,7 +753,18 @@ router.get("/twitch/follows", async (req, res, next) => {
 			Accept: "application/vnd.twitchtv.v5+json",
 		},
 	});
-	res.json(json);
+	try {
+		let followedChannels = [];
+		const key = req.key;
+		if (!key) {
+			followedChannels = json.follows;
+		} else {
+			followedChannels = json.follows.map(follow => follow.channel[key]);
+        }
+        res.json(followedChannels)
+	} catch (err) {
+		res.json(json);
+	}
 });
 
 router.put("/twitch/follow", validateRequest, async (req, res, next) => {
@@ -761,64 +772,64 @@ router.put("/twitch/follow", validateRequest, async (req, res, next) => {
 	const channel = req.query.channel;
 	const userInfo = await Api.getUserInfo(user);
 	const channelInfo = await Api.getUserInfo(channel);
-    const firebaseId = sha1(userInfo.id);
-    try{
-        const userFirebaseData = (
-            await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-        ).data();
-        const refreshData = await Api.fetch(
-            `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
-        );
-        const userApi = new TwitchApi({
-            clientId: process.env.TWITCH_CLIENT_ID,
-            authorizationToken: refreshData.access_token,
-            kraken: true,
-        });
-        await userApi.fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
-            method: "PUT",
-            headers: {
-                Accept: "application/vnd.twitchtv.v5+json",
-                "Client-ID": process.env.TWITCH_CLIENT_ID,
-                Authorization: `OAuth ${refreshData.access_token}`
-            },
-        });
-        res.json("success");
-    }catch(err){
-        next(err)
-    }
+	const firebaseId = sha1(userInfo.id);
+	try {
+		const userFirebaseData = (
+			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
+		).data();
+		const refreshData = await Api.fetch(
+			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+		);
+		const userApi = new TwitchApi({
+			clientId: process.env.TWITCH_CLIENT_ID,
+			authorizationToken: refreshData.access_token,
+			kraken: true,
+		});
+		await userApi.fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
+			method: "PUT",
+			headers: {
+				Accept: "application/vnd.twitchtv.v5+json",
+				"Client-ID": process.env.TWITCH_CLIENT_ID,
+				Authorization: `OAuth ${refreshData.access_token}`,
+			},
+		});
+		res.json("success");
+	} catch (err) {
+		next(err);
+	}
 });
 
-router.delete("/twitch/follow", validateRequest,  async (req, res, next) => {
+router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 	const user = req.query.user;
 	const channel = req.query.channel;
 	const userInfo = await Api.getUserInfo(user);
 	const channelInfo = await Api.getUserInfo(channel);
-    const firebaseId = sha1(userInfo.id);
-    try{
-        const userFirebaseData = (
-            await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-        ).data();
-        const refreshData = await Api.fetch(
-            `https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
-        );
-        const userApi = new TwitchApi({
-            clientId: process.env.TWITCH_CLIENT_ID,
-            authorizationToken: refreshData.access_token,
-            kraken: true,
-        });
-        await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
-            method: "DELETE",
-            headers: {
-                Accept: "application/vnd.twitchtv.v5+json",
+	const firebaseId = sha1(userInfo.id);
+	try {
+		const userFirebaseData = (
+			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
+		).data();
+		const refreshData = await Api.fetch(
+			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+		);
+		const userApi = new TwitchApi({
+			clientId: process.env.TWITCH_CLIENT_ID,
+			authorizationToken: refreshData.access_token,
+			kraken: true,
+		});
+		await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
+			method: "DELETE",
+			headers: {
+				Accept: "application/vnd.twitchtv.v5+json",
 
-                Authorization: `OAuth ${refreshData.access_token}`
-            },
-            body: ""
-        });
-        res.json("success");
-    }catch(err){
-        next(err)
-    }
+				Authorization: `OAuth ${refreshData.access_token}`,
+			},
+			body: "",
+		});
+		res.json("success");
+	} catch (err) {
+		next(err);
+	}
 });
 
 module.exports = router;
