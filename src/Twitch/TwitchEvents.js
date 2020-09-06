@@ -741,7 +741,7 @@ module.exports = (TwitchClient, sockets, app) => {
 							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
 							const id = uuidv1();
 							const messageObject = {
-								displayName: "Auto Mod",
+								displayName: "AutoMod",
 								avatar: DisTwitchChatProfile,
 								body: theMessage,
 								platform: "twitch",
@@ -751,7 +751,8 @@ module.exports = (TwitchClient, sockets, app) => {
 								id,
 								badges: {},
 								sentAt: new Date().getTime(),
-								userColor: "#ff0029",
+                                userColor: "#ff0029",
+                                ...data
 							};
 							const _ = [...sockets[channelName]].forEach(async s => await s.emit("auto-mod", messageObject));
 						} catch (error) {
