@@ -843,6 +843,7 @@ router.post("/automod/:action", async (req, res, next) => {
                     "Content-Type": "application/json",
                     Accept: "application/vnd.twitchtv.v5+json",
                     "Client-ID": process.env.TWITCH_CLIENT_ID,
+                    Authorization: `OAuth ${Api.authorizationKey}`
                 },
             });
         console.log(response)
