@@ -832,4 +832,23 @@ router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 	}
 });
 
+router.post("/automod/:action", async (req, res, next) => {
+    const action = req.params.action
+    try{
+
+        const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
+                body: {"msg_id": req.query.id},
+                method: "POST",
+                headers: {
+                    Accept: "application/vnd.twitchtv.v5+json",
+                    "Client-ID": process.env.TWITCH_CLIENT_ID,
+                },
+            });
+        console.log(response)
+        res.json({message: "success"})
+    }catch(err){
+        next(err)
+    }
+})
+
 module.exports = router;
