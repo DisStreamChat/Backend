@@ -832,9 +832,9 @@ router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 	}
 });
 
-router.post("/automod/:action", async (req, res, next) => {
+router.post("/automod/:action", validateRequest, async (req, res, next) => {
     const action = req.params.action
-	const firebaseId = req.query.id || " "
+    const firebaseId = req.query.id || " "
 	try {
 		const userFirebaseData = (
 			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
@@ -843,7 +843,7 @@ router.post("/automod/:action", async (req, res, next) => {
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
         const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
-                body: JSON.stringify({"msg_id": req.query.id}),
+                body: JSON.stringify({"msg_id": req.query.msg_id}),
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
