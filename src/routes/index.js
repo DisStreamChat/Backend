@@ -837,9 +837,10 @@ router.post("/automod/:action", async (req, res, next) => {
     try{
 
         const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
-                body: JSON.stringify({"msg_id": req.query.id, "Content-Type": "application/json"}),
+                body: JSON.stringify({"msg_id": req.query.id}),
                 method: "POST",
                 headers: {
+                    "Content-Type": "application/json",
                     Accept: "application/vnd.twitchtv.v5+json",
                     "Client-ID": process.env.TWITCH_CLIENT_ID,
                 },
