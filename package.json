@@ -46,6 +46,7 @@
 		"base65536": "^3.0.3",
 		"body-parser": "^1.19.0",
 		"canvas": "^2.6.1",
+		"chatbits": "^1.2.10-hotfix5",
 		"cors": "^2.8.5",
 		"crypto": "^1.0.1",
 		"date-fns": "^2.14.0",
