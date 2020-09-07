@@ -1,18 +1,18 @@
 require("dotenv").config();
-import express from "express"
+import express from "express";
 const app = express();
-import http from "http"
+import http from "http";
 const server = http.Server(app);
-import socketio from "socket.io"
+import socketio from "socket.io";
 const io = socketio(server);
-import cors from "cors"
-import bodyParser from "body-parser"
-import helmet from "helmet"
-import TwitchEvents from "./Twitch/TwitchEvents"
-import DiscordEvents from "./Discord/DiscordEvents"
-import crypto from "crypto"
-import fetch from "node-fetch"
-import tmi from "tmi.js"
+import cors from "cors";
+import bodyParser from "body-parser";
+import helmet from "helmet";
+import TwitchEvents from "./Twitch/TwitchEvents";
+import DiscordEvents from "./Discord/DiscordEvents";
+import crypto from "crypto";
+import fetch from "node-fetch";
+import tmi from "tmi.js";
 // const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,17 +148,17 @@ io.on("connection", socket => {
 	console.log("a user connected");
 	socket.emit("imConnected");
 	// the addme event is sent from the frontend on load with the data from the database
-	socket.on("addme", message => {
+	socket.on("addme", async message => {
+        console.log(`adding: ${message}`)
 		const { TwitchName, guildId } = message;
-		const youtubeChannelId = message.youtubeChannelId;
-		socket.userInfo = message;
-
-		if (youtubeChannelId) {
-			addSocket(socket, youtubeChannelId);
-		}
+        socket.userInfo = message;
+        
 		addSocket(socket, guildId);
 		addSocket(socket, TwitchName);
-		TwitchClient.join(TwitchName);
+		const channels = await TwitchClient.getChannels();
+		if (!channels.includes(TwitchName?.toLowerCase())) {
+			TwitchClient.join(TwitchName);
+		}
 		// TODO use client.join(channel)
 	});
 
@@ -222,7 +222,7 @@ io.on("connection", socket => {
 	});
 
 	socket.on("deletemsg - twitch", async data => {
-        console.log("delete data: ", data)
+		console.log("delete data: ", data);
 		const { TwitchName } = socket.userInfo;
 		function botDelete(id) {
 			try {
@@ -237,7 +237,13 @@ io.on("connection", socket => {
 			botDelete(data);
 		} else {
 			const modName = data.modName;
-			const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName || " ").get()).docs[0];
+			const modRef = (
+				await admin
+					.firestore()
+					.collection("Streamers")
+					.where("TwitchName", "==", modName || " ")
+					.get()
+			).docs[0];
 			const modData = modRef.data();
 			if (!modData) {
 				botDelete(id);
@@ -257,7 +263,9 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
+						const response = await fetch(
+							`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
+						);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -280,9 +288,9 @@ io.on("connection", socket => {
 						});
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
-                    }
-                    await UserClient.deletemessage(TwitchName, id);
-                    UserClient = null
+					}
+					await UserClient.deletemessage(TwitchName, id);
+					UserClient = null;
 				} catch (err) {
 					console.log(err.message);
 					botDelete(id);
@@ -328,7 +336,9 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
+						const response = await fetch(
+							`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
+						);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -352,8 +362,8 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
-                    await UserClient.timeout(TwitchName, user, 300);
-                    UserClient = null
+					await UserClient.timeout(TwitchName, user, 300);
+					UserClient = null;
 				} catch (err) {
 					console.log(err.message);
 					botTimeout(user);
@@ -399,7 +409,9 @@ io.on("connection", socket => {
 							throw new Error("no twitch auth");
 						}
 						const refreshToken = modPrivateData.refresh_token;
-						const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
+						const response = await fetch(
+							`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
+						);
 						const data = await response.json();
 						if (!data) {
 							throw new Error("bad refresh token");
@@ -423,8 +435,8 @@ io.on("connection", socket => {
 						UserClients[modName] = UserClient;
 						await UserClient.connect();
 					}
-                    await UserClient.ban(TwitchName, user);
-                    UserClient = null
+					await UserClient.ban(TwitchName, user);
+					UserClient = null;
 				} catch (err) {
 					console.log(err.message);
 					botBan(user);
@@ -434,7 +446,7 @@ io.on("connection", socket => {
 	});
 
 	socket.on("sendchat", async data => {
-        console.log(`send chat: `, data)
+		console.log(`send chat: `, data);
 		const sender = data.sender;
 		const message = data.message;
 		const { TwitchName } = socket.userInfo;
@@ -444,13 +456,21 @@ io.on("connection", socket => {
 				const modData = modRef.data();
 				let UserClient = UserClients[sender];
 				if (!UserClient) {
-					const modPrivateDataRef = await admin.firestore().collection("Streamers").doc(modData.uid).collection("twitch").doc("data").get();
+					const modPrivateDataRef = await admin
+						.firestore()
+						.collection("Streamers")
+						.doc(modData.uid)
+						.collection("twitch")
+						.doc("data")
+						.get();
 					const modPrivateData = modPrivateDataRef.data();
 					if (!modPrivateData) {
 						throw new Error("no twitch auth");
 					}
 					const refreshToken = modPrivateData.refresh_token;
-					const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
+					const response = await fetch(
+						`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
+					);
 					const data = await response.json();
 					if (!data) {
 						throw new Error("bad refresh token");
@@ -479,8 +499,8 @@ io.on("connection", socket => {
 					await UserClient.say(TwitchName, message);
 				} catch (err) {
 					await UserClient.say(TwitchName, message);
-                }
-                UserClient = null
+				}
+				UserClient = null;
 			} catch (err) {
 				console.log(err.message);
 			}
