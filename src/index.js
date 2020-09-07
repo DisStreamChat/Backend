@@ -150,7 +150,8 @@ io.on("connection", socket => {
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", async message => {
         console.log(`adding: `, message)
-		const { TwitchName, guildId } = message;
+        const { TwitchName, guildId } = message;
+        TwitchName = TwitchName?.toLowerCase?.()
         socket.userInfo = message;
         
 		addSocket(socket, guildId);
