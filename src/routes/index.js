@@ -163,8 +163,6 @@ const tenDays = 8.64e8;
 				console.log(id);
 				await unsubscribeFromFollowers(id, tenDays);
 				await subscribeToFollowers(id, tenDays);
-				await unsubscribeFromStreams(id, tenDays);
-				await subscribeToStreams(id, tenDays);
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
@@ -341,11 +339,11 @@ router.get("/emotes", async (req, res, next) => {
 	const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId);
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
-	const refreshToken = userTwitchData.refresh_token;
+	const refreshToken = userTwitchData?.refresh_token;
 	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 	const json = await response.json();
 	const scopes = json.scope;
-	if (!scopes.includes("user_subscriptions")) {
+	if (!scopes || !scopes.includes("user_subscriptions")) {
 		return res.status(401).json({ message: "missing scopes", code: 401 });
 	}
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
@@ -609,46 +607,61 @@ router.get("/resolveguild", async (req, res, next) => {
 });
 
 router.get("/chatters", async (req, res, next) => {
-	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
-	const json = await response.json();
-	let onlineBots = [];
-	// try{
-	//     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
-	//     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
-	// }catch(err){
+	try {
+		const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
+		const json = await response.json();
+		let onlineBots = [];
+		// try{
+		//     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
+		//     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+		// }catch(err){
 
-	// }
-	let count = 0;
-	for (let [key, value] of Object.entries(json.chatters || {})) {
-		json.chatters[key] = value.filter(name => !onlineBots.includes(name));
-		count += json.chatters[key].length;
+		// }
+		let count = 0;
+		for (let [key, value] of Object.entries(json.chatters || {})) {
+			json.chatters[key] = value.filter(name => !onlineBots.includes(name));
+			count += json.chatters[key].length;
+		}
+		json.chatter_count = count;
+		res.json(json);
+	} catch (err) {
+		setTimeout(() => {
+			try {
+				TwitchClient.join(req.query.user);
+			} catch (err) {
+				console.log(err.message);
+			}
+		}, 1000);
+		res.json({ message: err.message, status: 500 });
 	}
-	json.chatter_count = count;
-	res.json(json);
 });
 
 router.get("/stats/twitch", async (req, res, next) => {
-	const streamerName = req.query.name;
-	const isNew = req.query.new;
-	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
-	const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
-	const streamDataResponse = await Api.fetch(apiUrl);
-	const response = await fetch(chattersUrl);
-	const json = await response.json();
-	const streamData = streamDataResponse.data;
-	const stream = streamData[0];
-	if (stream) {
-		stream.all_viewers = stream.viewer_count;
-		// stream.viewer_count = json.chatter_count;
-		stream.isLive = true;
-		return res.json(stream);
-	} else if (isNew) {
-		return res.json({
-			viewer_count: json.chatter_count,
-			isLive: false,
-		});
+	try {
+		const streamerName = req.query.name;
+		const isNew = req.query.new;
+		const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
+		const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
+		const streamDataResponse = await Api.fetch(apiUrl);
+		const response = await fetch(chattersUrl);
+		const json = await response.json();
+		const streamData = streamDataResponse.data;
+		const stream = streamData[0];
+		if (stream) {
+			stream.all_viewers = stream.viewer_count;
+			// stream.viewer_count = json.chatter_count;
+			stream.isLive = true;
+			return res.json(stream);
+		} else if (isNew) {
+			return res.json({
+				viewer_count: json.chatter_count,
+				isLive: false,
+			});
+		}
+		res.json(null);
+	} catch (err) {
+		res.json(null);
 	}
-	res.json(null);
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
@@ -760,8 +773,8 @@ router.get("/twitch/follows", async (req, res, next) => {
 			followedChannels = json.follows;
 		} else {
 			followedChannels = json.follows.map(follow => follow.channel[key]);
-        }
-        res.json(followedChannels)
+		}
+		res.json(followedChannels);
 	} catch (err) {
 		res.json(json);
 	}
@@ -833,8 +846,8 @@ router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 });
 
 router.post("/automod/:action", validateRequest, async (req, res, next) => {
-    const action = req.params.action
-    const firebaseId = req.query.id || " "
+	const action = req.params.action;
+	const firebaseId = req.query.id || " ";
 	try {
 		const userFirebaseData = (
 			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
@@ -842,21 +855,21 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
-        const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
-                body: JSON.stringify({"msg_id": req.query.msg_id}),
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/vnd.twitchtv.v5+json",
-                    "Client-ID": process.env.TWITCH_CLIENT_ID,
-                    Authorization: `OAuth ${refreshData?.access_token}`
-                },
-            });
-        console.log(response)
-        res.json({message: "success"})
-    }catch(err){
-        next(err)
-    }
-})
+		const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
+			body: JSON.stringify({ msg_id: req.query.msg_id }),
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/vnd.twitchtv.v5+json",
+				"Client-ID": process.env.TWITCH_CLIENT_ID,
+				Authorization: `OAuth ${refreshData?.access_token}`,
+			},
+		});
+		console.log(response);
+		res.json({ message: "success" });
+	} catch (err) {
+		next(err);
+	}
+});
 
 module.exports = router;
