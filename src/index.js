@@ -66,7 +66,7 @@ TwitchEvents(TwitchClient, io, app);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./DiscordEvents.js
-DiscordEvents(DiscordClient, sockets, app);
+DiscordEvents(DiscordClient, io, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Youtube Events
@@ -150,8 +150,8 @@ io.on("connection", socket => {
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", async message => {
 		console.log(`adding: `, message, `to: ${socket.id}`);
-        let { TwitchName, guildId, liveChatId } = message;
-        TwitchName = TwitchName?.toLowerCase?.()
+		let { TwitchName, guildId, liveChatId } = message;
+		TwitchName = TwitchName?.toLowerCase?.();
 		if (TwitchName !== "dscnotifications") {
 			const externalRooms = Object.keys(socket.rooms).filter(room => room !== socket.id && room !== "dscnotifications");
 			for (const room of externalRooms) {
@@ -176,16 +176,22 @@ io.on("connection", socket => {
 			if (!channels.includes(TwitchName?.toLowerCase())) {
 				await TwitchClient.join(TwitchName);
 			}
-        } catch (err) {}
-        // setTimeout(() => {
-        //     console.log(Object.keys(socket.rooms))
-        // }, 1000)
+		} catch (err) {}
+		// setTimeout(() => {
+		//     console.log(Object.keys(socket.rooms))
+		// }, 1000)
 	});
 
 	socket.on("deletemsg - discord", async data => {
 		let id = data.id || data;
-		const { guildId, liveChatId } = socket.userInfo;
+		const guildId = Object.keys(socket.rooms)
+			.find(room => room.includes("guild"))
+			?.split?.("-")?.[1];
+		const liveChatId = Object.keys(socket.rooms)
+			.filter(room => room.includes("channel"))
+			?.map(id => id.split("-")[1]);
 
+		console.log(guildId, liveChatId);
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		const guildChannels = connectGuild.channels;
 
@@ -204,8 +210,11 @@ io.on("connection", socket => {
 	});
 
 	socket.on("timeoutuser - discord", async data => {
+		return; // this function isn't finished yet but the stuff below is a start
 		let user = data.user || data;
-		const { guildId } = socket.userInfo;
+		const guildId = Object.keys(socket.rooms)
+			.find(room => room.includes("guild"))
+			?.split?.("-")?.[1];
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		let muteRole = connectGuild.roles.cache.find(role => role.name === "Muted");
 		if (!muteRole) {
@@ -226,7 +235,9 @@ io.on("connection", socket => {
 
 	socket.on("banuser - discord", async data => {
 		let user = data.user || data;
-		const { guildId } = socket.userInfo;
+		const guildId = Object.keys(socket.rooms)
+			.find(room => room.includes("guild"))
+			?.split?.("-")?.[1];
 		const connectGuild = DiscordClient.guilds.resolve(guildId);
 		try {
 			console.log(`Banning ${user} - Discord`);
@@ -238,7 +249,9 @@ io.on("connection", socket => {
 
 	socket.on("deletemsg - twitch", async data => {
 		console.log("delete data: ", data);
-		const { TwitchName } = socket.userInfo;
+		const TwitchName = Object.keys(socket.rooms)
+			.find(room => room.includes("twitch"))
+			?.split?.("-")?.[1];
 		function botDelete(id) {
 			try {
 				TwitchClient.deletemessage(TwitchName, id);
@@ -315,7 +328,9 @@ io.on("connection", socket => {
 	});
 
 	socket.on("timeoutuser - twitch", async data => {
-		const { TwitchName } = socket.userInfo;
+		const TwitchName = Object.keys(socket.rooms)
+			.find(room => room.includes("twitch"))
+			?.split?.("-")?.[1];
 
 		let user = data.user;
 		async function botTimeout(user) {
@@ -388,7 +403,9 @@ io.on("connection", socket => {
 	});
 
 	socket.on("banuser - twitch", async data => {
-		const { TwitchName } = socket.userInfo;
+		const TwitchName = Object.keys(socket.rooms)
+			.find(room => room.includes("twitch"))
+			?.split?.("-")?.[1];
 
 		let user = data.user;
 		async function botBan(user) {
@@ -464,7 +481,9 @@ io.on("connection", socket => {
 		console.log(`send chat: `, data);
 		const sender = data.sender;
 		const message = data.message;
-		const { TwitchName } = socket.userInfo;
+		const TwitchName = Object.keys(socket.rooms)
+			.find(room => room.includes("twitch"))
+			?.split?.("-")?.[1];
 		if (sender && message) {
 			try {
 				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", sender).get()).docs[0];
@@ -523,19 +542,8 @@ io.on("connection", socket => {
 	});
 
 	socket.on("disconnect", () => {
-		console.log("a user disconnected");
-
-		// it is possible that the socket doesn't have userinfo if it connected to an invalid user
-		if (socket.userInfo == undefined) return;
-
-		// remove the socket from the object
-		const { TwitchName, guildId } = socket.userInfo;
-
-		const guildSockets = sockets[guildId];
-		const channelSockets = sockets[TwitchName];
-
-		if (guildSockets instanceof Set) guildSockets.delete(socket);
-		if (channelSockets instanceof Set) channelSockets.delete(socket);
+        console.log("a user disconnected");
+        console.log(socket.rooms)
 	});
 });
 
