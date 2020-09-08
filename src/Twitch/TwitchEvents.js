@@ -663,7 +663,7 @@ module.exports = (TwitchClient, sockets, app) => {
 					);
 					const json = await res.json();
 					const access_token = json.access_token;
-					if (!json.scope.includes("channel:moderate")) return;
+					if (!json.scope?.includes?.("channel:moderate")) return;
 					const init_topics = [
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
