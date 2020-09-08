@@ -59,7 +59,7 @@ const sockets = {};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./TwitchEvents.js
-TwitchEvents(TwitchClient, sockets, app);
+TwitchEvents(TwitchClient, io, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD
@@ -150,7 +150,8 @@ io.on("connection", socket => {
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", async message => {
 		console.log(`adding: `, message, `to: ${socket.id}`);
-		const { TwitchName, guildId, liveChatId } = message;
+        let { TwitchName, guildId, liveChatId } = message;
+        TwitchName = TwitchName?.toLowerCase?.()
 		if (TwitchName !== "dscnotifications") {
 			const externalRooms = Object.keys(socket.rooms).filter(room => room !== socket.id && room !== "dscnotifications");
 			for (const room of externalRooms) {
