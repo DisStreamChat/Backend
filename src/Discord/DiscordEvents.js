@@ -7,7 +7,7 @@ const ranks = require("../ranks.json");
 
 const { handleLeveling } = require("./Leveling");
 
-module.exports = (DiscordClient, sockets, app) => {
+module.exports = (DiscordClient, io, app) => {
 	// TODO: move discord events to separate file
 	DiscordClient.on("message", async message => {
 		if (!message.guild) return;
@@ -21,14 +21,14 @@ module.exports = (DiscordClient, sockets, app) => {
 			await CommandHandler(message, DiscordClient);
 		}
 
-		// after commands try to send message through the sockets, but only if there are sockets connected to the guild
-		if (!sockets.hasOwnProperty(message.guild.id)) return;
-		if (![...sockets[message.guild.id]].length) return;
+		// after commands try to send message through the io, but only if there are io connected to the guild
+		// if (!io.hasOwnProperty(message.guild.id)) return;
+		// if (![...io[message.guild.id]].length) return;
 
-		const { liveChatId } = [...sockets[message.guild.id]][0].userInfo;
+		// const { liveChatId } = [...io[message.guild.id]][0].userInfo;
 
 		// don't waste time with the rest of the stuff if there isn't a connection to this guild
-		if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
+		// if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
 
 		const senderName = message.member.displayName;
 
@@ -101,7 +101,7 @@ module.exports = (DiscordClient, sockets, app) => {
 
 			if (messageObject.body.length <= 0) return;
 
-			const _ = [...sockets[message.guild.id]].forEach(async s => await s.emit("chatmessage", messageObject));
+			io.in(`channel-${message.channel.id}`).emit("chatmessage", messageObject);
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -110,8 +110,7 @@ module.exports = (DiscordClient, sockets, app) => {
 	// TODO: add logging
 	DiscordClient.on("messageDelete", message => {
 		try {
-			if (sockets.hasOwnProperty(message.guild.id))
-				[...sockets[message.guild.id]].forEach(async s => await s.emit("deletemessage", message.id));
+			io.in(`channel-${message.channel.id}`).emit("deletemessage", message.id);
 		} catch (err) {
 			console.log(err.message);
 		}
@@ -120,26 +119,22 @@ module.exports = (DiscordClient, sockets, app) => {
 	DiscordClient.on("messageDeleteBulk", message => {
 		message.forEach(msg => {
 			try {
-				if (sockets.hasOwnProperty(msg.guild.id))
-					[...sockets[msg.guild.id]].forEach(async s => await s.emit("deletemessage", msg.id));
-			} catch (err) {
-				console.log(err.message);
-			}
+                io.in(`guild-${msg.guild.id}`).emit("deletemessage", msg.id);
+            } catch (err) {
+                console.log(err.message);
+            }
 		});
 	});
 
 	// TODO: add logging
 	DiscordClient.on("messageUpdate", async (oldMsg, newMsg) => {
-		if (!sockets.hasOwnProperty(newMsg.channel.guild.id)) return;
-		const { liveChatId } = [...sockets[newMsg.channel.guild.id]][0].userInfo;
-		if (newMsg.channel.id != liveChatId && !liveChatId.includes(newMsg.channel.id)) return;
 		try {
 			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
 			const updateMessage = {
 				body: HTMLCleanMessage,
 				id: newMsg.id,
 			};
-			const _ = [...sockets[newMsg.channel.guild.id]].forEach(async s => await s.emit("updateMessage", updateMessage));
+			io.in(`channel-${newMsg.channel.id}`).emit("updateMessage", updateMessage);
 		} catch (err) {
 			console.log(err.message);
 		}

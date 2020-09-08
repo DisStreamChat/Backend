@@ -28,7 +28,7 @@ module.exports = async (message, client) => {
     }catch(err){
 
     }
-	if (!message.content.startsWith("?")) return;
+	if (!message.content.startsWith(prefix)) return;
 	const args = message.content.split(" ");
 	const command = args.shift().slice(1);
 	const commandObj = commands[command];
