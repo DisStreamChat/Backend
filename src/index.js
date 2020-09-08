@@ -149,23 +149,36 @@ io.on("connection", socket => {
 	socket.emit("imConnected");
 	// the addme event is sent from the frontend on load with the data from the database
 	socket.on("addme", async message => {
-        console.log(`adding: `, message)
-        const { TwitchName, guildId } = message;
-        // TwitchName = TwitchName?.toLowerCase?.()
-        socket.userInfo = message;
-        
-		addSocket(socket, guildId);
-		addSocket(socket, TwitchName);
-		const channels = await TwitchClient.getChannels();
-		if (!channels.includes(TwitchName?.toLowerCase())) {
-			TwitchClient.join(TwitchName);
+		console.log(`adding: `, message, `to: ${socket.id}`);
+		const { TwitchName, guildId, liveChatId } = message;
+		if (TwitchName !== "dscnotifications") {
+			const externalRooms = Object.keys(socket.rooms).filter(room => room !== socket.id && room !== "dscnotifications");
+			for (const room of externalRooms) {
+				socket.leave(room);
+			}
 		}
-		// TODO use client.join(channel)
-	});
 
-	// deprecated
-	socket.on("updatedata", data => {
-		socket.userInfo = data;
+		if (TwitchName) socket.join(`twitch-${TwitchName}`);
+		if (guildId) socket.join(`guild-${guildId}`);
+		if (liveChatId) {
+			if (liveChatId instanceof Array) {
+				for (const id of liveChatId) {
+					socket.join(`channel-${id}`);
+				}
+			} else {
+				socket.join(`channel-${liveChatId}`);
+			}
+		}
+
+		try {
+			const channels = await TwitchClient.getChannels();
+			if (!channels.includes(TwitchName?.toLowerCase())) {
+				await TwitchClient.join(TwitchName);
+			}
+        } catch (err) {}
+        // setTimeout(() => {
+        //     console.log(Object.keys(socket.rooms))
+        // }, 1000)
 	});
 
 	socket.on("deletemsg - discord", async data => {
