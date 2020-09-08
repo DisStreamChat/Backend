@@ -52,7 +52,7 @@ const admin = require("firebase-admin");
 const { ArrayAny } = require("./utils/functions.js");
 
 // initialize the object that will store all sockets currently connected
-const sockets = {};
+// const sockets = {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
@@ -129,18 +129,6 @@ DiscordEvents(DiscordClient, io, app);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// add a socket to a set at an id (key)
-const addSocket = (socket, id) => {
-	if (id != undefined) {
-		id = id.toLowerCase();
-		if (sockets[id]) {
-			sockets[id].add(socket);
-		} else {
-			sockets[id] = new Set([socket]);
-		}
-	}
-};
 
 const UserClients = {};
 
@@ -225,7 +213,7 @@ io.on("connection", socket => {
 			console.log(`Timeout ${user} - Discord`);
 			// const member = connectGuild.members.resolve(user);
 			// member.roles.add(muteRole);
-			const _ = [...sockets[guildId]].forEach(async s => await s.emit("purgeuser", member.nickname));
+			// const _ = [...sockets[guildId]].forEach(async s => await s.emit("purgeuser", member.nickname));
 			// await new Promise(resolve => setTimeout(resolve, 300000));
 			// member.roles.remove(muteRole);
 		} catch (err) {
