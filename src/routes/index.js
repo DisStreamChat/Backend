@@ -163,8 +163,6 @@ const tenDays = 8.64e8;
 				console.log(id);
 				await unsubscribeFromFollowers(id, tenDays);
 				await subscribeToFollowers(id, tenDays);
-				await unsubscribeFromStreams(id, tenDays);
-				await subscribeToStreams(id, tenDays);
 			});
 			admin.firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
@@ -341,11 +339,11 @@ router.get("/emotes", async (req, res, next) => {
 	const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId);
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
-	const refreshToken = userTwitchData.refresh_token;
+	const refreshToken = userTwitchData?.refresh_token;
 	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 	const json = await response.json();
 	const scopes = json.scope;
-	if (!scopes.includes("user_subscriptions")) {
+	if (!scopes || !scopes.includes("user_subscriptions")) {
 		return res.status(401).json({ message: "missing scopes", code: 401 });
 	}
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
@@ -609,22 +607,27 @@ router.get("/resolveguild", async (req, res, next) => {
 });
 
 router.get("/chatters", async (req, res, next) => {
-	const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
-	const json = await response.json();
-	let onlineBots = [];
-	// try{
-	//     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
-	//     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
-	// }catch(err){
+    try{
 
-	// }
-	let count = 0;
-	for (let [key, value] of Object.entries(json.chatters || {})) {
-		json.chatters[key] = value.filter(name => !onlineBots.includes(name));
-		count += json.chatters[key].length;
-	}
-	json.chatter_count = count;
-	res.json(json);
+        const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
+        const json = await response.json();
+        let onlineBots = [];
+        // try{
+        //     const onlineBotsResponse = await fetch("https://api.twitchinsights.net/v1/bots/online")
+        //     onlineBots = (await onlineBotsResponse.json()).bots.map(bot => bot[0])
+        // }catch(err){
+    
+        // }
+        let count = 0;
+        for (let [key, value] of Object.entries(json.chatters || {})) {
+            json.chatters[key] = value.filter(name => !onlineBots.includes(name));
+            count += json.chatters[key].length;
+        }
+        json.chatter_count = count;
+        res.json(json);
+    }catch(err){
+        res.json({message: err.message, status: 500})
+    }
 });
 
 router.get("/stats/twitch", async (req, res, next) => {
