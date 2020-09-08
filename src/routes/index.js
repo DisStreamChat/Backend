@@ -631,27 +631,31 @@ router.get("/chatters", async (req, res, next) => {
 });
 
 router.get("/stats/twitch", async (req, res, next) => {
-	const streamerName = req.query.name;
-	const isNew = req.query.new;
-	const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
-	const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
-	const streamDataResponse = await Api.fetch(apiUrl);
-	const response = await fetch(chattersUrl);
-	const json = await response.json();
-	const streamData = streamDataResponse.data;
-	const stream = streamData[0];
-	if (stream) {
-		stream.all_viewers = stream.viewer_count;
-		// stream.viewer_count = json.chatter_count;
-		stream.isLive = true;
-		return res.json(stream);
-	} else if (isNew) {
-		return res.json({
-			viewer_count: json.chatter_count,
-			isLive: false,
-		});
-	}
-	res.json(null);
+    try{
+        const streamerName = req.query.name;
+        const isNew = req.query.new;
+        const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${streamerName}`;
+        const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
+        const streamDataResponse = await Api.fetch(apiUrl);
+        const response = await fetch(chattersUrl);
+        const json = await response.json();
+        const streamData = streamDataResponse.data;
+        const stream = streamData[0];
+        if (stream) {
+            stream.all_viewers = stream.viewer_count;
+            // stream.viewer_count = json.chatter_count;
+            stream.isLive = true;
+            return res.json(stream);
+        } else if (isNew) {
+            return res.json({
+                viewer_count: json.chatter_count,
+                isLive: false,
+            });
+        }
+        res.json(null);
+    }catch(err){
+        res.json(null)
+    }
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
