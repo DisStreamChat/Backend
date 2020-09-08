@@ -74,34 +74,43 @@ const getBadges = async (channelName, tags) => {
 	return badges;
 };
 
-module.exports = (TwitchClient, io, app) => {
+module.exports = (TwitchClient, sockets, app) => {
+	TwitchClient.on("automod", (channel, msgid, msg) => {
+		if (msgid == "msg_rejected") {
+			// MSG was caught by AUTOMOD but can still be rejected by a human interaction
+		}
+		if (msgid == "msg_rejected_mandatory") {
+			// MSG was automatically rejected due to moderation settings
+		}
+	});
+
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
-		// // if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
-		// send a message to all connected io for this channel to delete that message
-		io.in(`twitch-${channelName}`).emit("deletemessage", tags["target-msg-id"]);
+		// send a message to all connected sockets for this channel to delete that message
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("deletemessage", tags["target-msg-id"]));
 	});
 
 	TwitchClient.on("ban", (channel, username, reason, userstate) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// // if (!io.hasOwnProperty(channelName)) return;
-		io.in(`twitch-${channelName}`).emit("purgeuser", username);
+		if (!sockets.hasOwnProperty(channelName)) return;
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("purgeuser", username));
 	});
 
 	TwitchClient.on("timeout", (channel, username, reason, duration, userstate) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// // if (!io.hasOwnProperty(channelName)) return;
-		io.in(`twitch-${channelName}`).emit("purgeuser", username);
+		if (!sockets.hasOwnProperty(channelName)) return;
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("purgeuser", username));
 	});
 
 	TwitchClient.on("raided", async (channel, username, viewers) => {
 		console.log("raided");
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} has raided with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
 		const messageObject = {
 			displayName: "DisStreamChat",
@@ -116,14 +125,14 @@ module.exports = (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 		if (messageObject.body.length <= 0) return;
-		const _ = [...io[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	// currently doesn't work
 	TwitchClient.on("hosted", async (channel, username, viewers, autohost) => {
 		if (autohost) return;
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
 		const messageObject = {
 			displayName: "DisStreamChat",
@@ -138,7 +147,7 @@ module.exports = (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 		if (messageObject.body.length <= 0) return;
-		const _ = [...io[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("message", async (channel, tags, message, self) => {
@@ -153,8 +162,7 @@ module.exports = (TwitchClient, io, app) => {
 		}
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
-        // // if (!io.hasOwnProperty(channelName)) return;
-        // console.log(io?.io?.clients?.(`twitch-${channelName}`))
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		// get all possible versions of the message with all variations of the message filters
 		// const plainMessage = await formatMessage(message, "twitch", tags);
@@ -203,8 +211,8 @@ module.exports = (TwitchClient, io, app) => {
 
 		if (messageObject.body.length <= 0) return;
 
-		// send the message object to all io connected to this channel
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		// send the message object to all sockets connected to this channel
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	let globalCheerMotes = [];
@@ -256,7 +264,7 @@ module.exports = (TwitchClient, io, app) => {
 		// TODO: improve by splitting by spaces
 		const cheerMoteRegex = /([0-9]*[a-zA-Z]*)([0-9]*)/gi;
 
-		// // if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		const badges = {};
 
@@ -317,12 +325,12 @@ module.exports = (TwitchClient, io, app) => {
 			bits, // << added this to the messageObject
 		};
 
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("anongiftpaidupgrade", async (channel, username, sender, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		const badges = {};
 
@@ -343,7 +351,7 @@ module.exports = (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 
-		io.in(`twitch-${channelName}`).emit("twitchanonupgrade", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("twitchanonupgrade", messageObject));
 	});
 
 	const subTypes = {
@@ -353,7 +361,7 @@ module.exports = (TwitchClient, io, app) => {
 
 	TwitchClient.on("giftpaidupgrade", async (channel, username, sender, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		const badges = {};
 
@@ -374,7 +382,7 @@ module.exports = (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 
-		io.in(`twitch-${channelName}`)("chatmessage", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	let giftTimeout = null;
@@ -384,7 +392,7 @@ module.exports = (TwitchClient, io, app) => {
 
 	TwitchClient.on("subgift", async (channel, username, streakMonths, recipient, { prime, plan, planName }, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		const badges = {};
 
@@ -419,7 +427,7 @@ module.exports = (TwitchClient, io, app) => {
 				userColor: "#ff0029",
 			};
 
-			io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+			const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 
 			lastGiftAmount = 0;
 			allRecipients = ``;
@@ -428,7 +436,7 @@ module.exports = (TwitchClient, io, app) => {
 
 	TwitchClient.on("resub", async (channel, username, months, message, tags, { prime, plan, planName }) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		const badges = {};
 
@@ -471,12 +479,12 @@ module.exports = (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		let messageId = tags["msg-id"] || "";
 
@@ -509,12 +517,12 @@ module.exports = (TwitchClient, io, app) => {
 		};
 
 		if (messageObject.body.length <= 0) return;
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	TwitchClient.on("primepaidupgrade", async (channel, username, { prime, plan, planName }, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
+		if (!sockets.hasOwnProperty(channelName)) return;
 
 		let messageId = tags["msg-id"] || "";
 
@@ -543,7 +551,7 @@ module.exports = (TwitchClient, io, app) => {
 		};
 
 		if (messageObject.body.length <= 0) return;
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 	});
 
 	const notifiedStreams = require("../notifiedStreams.json");
@@ -565,7 +573,7 @@ module.exports = (TwitchClient, io, app) => {
 					console.log(`${follower} followed ${streamer}`);
 
 					// long term TODO: add follower count/goal overlay
-					// if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
+					if (!sockets.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
 
 					const streamerDatabaseId = sha1(body.to_id);
 
@@ -599,7 +607,7 @@ module.exports = (TwitchClient, io, app) => {
 						userColor: "#ff0029",
 					};
 
-					io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+					const _ = [...sockets[streamer]].forEach(async s => await s.emit("chatmessage", messageObject));
 				}
 				res.json("success");
 			} else if (type === "stream") {
@@ -655,7 +663,7 @@ module.exports = (TwitchClient, io, app) => {
 					);
 					const json = await res.json();
 					const access_token = json.access_token;
-					if (!json.scope?.includes?.("channel:moderate")) return;
+					if (!json.scope.includes("channel:moderate")) return;
 					const init_topics = [
 						{
 							topic: `channel-points-channel-v1.${streamer.user_id}`,
@@ -679,7 +687,7 @@ module.exports = (TwitchClient, io, app) => {
 					pubSub.on("stream-up", async data => {
 						const name = "dscnotifications";
 						console.log(data);
-                        // if (!io.hasOwnProperty(name)) return;
+                        if (!sockets.hasOwnProperty(name)) return;
                         console.log("notifications")
                         const intervalId = setInterval(async () => {
                             console.log("fetching stream")
@@ -689,7 +697,7 @@ module.exports = (TwitchClient, io, app) => {
                             const stream = streamData[0];
                             if(stream){
                                 clearInterval(intervalId)
-                                io.in(`twitch-${name}`).emit("stream-up", {stream, ...data});
+                                const _ = [...sockets[name]].forEach(async s => await s.emit("stream-up", {stream, ...data}));
                             }
                         }, 60000)
 						// send notifications
@@ -699,7 +707,7 @@ module.exports = (TwitchClient, io, app) => {
 							const { redemption, channel_id } = data;
 							const user = await Api.getUserInfo(channel_id);
 							const channelName = user.login;
-							// if (!io.hasOwnProperty(channelName)) return;
+							if (!sockets.hasOwnProperty(channelName)) return;
 							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
 								redemption.reward.title
 							} `;
@@ -720,7 +728,7 @@ module.exports = (TwitchClient, io, app) => {
 								sentAt: new Date().getTime(),
 								userColor: "#ff0029",
 							};
-							io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+							const _ = [...sockets[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
 						} catch (error) {
 							console.log("error sending redemption message", data, error.message);
 						}
@@ -728,7 +736,7 @@ module.exports = (TwitchClient, io, app) => {
 					pubSub.on("automod_rejected", async data => {
 						try {
 							const { channelName } = pubSub;
-							// if (!io.hasOwnProperty(channelName)) return;
+							if (!sockets.hasOwnProperty(channelName)) return;
 
 							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
 							const id = uuidv1();
@@ -746,7 +754,7 @@ module.exports = (TwitchClient, io, app) => {
                                 userColor: "#ff0029",
                                 ...data
 							};
-							io.in(`twitch-${channelName}`).emit("auto-mod", messageObject);
+							const _ = [...sockets[channelName]].forEach(async s => await s.emit("auto-mod", messageObject));
 						} catch (error) {
 							console.log("error sending automod message", data, error.message);
 						}
