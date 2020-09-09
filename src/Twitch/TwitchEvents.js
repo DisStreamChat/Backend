@@ -115,8 +115,8 @@ module.exports = (TwitchClient, io, app) => {
 			sentAt: Date.now(),
 			userColor: "#ff0029",
 		};
-		if (messageObject.body.length <= 0) return;
-		const _ = [...io[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
+
+		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
 	// currently doesn't work
