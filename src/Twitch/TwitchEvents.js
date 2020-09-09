@@ -549,86 +549,92 @@ module.exports = (TwitchClient, io, app) => {
 	// const notifiedStreams = require("../notifiedStreams.json");
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
-		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-			const type = req.query.type;
-			const data = req.body.data;
-			if (!type) return res.json({ message: "missing type", code: 400 });
-			if (!data) return res.json({ message: "missing data", code: 400 });
-			if (type === "follow") {
-				if (data) {
-					const body = data[0];
-					const streamer = body.to_name.toLowerCase();
-					const follower = body.from_name;
-					const followerId = body.from_id;
-					const followedAt = body.followed_at;
+        try{
 
-					console.log(`${follower} followed ${streamer}`);
-
-					// long term TODO: add follower count/goal overlay
-					// if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
-
-					const streamerDatabaseId = sha1(body.to_id);
-
-					const db = admin.firestore();
-					const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
-					const streamerData = streamerRef.data();
-					const previouslyNotified = streamerData.previouslyNotified || [];
-
-					if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
-                    console.log("notifying")
-					previouslyNotified.push(followerId);
-					await db.collection("Streamers").doc(streamerDatabaseId).update({
-						previouslyNotified,
-					});
-
-					const badges = {};
-
-					// TODO add custom message handler in seperate file
-					const theMessage = `Thanks for following ${follower}!`;
-
-					const messageObject = {
-						displayName: "DisStreamChat",
-						avatar: DisTwitchChatProfile,
-						body: theMessage,
-						platform: "twitch",
-						messageId: "follow",
-						uuid: uuidv1(),
-						id: uuidv1(),
-						badges,
-						sentAt: new Date(followedAt).getTime(),
-						userColor: "#ff0029",
-					};
-
-                    io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
-                    setTimeout(() => {
-                        TwitchClient.join(streamer).catch()
-                    }, 1000)
-				}
-				res.json("success");
-			} else if (type === "stream") {
-				// console.log(data);
-				// const stream = data[0];
-				// if (!stream) return res.json("no stream");
-				// const streamId = stream.id;
-				// const streamerId = stream.user_id;
-				// const streamerName = stream.user_name;
-				// const type = stream.type;
-				// const title = stream.title;
-
-				// console.log(`stream type: ${type}`);
-				// console.log(`${streamerName} went live: ${title}`);
-
-				// if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
-
-				// notifiedStreams.push(streamId);
-				// await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
-
-                // todo: send the notification
-			}
-		} else {
-			// it's not from twitch
-			res.status("401").json({ message: "Looks like You aren't twitch" });
-		}
+            if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
+                const type = req.query.type;
+                const data = req.body.data;
+                if (!type) return res.json({ message: "missing type", code: 400 });
+                if (!data) return res.json({ message: "missing data", code: 400 });
+                if (type === "follow") {
+                    if (data) {
+                        const body = data[0];
+                        const streamer = body.to_name.toLowerCase();
+                        const follower = body.from_name;
+                        const followerId = body.from_id;
+                        const followedAt = body.followed_at;
+    
+                        console.log(`${follower} followed ${streamer}`);
+    
+                        // long term TODO: add follower count/goal overlay
+                        // if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
+    
+                        const streamerDatabaseId = sha1(body.to_id);
+    
+                        const db = admin.firestore();
+                        const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
+                        const streamerData = streamerRef.data();
+                        const previouslyNotified = streamerData.previouslyNotified || [];
+    
+                        if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
+                        console.log("notifying")
+                        previouslyNotified.push(followerId);
+                        await db.collection("Streamers").doc(streamerDatabaseId).update({
+                            previouslyNotified,
+                        });
+    
+                        const badges = {};
+    
+                        // TODO add custom message handler in seperate file
+                        const theMessage = `Thanks for following ${follower}!`;
+    
+                        const messageObject = {
+                            displayName: "DisStreamChat",
+                            avatar: DisTwitchChatProfile,
+                            body: theMessage,
+                            platform: "twitch",
+                            messageId: "follow",
+                            uuid: uuidv1(),
+                            id: uuidv1(),
+                            badges,
+                            sentAt: new Date(followedAt).getTime(),
+                            userColor: "#ff0029",
+                        };
+    
+                        io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
+                        setTimeout(() => {
+                            TwitchClient.join(streamer).catch()
+                        }, 1000)
+                    }
+                    res.json("success");
+                } else if (type === "stream") {
+                    // console.log(data);
+                    // const stream = data[0];
+                    // if (!stream) return res.json("no stream");
+                    // const streamId = stream.id;
+                    // const streamerId = stream.user_id;
+                    // const streamerName = stream.user_name;
+                    // const type = stream.type;
+                    // const title = stream.title;
+    
+                    // console.log(`stream type: ${type}`);
+                    // console.log(`${streamerName} went live: ${title}`);
+    
+                    // if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
+    
+                    // notifiedStreams.push(streamId);
+                    // await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
+    
+                    // todo: send the notification
+                }
+            } else {
+                // it's not from twitch
+                res.status("401").json({ message: "Looks like You aren't twitch" });
+            }
+        }catch(err){
+            console.log(err.messages)
+            res.json({message: "an error occured"})
+        }
 	});
 
 	// TODO: refactor so it doesn't fire on follow
