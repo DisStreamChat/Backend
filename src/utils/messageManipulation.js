@@ -110,21 +110,21 @@ async function getFfzEmotes(channelName) {
 }
 
 const getAllEmotes = async () => {
-	// const streamersRef = await admin.firestore().collection("Streamers").get();
-	// const streamers = streamersRef.docs.map(doc => doc.data());
-	// const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
-	// for (const name of twitchNames) {
-	// 	const cachedBTTVEmotes = cache.get("bttv " + name);
-	// 	const cachedFFZEmotes = cache.get("ffz " + name);
-	// 	if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
-	// 		console.log("refreshing bttv, " + name);
-	// 		cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
-	// 	}
-	// 	if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
-	// 		console.log("refreshing ffz, " + name);
-	// 		cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
-	// 	}
-	// }
+	const streamersRef = await admin.firestore().collection("Streamers").get();
+	const streamers = streamersRef.docs.map(doc => doc.data());
+	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
+	for (const name of twitchNames) {
+		const cachedBTTVEmotes = cache.get("bttv " + name);
+		const cachedFFZEmotes = cache.get("ffz " + name);
+		if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
+			console.log("refreshing bttv, " + name);
+			cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
+		}
+		if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
+			console.log("refreshing ffz, " + name);
+			cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
+		}
+	}
 };
 const emoteRefresh = 60000 * 10;
 setTimeout(() => {
