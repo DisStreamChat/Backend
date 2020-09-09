@@ -546,7 +546,7 @@ module.exports = (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
-	const notifiedStreams = require("../notifiedStreams.json");
+	// const notifiedStreams = require("../notifiedStreams.json");
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
@@ -575,7 +575,7 @@ module.exports = (TwitchClient, io, app) => {
 					const previouslyNotified = streamerData.previouslyNotified || [];
 
 					if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
-
+                    console.log("notifying")
 					previouslyNotified.push(followerId);
 					await db.collection("Streamers").doc(streamerDatabaseId).update({
 						previouslyNotified,
