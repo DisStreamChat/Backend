@@ -599,7 +599,10 @@ module.exports = (TwitchClient, io, app) => {
 						userColor: "#ff0029",
 					};
 
-					io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
+                    io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
+                    setTimeout(() => {
+                        TwitchClient.join(streamer).catch()
+                    }, 1000)
 				}
 				res.json("success");
 			} else if (type === "stream") {
@@ -620,7 +623,7 @@ module.exports = (TwitchClient, io, app) => {
 				// notifiedStreams.push(streamId);
 				// await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
 
-				// todo: send the notification
+                // todo: send the notification
 			}
 		} else {
 			// it's not from twitch
