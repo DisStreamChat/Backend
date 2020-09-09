@@ -471,7 +471,8 @@ io.on("connection", socket => {
 		const message = data.message;
 		const TwitchName = Object.keys(socket.rooms)
 			.find(room => room.includes("twitch"))
-			?.split?.("-")?.[1];
+            ?.split?.("-")?.[1];
+        console.log(TwitchName)
 		if (sender && message) {
 			try {
 				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", sender).get()).docs[0];
