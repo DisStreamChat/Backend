@@ -140,12 +140,12 @@ io.on("connection", socket => {
 		console.log(`adding: `, message, `to: ${socket.id}`);
 		let { TwitchName, guildId, liveChatId } = message;
 		TwitchName = TwitchName?.toLowerCase?.();
-		if (TwitchName !== "dscnotifications") {
-			const externalRooms = Object.keys(socket.rooms).filter(room => room !== socket.id && room !== "dscnotifications");
-			for (const room of externalRooms) {
-				socket.leave(room);
-			}
-		}
+		// if (TwitchName !== "dscnotifications") {
+		// 	const externalRooms = Object.keys(socket.rooms).filter(room => room !== socket.id && room !== "dscnotifications");
+		// 	for (const room of externalRooms) {
+		// 		socket.leave(room);
+		// 	}
+		// }
 
 		if (TwitchName) socket.join(`twitch-${TwitchName}`);
 		if (guildId) socket.join(`guild-${guildId}`);
