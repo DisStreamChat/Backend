@@ -454,7 +454,7 @@ module.exports = (TwitchClient, io, app) => {
 			}
 		}
 
-		let HTMLCleanMessage = await formatMessage(msg, "twitch", tags, { HTMLClean: true });
+		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true });
 
 		theMessage += `\n${HTMLCleanMessage}`;
 
