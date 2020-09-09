@@ -599,26 +599,26 @@ module.exports = (TwitchClient, io, app) => {
 						userColor: "#ff0029",
 					};
 
-					io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+					io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
 				}
 				res.json("success");
 			} else if (type === "stream") {
-				console.log(data);
-				const stream = data[0];
-				if (!stream) return res.json("no stream");
-				const streamId = stream.id;
-				const streamerId = stream.user_id;
-				const streamerName = stream.user_name;
-				const type = stream.type;
-				const title = stream.title;
+				// console.log(data);
+				// const stream = data[0];
+				// if (!stream) return res.json("no stream");
+				// const streamId = stream.id;
+				// const streamerId = stream.user_id;
+				// const streamerName = stream.user_name;
+				// const type = stream.type;
+				// const title = stream.title;
 
-				console.log(`stream type: ${type}`);
-				console.log(`${streamerName} went live: ${title}`);
+				// console.log(`stream type: ${type}`);
+				// console.log(`${streamerName} went live: ${title}`);
 
-				if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
+				// if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
 
-				notifiedStreams.push(streamId);
-				await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
+				// notifiedStreams.push(streamId);
+				// await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
 
 				// todo: send the notification
 			}
