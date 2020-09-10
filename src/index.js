@@ -325,7 +325,7 @@ io.on("connection", socket => {
 			console.log(`Timeout ${user} - Twitch`);
 			try {
 				//Possible to do: let default timeouts be assigned in dashboard
-				await TwitchClient.timeout(TwitchName, user, 300);
+				await TwitchClient.timeout(TwitchName, user, data.time ?? 300);
 			} catch (err) {
 				console.log(err.message);
 			}
