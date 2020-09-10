@@ -163,7 +163,7 @@ const adminWare = async (message, args, client, cb) => {
 	if (discordAdmins.includes(message.author.id)) {
 		await cb(message, args, client);
 	} else {
-		await message.channel.send("❌ you don't have permission to use this command");
+		await message.channel.send("❌ You don't have permission to use this command.");
 	}
 };
 

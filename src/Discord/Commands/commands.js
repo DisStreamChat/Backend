@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 module.exports = {
 	name: "commands",
 	aliases: ["customCommands"],
-	description: "command to manage custom commands",
+	description: "Command to manage custom commands.",
 	permissions: ["MANAGE_MESSAGES"],
 	execute: async (message, args, client) => {
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
