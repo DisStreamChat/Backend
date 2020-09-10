@@ -4,8 +4,7 @@ const { MessageEmbed } = require("discord.js");
 module.exports = {
 	name: "userinfo",
 	aliases: ["info"],
-	description: "Get a users info.",
-	usage: "(user)",
+	description: "delete multiple messages",
 	execute: async (msg, args, bot) => {
 		let member = resolveUser(msg, args.join(" "));
 		if (args.length === 0) ({ member } = msg);

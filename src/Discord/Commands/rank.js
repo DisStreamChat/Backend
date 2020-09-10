@@ -10,8 +10,7 @@ registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf")
 module.exports = {
 	name: "rank",
 	aliases: ["level"],
-	description: "Get someones experience and level on this server in a rankcard.",
-	usage: "(user)",
+	description: "get your level",
 	execute: async (message, args, client) => {
 		let user = resolveUser(message, args.join(" "));
 		let msg = "";
@@ -22,7 +21,7 @@ module.exports = {
 			user = message.member;
 		}
 		if (user.user.bot) {
-			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
+			return await message.channel.send(`❌ ${user} is a bot and bots don't level`);
 		}
 		const guildRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
 		const guildData = guildRef.data();

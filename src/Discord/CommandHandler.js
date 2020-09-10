@@ -9,7 +9,7 @@ const commands = {};
 commandFiles.forEach(command => {
 	if (command.endsWith(".js")) {
 		const commandObj = require(path.join(commandPath, command));
-		const _ = [commandObj.name, ...(commandObj.aliases||[])].map(name => {
+		const _ = [commandObj.name, ...commandObj.aliases].map(name => {
 			commands[name] = commandObj;
 		});
 	}
@@ -21,17 +21,13 @@ const admin = require("firebase-admin");
 // const prefix = "!";
 
 module.exports = async (message, client) => {
-	if(!client.commands){
-		client.commands = commands;
-	}
     let prefix = "!"
     try{
         const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get())?.data()
         prefix = settings?.prefix || "!"
     }catch(err){
 
-	}
-	client.prefix = prefix;
+    }
 	if (!message.content.startsWith(prefix)) return;
 	const args = message.content.split(" ");
 	const command = args.shift().slice(1);
