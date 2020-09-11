@@ -1,7 +1,7 @@
 module.exports = {
 	name: "ping",
 	aliases: ["🏓"],
-	description: "delete multiple messages",
+	description: "Ping the bot.",
 	execute: async (message, args, client) => {
 		const ping = await message.channel.send("Pong!");
 		message.react("🏓");
