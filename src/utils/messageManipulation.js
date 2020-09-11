@@ -194,9 +194,7 @@ const parseEmotes = (message, emotes) => {
 	let emojiDetected = 0;
 	for (let i = 0; i < parts.length; i++) {
 		const emoteInfo = emoteStart[i];
-		if (!![...parts[i].matchAll(emojiRegex)].length) {
-			emojiDetected++;
-		}
+		emojiDetected += (parts[i].length-1)
 		if (emoteInfo) {
 			emoteNames[message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)] =
 				emoteInfo.emoteUrl + ` title="${message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)}">`;
