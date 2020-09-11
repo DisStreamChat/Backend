@@ -476,7 +476,6 @@ module.exports = (TwitchClient, io, app) => {
 
 	TwitchClient.on("subscription", async (channel, username, { prime, plan, planName }, msg, tags) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
 
 		let messageId = tags["msg-id"] || "";
 
@@ -491,7 +490,7 @@ module.exports = (TwitchClient, io, app) => {
 			theMessage = `Thanks for subscribing @${username}!`;
 		}
 
-		let HTMLCleanMessage = await formatMessage(msg, "twitch", tags, { HTMLClean: true });
+		let HTMLCleanMessage = await formatMessage(msg || "", "twitch", tags, { HTMLClean: true });
 
 		theMessage += `\n${HTMLCleanMessage}`;
 
