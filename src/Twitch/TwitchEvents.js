@@ -647,7 +647,7 @@ module.exports = (TwitchClient, io, app) => {
 						])
 					),
 				].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
-				for(const channel in allNotifyingChannels){
+				for(const channel of allNotifyingChannels){
                     const streamerData = await Api.getUserInfo(channel)
 					const init_topics = [
 						{
