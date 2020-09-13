@@ -647,8 +647,9 @@ module.exports = (TwitchClient, io, app) => {
 						])
 					),
 				].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
-				for(const channel in allNotifyingChannels){
+				for(const channel of allNotifyingChannels){
                     const streamerData = await Api.getUserInfo(channel)
+                    console.log(streamerData, channel)
 					const init_topics = [
 						{
 							topic: `video-playback.${streamerData.login}`,
@@ -660,7 +661,7 @@ module.exports = (TwitchClient, io, app) => {
 						debug: false,
 					});
 					pubSub.channelName = streamerData.login;
-                    pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+                    pubsubbedChannels.push({ listener: pubSub, id: channel });
                     pubSub.on("stream-up", async data => {
 						const name = "dscnotifications";
 						console.log(data);
