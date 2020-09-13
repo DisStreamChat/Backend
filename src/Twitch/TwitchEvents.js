@@ -153,8 +153,8 @@ module.exports = (TwitchClient, io, app) => {
 		}
 
 		// don't waste time with all the next stuff if there isn't a socket connection to that channel
-        // // if (!io.hasOwnProperty(channelName)) return;
-        // console.log(io?.io?.clients?.(`twitch-${channelName}`))
+		// // if (!io.hasOwnProperty(channelName)) return;
+		// console.log(io?.io?.clients?.(`twitch-${channelName}`))
 
 		// get all possible versions of the message with all variations of the message filters
 		// const plainMessage = await formatMessage(message, "twitch", tags);
@@ -548,98 +548,139 @@ module.exports = (TwitchClient, io, app) => {
 	// const notifiedStreams = require("../notifiedStreams.json");
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
-        try{
+		try {
+			if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
+				const type = req.query.type;
+				const data = req.body.data;
+				if (!type) return res.json({ message: "missing type", code: 400 });
+				if (!data) return res.json({ message: "missing data", code: 400 });
+				if (type === "follow") {
+					if (data) {
+						const body = data[0];
+						const streamer = body.to_name.toLowerCase();
+						const follower = body.from_name;
+						const followerId = body.from_id;
+						const followedAt = body.followed_at;
 
-            if (req.twitch_hub && req.twitch_hex == req.twitch_signature) {
-                const type = req.query.type;
-                const data = req.body.data;
-                if (!type) return res.json({ message: "missing type", code: 400 });
-                if (!data) return res.json({ message: "missing data", code: 400 });
-                if (type === "follow") {
-                    if (data) {
-                        const body = data[0];
-                        const streamer = body.to_name.toLowerCase();
-                        const follower = body.from_name;
-                        const followerId = body.from_id;
-                        const followedAt = body.followed_at;
-    
-                        console.log(`${follower} followed ${streamer}`);
-    
-                        // long term TODO: add follower count/goal overlay
-                        // if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
-    
-                        const streamerDatabaseId = sha1(body.to_id);
-    
-                        const db = admin.firestore();
-                        const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
-                        const streamerData = streamerRef.data();
-                        const previouslyNotified = streamerData.previouslyNotified || [];
-    
-                        if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
-                        console.log("notifying")
-                        previouslyNotified.push(followerId);
-                        await db.collection("Streamers").doc(streamerDatabaseId).update({
-                            previouslyNotified,
-                        });
-    
-                        const badges = {};
-    
-                        // TODO add custom message handler in seperate file
-                        const theMessage = `Thanks for following ${follower}!`;
-    
-                        const messageObject = {
-                            displayName: "DisStreamChat",
-                            avatar: DisTwitchChatProfile,
-                            body: theMessage,
-                            platform: "twitch",
-                            messageId: "follow",
-                            uuid: uuidv1(),
-                            id: uuidv1(),
-                            badges,
-                            sentAt: new Date(followedAt).getTime(),
-                            userColor: "#ff0029",
-                        };
-    
-                        io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
-                        setTimeout(() => {
-                            TwitchClient.join(streamer).catch()
-                        }, 1000)
-                    }
-                    res.json("success");
-                } else if (type === "stream") {
-                    // console.log(data);
-                    // const stream = data[0];
-                    // if (!stream) return res.json("no stream");
-                    // const streamId = stream.id;
-                    // const streamerId = stream.user_id;
-                    // const streamerName = stream.user_name;
-                    // const type = stream.type;
-                    // const title = stream.title;
-    
-                    // console.log(`stream type: ${type}`);
-                    // console.log(`${streamerName} went live: ${title}`);
-    
-                    // if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
-    
-                    // notifiedStreams.push(streamId);
-                    // await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
-    
-                    // todo: send the notification
-                }
-            } else {
-                // it's not from twitch
-                res.status("401").json({ message: "Looks like You aren't twitch" });
-            }
-        }catch(err){
-            console.log(err.messages)
-            res.json({message: "an error occured"})
-        }
+						console.log(`${follower} followed ${streamer}`);
+
+						// long term TODO: add follower count/goal overlay
+						// if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
+
+						const streamerDatabaseId = sha1(body.to_id);
+
+						const db = admin.firestore();
+						const streamerRef = await db.collection("Streamers").doc(streamerDatabaseId).get();
+						const streamerData = streamerRef.data();
+						const previouslyNotified = streamerData.previouslyNotified || [];
+
+						if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
+						console.log("notifying");
+						previouslyNotified.push(followerId);
+						await db.collection("Streamers").doc(streamerDatabaseId).update({
+							previouslyNotified,
+						});
+
+						const badges = {};
+
+						// TODO add custom message handler in seperate file
+						const theMessage = `Thanks for following ${follower}!`;
+
+						const messageObject = {
+							displayName: "DisStreamChat",
+							avatar: DisTwitchChatProfile,
+							body: theMessage,
+							platform: "twitch",
+							messageId: "follow",
+							uuid: uuidv1(),
+							id: uuidv1(),
+							badges,
+							sentAt: new Date(followedAt).getTime(),
+							userColor: "#ff0029",
+						};
+
+						io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
+						setTimeout(() => {
+							TwitchClient.join(streamer).catch();
+						}, 1000);
+					}
+					res.json("success");
+				} else if (type === "stream") {
+					// console.log(data);
+					// const stream = data[0];
+					// if (!stream) return res.json("no stream");
+					// const streamId = stream.id;
+					// const streamerId = stream.user_id;
+					// const streamerName = stream.user_name;
+					// const type = stream.type;
+					// const title = stream.title;
+					// console.log(`stream type: ${type}`);
+					// console.log(`${streamerName} went live: ${title}`);
+					// if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
+					// notifiedStreams.push(streamId);
+					// await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
+					// todo: send the notification
+				}
+			} else {
+				// it's not from twitch
+				res.status("401").json({ message: "Looks like You aren't twitch" });
+			}
+		} catch (err) {
+			console.log(err.messages);
+			res.json({ message: "an error occured" });
+		}
 	});
 
 	// TODO: refactor so it doesn't fire on follow
 	// get channel point redemptions for each channel
 	let pubsubbedChannels = [];
 	(async () => {
+		admin
+			.firestore()
+			.collection("live-notify")
+			.onSnapshot(async snapshot => {
+				const allNotifyingChannels = [
+					...new Set(
+						(await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))).reduce((acc, cur) => [
+							...acc,
+							...cur,
+						])
+					),
+				].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
+				for(const channel in allNotifyingChannels){
+                    const streamerData = await Api.getUserInfo(channel)
+					const init_topics = [
+						{
+							topic: `video-playback.${streamerData.login}`,
+						},
+                    ];
+                    const pubSub = new TPS({
+						init_topics,
+						reconnect: false,
+						debug: false,
+					});
+					pubSub.channelName = streamerData.login;
+                    pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+                    pubSub.on("stream-up", async data => {
+						const name = "dscnotifications";
+						console.log(data);
+						// if (!io.hasOwnProperty(name)) return;
+						console.log("notifications");
+						const intervalId = setInterval(async () => {
+							console.log("fetching stream");
+							const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
+							const streamDataResponse = await Api.fetch(apiUrl);
+							const streamData = streamDataResponse.data;
+							const stream = streamData[0];
+							if (stream) {
+								clearInterval(intervalId);
+								io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+							}
+						}, 60000);
+						// send notifications
+					});
+				};
+			});
 		admin
 			.firestore()
 			.collection("Streamers")
@@ -649,12 +690,8 @@ module.exports = (TwitchClient, io, app) => {
 				).map(doc => doc.data());
 				const authorizedStreamers = allStreamersTwitchData
 					.filter(s => s)
-					.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id));
+					.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id && subChannel.isUser));
 				console.log("Authorized Streamers: ", authorizedStreamers.length);
-				// pubsubbedChannels.forEach(channel => {
-				// 	channel.listener.removeTopic([{ topic: `channel-points-channel-v1.${channel.id}` }]);
-				// });
-				// pubsubbedChannels = [];
 				authorizedStreamers.forEach(async streamer => {
 					if (!streamer.user_id) return;
 					const streamerData = await Api.getUserInfo(streamer.user_id);
@@ -673,9 +710,6 @@ module.exports = (TwitchClient, io, app) => {
 							topic: `chat_moderator_actions.${streamer.user_id}`,
 							token: access_token,
 						},
-						{
-							topic: `video-playback.${streamerData.login}`,
-						},
 					];
 					const pubSub = new TPS({
 						init_topics,
@@ -683,23 +717,23 @@ module.exports = (TwitchClient, io, app) => {
 						debug: false,
 					});
 					pubSub.channelName = streamerData.login;
-					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id });
+					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id, isUser: true });
 					pubSub.on("stream-up", async data => {
 						const name = "dscnotifications";
 						console.log(data);
-                        // if (!io.hasOwnProperty(name)) return;
-                        console.log("notifications")
-                        const intervalId = setInterval(async () => {
-                            console.log("fetching stream")
-                            const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
-                            const streamDataResponse = await Api.fetch(apiUrl);
-                            const streamData = streamDataResponse.data;
-                            const stream = streamData[0];
-                            if(stream){
-                                clearInterval(intervalId)
-                                io.in(`twitch-${name}`).emit("stream-up", {stream, ...data});
-                            }
-                        }, 60000)
+						// if (!io.hasOwnProperty(name)) return;
+						console.log("notifications");
+						const intervalId = setInterval(async () => {
+							console.log("fetching stream");
+							const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
+							const streamDataResponse = await Api.fetch(apiUrl);
+							const streamData = streamDataResponse.data;
+							const stream = streamData[0];
+							if (stream) {
+								clearInterval(intervalId);
+								io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+							}
+						}, 60000);
 						// send notifications
 					});
 					pubSub.on("channel-points", async data => {
@@ -751,8 +785,8 @@ module.exports = (TwitchClient, io, app) => {
 								id,
 								badges: {},
 								sentAt: new Date().getTime(),
-                                userColor: "#ff0029",
-                                ...data
+								userColor: "#ff0029",
+								...data,
 							};
 							io.in(`twitch-${channelName}`).emit("auto-mod", messageObject);
 						} catch (error) {
