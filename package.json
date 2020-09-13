@@ -68,7 +68,6 @@
 		"rimraf": "^3.0.2",
 		"sha1": "^1.1.1",
 		"socket.io": "^2.3.0",
-		"socketio-promises": "^1.0.1",
 		"tmi.js": "^1.5.0",
 		"twitch-lib": "^0.2.5",
 		"twitchps": "github:DisStreamChat/twitchPS",

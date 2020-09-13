@@ -13,7 +13,6 @@ import DiscordEvents from "./Discord/DiscordEvents";
 import crypto from "crypto";
 import fetch from "node-fetch";
 import tmi from "tmi.js";
-import Socket from "socketio-promises"
 // const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +133,6 @@ DiscordEvents(DiscordClient, io, app);
 const UserClients = {};
 
 io.on("connection", socket => {
-    const socketWrapper = new Socket(socket)
 	console.log("a user connected");
 	socket.emit("imConnected");
 	// the addme event is sent from the frontend on load with the data from the database
@@ -149,15 +147,15 @@ io.on("connection", socket => {
 		// 	}
 		// }
 
-		if (TwitchName) await socketWrapper.join(`twitch-${TwitchName}`);
-		if (guildId) await socketWrapper.join(`guild-${guildId}`);
+		if (TwitchName) socket.join(`twitch-${TwitchName}`);
+		if (guildId) socket.join(`guild-${guildId}`);
 		if (liveChatId) {
 			if (liveChatId instanceof Array) {
 				for (const id of liveChatId) {
-					await socketWrapper.join(`channel-${id}`);
+					socket.join(`channel-${id}`);
 				}
 			} else {
-				await socketWrapper.join(`channel-${liveChatId}`);
+				socket.join(`channel-${liveChatId}`);
 			}
 		}
 
