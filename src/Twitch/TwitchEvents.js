@@ -1,5 +1,5 @@
 require("dotenv").config();
-const TwitchApi = require("twitch-lib");
+const TwitchApi = require("twitch-helper");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
 const TPS = require("twitchps");
@@ -20,7 +20,7 @@ const path = require("path");
 
 const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 });
 
 const CommandHandler = require("./CommandHandler");
@@ -32,8 +32,11 @@ const DisTwitchChatProfile =
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
 
-	const badges = {};
+    const badges = {};
+    console.log(channelName)
 	if (tags.badges) {
+        const userInfo = await Api.getUserInfo(channelName)
+        console.log(userInfo.id, await Api.fetch(`https://badges.twitch.tv/v1/badges/channels/${userInfo.id}/display`))
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
