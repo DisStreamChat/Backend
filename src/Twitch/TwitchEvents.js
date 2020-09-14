@@ -33,10 +33,8 @@ const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
 
     const badges = {};
-    console.log(channelName)
 	if (tags.badges) {
         const userInfo = await Api.getUserInfo(channelName)
-        console.log(userInfo.id, await Api.fetch(`https://badges.twitch.tv/v1/badges/channels/${userInfo.id}/display`))
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
@@ -102,7 +100,6 @@ module.exports = (TwitchClient, io, app) => {
 	});
 
 	TwitchClient.on("raided", async (channel, username, viewers) => {
-		console.log("raided");
 		const channelName = channel.slice(1).toLowerCase();
 		// if (!io.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} has raided with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
