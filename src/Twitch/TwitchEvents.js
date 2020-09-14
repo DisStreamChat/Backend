@@ -1,5 +1,5 @@
 require("dotenv").config();
-const TwitchApi = require("twitch-lib");
+const TwitchApi = require("twitch-helper");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
 const TPS = require("twitchps");
@@ -20,7 +20,7 @@ const path = require("path");
 
 const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 });
 
 const CommandHandler = require("./CommandHandler");
@@ -32,8 +32,9 @@ const DisTwitchChatProfile =
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
 
-	const badges = {};
+    const badges = {};
 	if (tags.badges) {
+        const userInfo = await Api.getUserInfo(channelName)
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
@@ -99,7 +100,6 @@ module.exports = (TwitchClient, io, app) => {
 	});
 
 	TwitchClient.on("raided", async (channel, username, viewers) => {
-		console.log("raided");
 		const channelName = channel.slice(1).toLowerCase();
 		// if (!io.hasOwnProperty(channelName)) return;
 		const theMessage = `${username} has raided with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
