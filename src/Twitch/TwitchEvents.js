@@ -565,7 +565,6 @@ module.exports = (TwitchClient, io, app) => {
 						console.log(`${follower} followed ${streamer}`);
 
 						// long term TODO: add follower count/goal overlay
-						// if (!io.hasOwnProperty(streamer)) return res.status(200).json("no socket connection");
 
 						const streamerDatabaseId = sha1(body.to_id);
 
@@ -605,22 +604,7 @@ module.exports = (TwitchClient, io, app) => {
 						}, 1000);
 					}
 					res.json("success");
-				} else if (type === "stream") {
-					// console.log(data);
-					// const stream = data[0];
-					// if (!stream) return res.json("no stream");
-					// const streamId = stream.id;
-					// const streamerId = stream.user_id;
-					// const streamerName = stream.user_name;
-					// const type = stream.type;
-					// const title = stream.title;
-					// console.log(`stream type: ${type}`);
-					// console.log(`${streamerName} went live: ${title}`);
-					// if (new Set(notifiedStreams).has(streamId)) return res.status(200).json("already notified");
-					// notifiedStreams.push(streamId);
-					// await fs.writeFile(path.join(__dirname, "../notifiedStreams.json"), JSON.stringify(notifiedStreams));
-					// todo: send the notification
-				}
+				} 
 			} else {
 				// it's not from twitch
 				res.status("401").json({ message: "Looks like You aren't twitch" });
@@ -796,19 +780,23 @@ module.exports = (TwitchClient, io, app) => {
 					});
 
 					pubSub.on("approved_automod_message", data => {
-						console.log("Mod", data.created_by);
-						console.log("Mod ID", data.created_by_user_id);
-						console.log("Approved MessageID", data.message_id);
-						console.log("TargetUser", data.target_user_login);
-						console.log("TargetUserID", data.target_user_id);
+                        const { channelName } = pubSub;
+                        io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
+						// console.log("Mod", data.created_by);
+						// console.log("Mod ID", data.created_by_user_id);
+						// console.log("Approved MessageID", data.message_id);
+						// console.log("TargetUser", data.target_user_login);
+						// console.log("TargetUserID", data.target_user_id);
 					});
 
 					pubSub.on("denied_automod_message", data => {
-						console.log("Mod", data.created_by);
-						console.log("Mod ID", data.created_by_user_id);
-						console.log("Denied MessageID", data.message_id);
-						console.log("TargetUser", data.target_user_login);
-						console.log("TargetUserID", data.target_user_id);
+                        const { channelName } = pubSub;
+                        io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
+						// console.log("Mod", data.created_by);
+						// console.log("Mod ID", data.created_by_user_id);
+						// console.log("Denied MessageID", data.message_id);
+						// console.log("TargetUser", data.target_user_login);
+						// console.log("TargetUserID", data.target_user_id);
 					});
 
 					pubSub.on("add_blocked_term", data => {
