@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 
-module.exports = async (oldMember, newMember) => {
+module.exports = async (messages) => {
     const guild = channel.guild;
 
     let channelId = null;
@@ -13,5 +13,5 @@ module.exports = async (oldMember, newMember) => {
 
     // if (!channelId) return;
 
-    console.log(oldMember, newMember)
+    console.log(messages)
 };
