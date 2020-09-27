@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 module.exports = {
 	name: "commands",
 	aliases: ["customCommands"],
-	description: "Command to manage custom commands. use `!help commands <command name>` for help on a specific custom command",
+	description: "Command to manage custom commands. use `help commands <command name>` for help on a specific custom command",
 	permissions: ["MANAGE_MESSAGES"],
 	usage: ["<add | delete>"],
 	execute: async (message, args, client) => {
