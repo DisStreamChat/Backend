@@ -5,6 +5,10 @@ const path = require("path");
 const adminIds = require("../ranks.json");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
 const getLevel = xp => Math.max(0, Math.floor(Math.log(xp - 100)));
 
 const getXp = level => (5 / 6) * level * (2 * level * level + 27 * level + 91);
@@ -158,6 +162,11 @@ const generateRankCard = async (userData, user) => {
 	return canvas;
 };
 
+const isAdmin = (user) => {
+    const discordAdmins = adminIds.discord.developers;
+	return (discordAdmins.includes(user.id))
+}
+
 const adminWare = async (message, args, client, cb) => {
 	const discordAdmins = adminIds.discord.developers;
 	if (discordAdmins.includes(message.author.id)) {
@@ -230,5 +239,6 @@ module.exports = {
 	roundRect,
 	applyText,
 	cleanRegex,
-	hoursToMillis: hrs => hrs * 3600000,
+    hoursToMillis: hrs => hrs * 3600000,
+    isAdmin
 };

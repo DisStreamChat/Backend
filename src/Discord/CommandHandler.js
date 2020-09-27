@@ -24,10 +24,10 @@ module.exports = async (message, client) => {
 	if(!client.commands){
 		client.commands = commands;
 	}
-    let prefix = "!"
+    let prefix = "?"
     try{
-        const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get())?.data()
-        prefix = settings?.prefix || "!"
+        // const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get())?.data()
+        // prefix = settings?.prefix || "!"
     }catch(err){
 
 	}
