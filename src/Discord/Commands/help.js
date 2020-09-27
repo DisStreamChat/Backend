@@ -32,7 +32,7 @@ module.exports = {
 				.setThumbnail(client.user.displayAvatarURL())
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
 				.addField("Available Commands", availableCommands.map(command => `\`${command.displayName}\``).join(", "))
-				.addField("Tip", "Type `!help <command name>` to get help on a specific command ")
+				.addField("Tip", "Type `help <command name>` to get help on a specific command ")
 				.setTimestamp(message.createdAt)
 				.setColor("#206727");
 			if (hasPermsission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
@@ -48,7 +48,7 @@ module.exports = {
 		} else if (args[0] !== "module" && args[0] !== "admin") {
 			const selectedCommand = availableCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
 			if (!selectedCommand) {
-				await message.channel.send(":x: Command not found, use !help to get the list of available commands");
+				await message.channel.send(":x: Command not found, use help to get the list of available commands");
 			} else {
 				const commandHelpEmbed = new MessageEmbed()
 					.setTitle(`Help for ${args[0].capitalize()}`)
