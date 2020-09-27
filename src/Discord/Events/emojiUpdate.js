@@ -9,6 +9,8 @@ module.exports = async (oldEmoji, newEmoji) => {
     // const serverData = serverRef.data();
     // if (serverData) {
     //     channelId = serverData.server;
+    // const activeLogging = serverData.activeEvents || {}
+    //     if(!activeLogging["messageDeleteBulk"]) return 
     // }
 
     // if (!channelId) return;

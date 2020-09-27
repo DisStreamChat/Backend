@@ -9,6 +9,8 @@ module.exports = async (channel, client) => {
     const serverData = serverRef.data();
     if (serverData) {
         channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["channelCreate"]) return 
     }
 
     let parentCheck = '';

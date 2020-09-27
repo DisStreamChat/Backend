@@ -17,8 +17,11 @@ module.exports = async message => {
 	const serverData = serverRef.data();
 	if (serverData) {
 		channelId = serverData.server;
-		const ignoredChannels = serverData.ignoredChannels?.messageDeleted || [];
-		if (ignoredChannels.includes(message.channel.id)) return;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["messageDelete"]) return 
+        const ignoredChannels = serverData.ignoredChannels?.messageDeleted || [];
+        if (ignoredChannels.includes(message.channel.id)) return;
+        
 	}
 
 	const embed = new MessageEmbed()

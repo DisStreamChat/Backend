@@ -9,6 +9,8 @@ module.exports = async (oldRole, newRole) => {
     // const serverData = serverRef.data();
     // if (serverData) {
     //     channelId = serverData.server;
+    //     const activeLogging = serverData.activeEvents || {}
+    //     if(!activeLogging["roleUpdate"]) return 
     // }
 
     // if (!channelId) return;

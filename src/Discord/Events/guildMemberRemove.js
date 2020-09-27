@@ -8,7 +8,9 @@ module.exports = async (member, client) => {
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
 	const serverData = serverRef.data();
 	if (serverData) {
-		channelId = serverData.server;
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["MemberRemove"]) return 
 	}
 
 	const embed = new MessageEmbed()

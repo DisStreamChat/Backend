@@ -9,6 +9,8 @@ module.exports = async (oldMember, newMember) => {
     // const serverData = serverRef.data();
     // if (serverData) {
     //     channelId = serverData.server;
+            // const activeLogging = serverData.activeEvents || {}
+            // if(!activeLogging["member update"]) return 
     // }
 
     // if (!channelId) return;

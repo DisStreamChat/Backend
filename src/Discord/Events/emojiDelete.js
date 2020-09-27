@@ -9,7 +9,9 @@ module.exports = async emoji => {
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
 	const serverData = serverRef.data();
 	if (serverData) {
-		channelId = serverData.server;
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["emojiDelete"]) return 
     }
     
 
