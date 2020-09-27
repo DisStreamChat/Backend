@@ -26,10 +26,9 @@ module.exports = async message => {
 		.setTitle("Message Deleted")
 		.setThumbnail(executor.avatarURL())
 		.setDescription(
-			`:x: A message from ${author || "An unknown user"} was deleted from ${channel} with the content of \`${
-				content || "unkown content"
-			}\` by ${executor.tag}`
-		)
+			`:x: A message from ${author || "An unknown user"} was deleted from ${channel} by ${executor}`
+        )
+        .addField("Message Content", content || "unkown content")
 		.setFooter(`ID: ${id}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
