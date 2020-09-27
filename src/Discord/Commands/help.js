@@ -21,7 +21,8 @@ const getCommands = (message, client) => {
 module.exports = {
 	name: "help",
 	aliases: [],
-	description: "See the commands you can use and get on help on each command",
+    description: "See the commands you can use and get on help on each command",
+    usage: "(command_name)",
 	execute: async (message, args, client) => {
 		let availableCommands = getCommands(message, client);
 		if (args.length === 0) {
