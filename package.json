@@ -74,7 +74,8 @@
 		"twitch-lib": "^0.2.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
 		"url-regex": "^5.0.0",
-		"uuidv1": "^1.6.14"
+		"uuidv1": "^1.6.14",
+		"xmlhttprequest": "^1.8.0"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.10.5",
