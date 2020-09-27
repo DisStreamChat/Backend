@@ -11,7 +11,7 @@ module.exports = {
 	name: "rank",
 	aliases: ["level"],
 	description: "Get someones experience and level on this server in a rankcard.",
-	usage: "(user)",
+	usage: ["(user)"],
 	execute: async (message, args, client) => {
 		let user = resolveUser(message, args.join(" "));
 		let msg = "";
