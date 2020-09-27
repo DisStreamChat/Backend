@@ -3,7 +3,7 @@ const { MessageEmbed } = require("discord.js");
 module.exports = {
 	name: "ping",
 	aliases: ["🏓"],
-    description: "Get the Ping the bot and the sender.",
+	description: "Ping the bot.",
 	execute: async (message, args, client) => {
 		message.react("🏓");
 		let Pinging = new MessageEmbed()

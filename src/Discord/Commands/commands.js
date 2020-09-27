@@ -4,9 +4,8 @@ const admin = require("firebase-admin");
 module.exports = {
 	name: "commands",
 	aliases: ["customCommands"],
-	description: "Command to manage custom commands. use `help commands <command name>` for help on a specific custom command",
+	description: "Command to manage custom commands.",
 	permissions: ["MANAGE_MESSAGES"],
-	usage: ["<add | delete>"],
 	execute: async (message, args, client) => {
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 		const guildData = guildRef.data();
@@ -60,9 +59,7 @@ module.exports = {
 				break;
 
 			default:
-				await message.channel.send(
-					"❌ Invalid parameter specified. Possible parameters: add and delete, use !help commands for more details"
-				);
+				await message.channel.send("❌ Invalid parameter specified. Possible parameters: add and delete");
 		}
 	},
 };

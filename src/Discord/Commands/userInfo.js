@@ -5,7 +5,7 @@ module.exports = {
 	name: "userinfo",
 	aliases: ["info"],
 	description: "Get a users info.",
-	usage: ["(username | nickname | ping)"],
+	usage: "(user)",
 	execute: async (msg, args, bot) => {
 		let member = resolveUser(msg, args.join(" "));
 		if (args.length === 0) ({ member } = msg);
