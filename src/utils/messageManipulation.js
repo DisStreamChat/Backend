@@ -110,6 +110,7 @@ async function getFfzEmotes(channelName) {
 }
 
 const getAllEmotes = async () => {
+    if(process.env.BOT_DEV == "true") return
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
