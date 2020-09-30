@@ -15,5 +15,5 @@ module.exports = async (oldEmoji, newEmoji) => {
 
     // if (!channelId) return;
 
-    console.log(oldEmoji, newEmoji)
+    // console.log(oldEmoji, newEmoji)
 };

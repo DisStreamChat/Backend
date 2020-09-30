@@ -15,5 +15,5 @@ module.exports = async (oldMember, newMember) => {
 
     // if (!channelId) return;
 
-    console.log(oldMember, newMember)
+    // console.log(oldMember, newMember)
 };
