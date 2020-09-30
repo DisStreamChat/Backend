@@ -1,11 +1,31 @@
-module.exports = ({message, args}) => {
-    const view = {
-        member: message.member,
-        author: message.author,
-        time: () => new Date().toLocaleTimeString(),
-    };
+module.exports = ({ message, args }) => {
+	const fullArgs = args.join(" ");
+	const argObj = {
+		urlencode: encodeURIComponent(fullArgs),
+		toString: () => fullArgs,
+	};
+	const view = {
+		member: message.member,
+		author: message.author,
+        me: message.member,
+		time: () => (val, render) => {
+			console.log(val);
+			const now = new Date();
+			try {
+				return now.toLocaleTimeString("en-US", { timeZone: val });
+			} catch (err) {
+				return now.toLocaleTimeString();
+			}
+		},
+		msg: argObj,
+		args: argObj
+	};
+	view.time.value = () => new Date().toLocaleTimeString();
 	for (let i = 0; i < args.length; i++) {
-		view[`arg${i + 1}`] = args[i];
-    }
-    return view
-}
+		view[`arg${i + 1}`] = {
+			urlenclode: encodeURIComponent(args[i]),
+			toString: () => args[i],
+		};
+	}
+	return view;
+};

@@ -1,6 +1,9 @@
 const { isAdmin, hasPermsission } = require("../../utils/functions");
 const { MessageEmbed } = require("discord.js");
 
+// the admin app has already been initialized in routes/index.js
+const admin = require("firebase-admin");
+
 const getCommands = (message, client) => {
 	let availableCommands = [];
 	for (const [key, command] of Object.entries(client.commands)) {
@@ -18,11 +21,23 @@ const getCommands = (message, client) => {
 	return availableCommands;
 };
 
+const getHelpText = ({ message, client, selectedCommand }) =>
+	selectedCommand
+		? new MessageEmbed()
+				.setTitle(`Help for ${selectedCommand.name.capitalize()}`)
+				.setTimestamp(message.createdAt)
+				.setColor("#206727")
+				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
+				.addField("Description", selectedCommand.description)
+				.addField("Parameters. <> => Required. () => optional", selectedCommand.usage?.join("\n") || "None")
+				.setThumbnail(client.user.displayAvatarURL())
+		: null;
+
 module.exports = {
 	name: "help",
 	aliases: [],
-    description: "See the commands you can use and get on help on each command",
-    usage: "(command_name)",
+	description: "See the commands you can use and get on help on each command",
+	usage: "(command_name)",
 	execute: async (message, args, client) => {
 		let availableCommands = getCommands(message, client);
 		if (args.length === 0) {
@@ -45,20 +60,40 @@ module.exports = {
 				helpEmbed.addField("DisStreamChat Admin Tip", "Type `!help admin` to links to DisStreamChat admin tools");
 			}
 			await message.channel.send(helpEmbed);
-		} else if (args[0] !== "module" && args[0] !== "admin") {
+		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
 			const selectedCommand = availableCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
-			if (!selectedCommand) {
+			const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
+			if (!commandHelpEmbed) {
 				await message.channel.send(":x: Command not found, use help to get the list of available commands");
 			} else {
-				const commandHelpEmbed = new MessageEmbed()
-					.setTitle(`Help for ${args[0].capitalize()}`)
-					.setTimestamp(message.createdAt)
-					.setColor("#206727")
-                    .setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-                    .addField("Description", selectedCommand.description)
-                    .addField("Parameters. <> => Required. () => optional", selectedCommand.usage?.join("\n") || "None")
-					.setThumbnail(client.user.displayAvatarURL());
 				await message.channel.send(commandHelpEmbed);
+			}
+		} else {
+			switch (args[0]) {
+				case "commands":
+					const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
+					const guildData = guildRef.data();
+					if (args[1]) {
+						const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
+						if (!commandHelpEmbed) {
+							await message.channel.send(":x: Command not found, use help to get the list of available commands");
+						} else {
+							await message.channel.send(commandHelpEmbed);
+						}
+					} else {
+						const availableCustomCommands = getCommands(message, { commands: guildData})
+						const customHelpEmbed = new MessageEmbed()
+							.setTitle("DisStreambot Help")
+							.setDescription("Here are all the available custom commands")
+							.setThumbnail(client.user.displayAvatarURL())
+							.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
+							.addField("Available Commands", availableCustomCommands.map(command => `\`${command.displayName}\``).join(", "))
+							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
+							.setTimestamp(message.createdAt)
+							.setColor("#206727");
+						message.channel.send(customHelpEmbed);
+					}
+					break;
 			}
 		}
 	},
