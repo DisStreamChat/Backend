@@ -6,13 +6,19 @@ import Mustache from "mustache";
 import GenerateView from "./GenerateView";
 
 module.exports = async ({ command, args, message, client }) => {
-	const view = GenerateView({message, args})
+	const view = GenerateView({ message, args });
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 	const guildData = guildRef.data();
 	if (guildData) {
 		for (const [key, value] of Object.entries(guildData)) {
-			if (key === command || command === value.name || value.aliases.includes(command)) {
-				return await message.channel.send(Mustache.render(value.message, view, {}, ["{", "}"]).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
+			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
+				if (!value.type || value.type === "text") {
+					return await message.channel.send(
+						Mustache.render(value.message, view, {}, ["{", "}"]).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">")
+					);
+				}else{
+					console.log("not text command")
+				}
 			}
 		}
 	} else {
