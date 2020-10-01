@@ -30,7 +30,11 @@ module.exports = async ({ command, args, message, client }) => {
 				let text = replaceArgs(value.message, args);
 				text = replaceFunc(text);
 				console.log(text);
-				return await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
+				if (!value.type || value.type === "text") {
+                    return await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
+				}else{
+					console.log("not text command")
+				}
 			}
 		}
 	} else {

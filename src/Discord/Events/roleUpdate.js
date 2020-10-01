@@ -15,5 +15,5 @@ module.exports = async (oldRole, newRole) => {
 
     // if (!channelId) return;
 
-    console.log(oldRole, newRole)
+    // console.log(oldRole, newRole)
 };
