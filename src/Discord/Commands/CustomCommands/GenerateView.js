@@ -9,12 +9,11 @@ module.exports = ({ message, args }) => {
 		author: message.author,
         me: message.member,
 		time: () => (val, render) => {
-			console.log(val);
 			const now = new Date();
 			try {
 				return now.toLocaleTimeString("en-US", { timeZone: val });
 			} catch (err) {
-				return now.toLocaleTimeString();
+				return "`Invalid Timezone`";
 			}
 		},
 		msg: argObj,
