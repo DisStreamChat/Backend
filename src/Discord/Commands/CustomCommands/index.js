@@ -4,6 +4,7 @@ const path = require("path");
 const fs = require("fs");
 import Mustache from "mustache";
 import GenerateView from "./GenerateView";
+import handleRoleCommand from "./handleRoleCommand";
 
 Mustache.tags = ["{", "}"];
 // Mustache.escape = text => text
@@ -21,12 +22,12 @@ module.exports = async ({ command, args, message, client }) => {
 	if (guildData) {
 		for (const [key, value] of Object.entries(guildData)) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
-				let text = replaceArgs(value.message, args);
-				text = replaceFunc(text);
 				if (!value.type || value.type === "text") {
-                    return await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
-				}else{
-					console.log("not text command")
+					let text = replaceArgs(value.message, args);
+					text = replaceFunc(text);
+					return await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
+				} else {
+					handleRoleCommand(value, message, client);
 				}
 			}
 		}
