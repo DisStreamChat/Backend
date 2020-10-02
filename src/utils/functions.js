@@ -240,5 +240,6 @@ module.exports = {
 	applyText,
 	cleanRegex,
     hoursToMillis: hrs => hrs * 3600000,
-    isAdmin
+    isAdmin,
+    sleep: async (millis) => new Promise(resolve => setTimeout(resolve, millis))
 };
