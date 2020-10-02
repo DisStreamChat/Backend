@@ -1,4 +1,5 @@
 import admin from "firebase-admin";
+const { formatFromNow } = require("../../utils/functions");
 import { MessageEmbed } from "discord.js";
 
 module.exports = async (member, client) => {
@@ -16,7 +17,8 @@ module.exports = async (member, client) => {
 	const embed = new MessageEmbed()
 		.setAuthor(member.user.tag, member.user.displayAvatarURL())
 		.setThumbnail(member.user.displayAvatarURL())
-		.setDescription(`:inbox_tray: ${member} **joined the server**`)
+        .setDescription(`:inbox_tray: ${member} **joined the server**`)
+        .addField("Account Created", formatFromNow(member.user.createdAt))
 		.setFooter(`ID: ${member.id}`)
 		.setTimestamp(new Date())
 		.setColor("#11ee11");
