@@ -1,6 +1,5 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
 
 module.exports = async messages => {
 	const first = messages.first();
@@ -13,12 +12,13 @@ module.exports = async messages => {
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "messageDeleteBulk")
-    if(!active) return
-
+	let channelId = null;
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
 	const serverData = serverRef.data();
 	if (serverData) {
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["messageDeleteBulk"]) return 
         const ignoredChannels = serverData.ignoredChannels?.messageDeleteBulk || [];
         if (ignoredChannels.includes(message.channel.id)) return;
 	}

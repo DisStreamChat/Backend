@@ -1,15 +1,20 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
 
 module.exports = async invite => {
     const guild = invite.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "InviteCreate")
-    if(!active) return
+	let channelId = null;
+	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+	const serverData = serverRef.data();
+	if (serverData) {
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["InviteCreate"]) return 
+	}
 
-    const embed = new MessageEmbed()
+	const embed = new MessageEmbed()
 		.setAuthor("DisStreamBot")
 		.setDescription(`:inbox_tray: The invite: ${invite.url} **was created**`)
 		.setFooter(`Code: ${invite.code}`)

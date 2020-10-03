@@ -1,28 +1,33 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
 
 module.exports = async (channel, client) => {
-	const guild = channel.guild;
+    const guild = channel.guild;
 
-    const [channelId, active] = await setupLogging(guild, "channelCreate")
-    if(!active) return
+    let channelId = null;
+    const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+    const serverData = serverRef.data();
+    if (serverData) {
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["channelCreate"]) return 
+    }
 
-	let parentCheck = "";
-	if (channel.parentID) {
-		parentCheck = `(Parent ID: ${channel.parentID})`;
-	}
+    let parentCheck = '';
+    if (channel.parentID) {
+        parentCheck = `(Parent ID: ${channel.parentID})`
+    }
 
-	const embed = new MessageEmbed()
-		//.setAuthor(member.user.tag, member.user.displayAvatarURL())
-		//.setThumbnail(member.user.displayAvatarURL())
-		.setDescription(`:inbox_tray: ${channel.name} **channel created**`)
-		.setFooter(`ID: ${channel.id} ${parentCheck}`)
-		.setTimestamp(new Date())
-		.setColor("#11ee11");
+    const embed = new MessageEmbed()
+        //.setAuthor(member.user.tag, member.user.displayAvatarURL())
+        //.setThumbnail(member.user.displayAvatarURL())
+        .setDescription(`:inbox_tray: ${channel.name} **channel created**`)
+        .setFooter(`ID: ${channel.id} ${parentCheck}`)
+        .setTimestamp(new Date())
+        .setColor("#11ee11");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+    if (!channelId) return;
+    const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+    logChannel.send(embed);
 };

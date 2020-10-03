@@ -1,12 +1,17 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
 
 module.exports = async (member, client) => {
 	const guild = member.guild;
 
-    const [channelId, active] = await setupLogging(guild, "MemberRemove")
-    if(!active) return
+	let channelId = null;
+	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+	const serverData = serverRef.data();
+	if (serverData) {
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["MemberRemove"]) return 
+	}
 
 	const embed = new MessageEmbed()
 		.setAuthor(member.user.tag, member.user.displayAvatarURL())

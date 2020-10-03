@@ -1,13 +1,18 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
 
 module.exports = async role => {
     const guild = role.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "roleDelete")
-    if(!active) return
+	let channelId = null;
+	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+	const serverData = serverRef.data();
+	if (serverData) {
+        channelId = serverData.server;
+        const activeLogging = serverData.activeEvents || {}
+        if(!activeLogging["roleDelete"]) return 
+    }
     
 	const embed = new MessageEmbed()
 		.setDescription(`:inbox_tray: The role: ${role.name} **was deleted**`)
