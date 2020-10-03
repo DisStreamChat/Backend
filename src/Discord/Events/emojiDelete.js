@@ -1,19 +1,13 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
+import setupLogging from "./utils/setupLogging";
 
 module.exports = async emoji => {
     const guild = emoji.guild;
     if(!guild) return
 
-	let channelId = null;
-	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-	const serverData = serverRef.data();
-	if (serverData) {
-        channelId = serverData.server;
-        const activeLogging = serverData.activeEvents || {}
-        if(!activeLogging["emojiDelete"]) return 
-    }
-    
+    const [channelId, active] = await setupLogging(guild, "emojiDelete")
+    if(!active) return
 
 	const embed = new MessageEmbed()
         .setAuthor("DisStreamBot")

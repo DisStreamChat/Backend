@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
+import setupLogging from "./utils/setupLogging";
 
 module.exports = async (guild, user) => {
 	const auditLog = await guild.fetchAuditLogs();
@@ -8,14 +9,8 @@ module.exports = async (guild, user) => {
 
 	const executor = deleteAction.executor;
 
-	let channelId = null;
-	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-	const serverData = serverRef.data();
-	if (serverData) {
-		channelId = serverData.server;
-		const activeLogging = serverData.activeEvents || {};
-		if (!activeLogging["MemberUnBanned"]) return;
-	}
+    const [channelId, active] = await setupLogging(guild, "MemberUnBanned")
+    if(!active) return
 
 	const embed = new MessageEmbed()
 		.setAuthor(executor.tag, executor.avatarURL())
