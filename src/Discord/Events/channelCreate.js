@@ -5,8 +5,8 @@ import setupLogging from "./utils/setupLogging";
 module.exports = async (channel, client) => {
 	const guild = channel.guild;
 
-    const [channelId, active] = await setupLogging(guild, "channelCreate")
-    if(!active) return
+	const [channelId, active] = await setupLogging(guild, "channelCreate");
+	if (!active) return;
 
 	let parentCheck = "";
 	if (channel.parentID) {
