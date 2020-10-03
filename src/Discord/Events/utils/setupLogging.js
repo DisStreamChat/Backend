@@ -1,5 +1,13 @@
 import admin from "firebase-admin";
 
+let defaultLogging;
+setTimeout(() => {
+	(async () => {
+		defaultLogging = (await admin.firestore().collection("defaults").doc("loggingEvents").get()).data();
+		console.log(defaultLogging);
+	})();
+}, 1000);
+
 module.exports = async (guild, id) => {
     let channelId = null;
     let active = true
@@ -7,8 +15,11 @@ module.exports = async (guild, id) => {
 	const serverData = serverRef.data();
 	if (serverData) {
 		channelId = serverData.server;
-		const channelOverrides = serverData.channnelOverrides || {};
-		const override = channelOverrides[id];
+        const channelOverrides = serverData.channnelOverrides || {};
+        const eventDetails = defaultLogging[id]
+        const category = eventDetails?.category
+        console.log(category)
+		const override = channelOverrides[category];
 		if (override) channelId = override;
 		const activeLogging = serverData.activeEvents || {};
 		if (!activeLogging[id]) active = false;
