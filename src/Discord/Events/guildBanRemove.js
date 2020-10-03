@@ -20,7 +20,7 @@ module.exports = async (guild, user) => {
 	const embed = new MessageEmbed()
 		.setAuthor(executor.tag, executor.avatarURL())
 		.setThumbnail(user.displayAvatarURL())
-		.setTitle("Member unBanned")
+		.setTitle("Member Unbanned")
 		.setDescription(`:inbox_tray: ${user} **Was Unbanned** by ${executor}`)
 		.setFooter(`ID: ${user.id}`)
 		.setTimestamp(new Date())
