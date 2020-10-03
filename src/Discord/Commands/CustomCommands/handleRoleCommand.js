@@ -9,16 +9,6 @@ module.exports = async (command, message, client) => {
 	const roles = member.roles;
     const roleToGive = command.role;
     const roleIds = roles.cache.array().map(role => role.id)
-	if (command.permittedRoles?.length) {
-		if (!ArrayAny(command.permittedRoles, roleIds)) {
-			return await message.channel.send(":x: You don't have permission to use this command");
-		}
-	}
-	if (command.bannedRoles?.length) {
-		if (ArrayAny(command.bannedRoles, roleIds)) {
-			return await message.channel.send(":x: You don't have permission to use this command");
-		}
-	}
 	const memberHasRole = roles.cache.get(roleToGive);
 	const roleObj = await message.guild.roles.fetch(roleToGive);
 	let action;
