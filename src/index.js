@@ -14,7 +14,10 @@ import crypto from "crypto";
 import fetch from "node-fetch";
 import tmi from "tmi.js";
 import Socket from "socketio-promises"
-// const { getAllEvents, listenMessages } = require("./routes/youtubeMessages");
+// get the initialized clients from another file
+const { DiscordClient, TwitchClient } = require("./utils/initClients");
+const admin = require("firebase-admin");
+const { ArrayAny } = require("./utils/functions.js");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -47,14 +50,6 @@ app.use("/", require("./routes/index"));
 app.use("/public", express.static("public"));
 app.use("/images", express.static("images"));
 
-// get the initialized clients from another file
-const { DiscordClient, TwitchClient } = require("./utils/initClients");
-const admin = require("firebase-admin");
-const { ArrayAny } = require("./utils/functions.js");
-
-// initialize the object that will store all sockets currently connected
-// const sockets = {};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,64 +63,6 @@ TwitchEvents(TwitchClient, io, app);
 
 // see ./DiscordEvents.js
 DiscordEvents(DiscordClient, io, app);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Youtube Events
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// app.get("/youtube/events", async (req, res, next) => {
-// 	try {
-// 		const events = await getAllEvents(req.query.id);
-// 		return res.json(events);
-// 	} catch (error) {
-// 		return next(error);
-// 	}
-// });
-
-// let listening = false;
-// async function listenChat(channelId) {
-// 	if (!channelId) {
-// 		return {
-// 			listening: false,
-// 		};
-// 	}
-// 	if (listening) {
-// 		return {
-// 			listening: true,
-// 		};
-// 	}
-// 	const liveEvent = (await getAllEvents(channelId)).find(event => event.liveStreamingDetails.concurrentViewers);
-// 	if (liveEvent) {
-// 		listening = true;
-// 		const {
-// 			snippet: { liveChatId },
-// 		} = liveEvent;
-// 		const listener = listenMessages(liveChatId);
-// 		listener.on("messages", async newMessages => {
-// 			if (!sockets.hasOwnProperty(channelId)) return;
-// 			newMessages = newMessages.sort((a, b) => a.publishedAt - b.publishedAt);
-// 			newMessages.forEach(message => {
-// 				const _ = [...sockets[channelId]].forEach(async s => await s.emit("chatmessage", message));
-// 			});
-// 		});
-// 		listener.on("event-end", data => {
-// 			listening = false;
-// 			if (!sockets.hasOwnProperty(channelId)) return;
-// 			const _ = [...sockets[channelId]].forEach(async s => await s.emit("event-end", data));
-// 		});
-// 		return {
-// 			listening: true,
-// 		};
-// 	}
-// 	return {
-// 		listening: false,
-// 	};
-// }
-
-// app.get("/youtube/listen", async (req, res) => {
-// 	const result = await listenChat(req.query.id);
-// 	return res.json(result);
-// });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
