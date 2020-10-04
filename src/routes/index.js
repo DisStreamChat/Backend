@@ -229,7 +229,7 @@ router.get("/getchannels", async (req, res, next) => {
 				return { id: channel.id, name: channel.name, parent: parent };
 			});
 		const roleManager = selectedGuild.roles;
-		const roles = roleManager.cache.array();
+		const roles = roleManager.cache.array().filter(role => !role.managed);
 		if (req.query.new) {
 			res.json({ channels, roles });
 		} else {
