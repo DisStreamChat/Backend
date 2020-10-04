@@ -24,7 +24,7 @@ module.exports = async (guild, id) => {
 	const serverData = serverRef.data();
 	if (serverData) {
 		channelId = serverData.server;
-		const channelOverrides = serverData.channnelOverrides || {};
+		const channelOverrides = serverData.channelOverrides || {};
 		const eventDetails = defaultLogging[id];
 		const category = eventDetails?.category;
 		console.log(category);
