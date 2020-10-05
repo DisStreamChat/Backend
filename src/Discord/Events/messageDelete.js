@@ -27,9 +27,12 @@ module.exports = async message => {
 		.setAuthor(executor.tag, executor.avatarURL())
 		.setTitle("Message Deleted")
 		.setThumbnail(executor.avatarURL())
-		.setDescription(
-			`:x: A message from ${author || "An unknown user"} was deleted from ${channel} by ${executor}`
-        )
+		// .setDescription(
+		// 	`:x: A message from ${author || "An unknown user"} was deleted from ${channel} by ${executor}`
+        // )
+        .addField("Message Sender", `${author || "An unknown user"}`, true)
+        .addField("Channel", `${channel}`, true)
+        .addField("Deleted By", `${executor}`, true)
         .addField("Message Content", content || "unkown content")
 		.setFooter(`ID: ${id}`)
 		.setTimestamp(new Date())
