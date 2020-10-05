@@ -32,10 +32,10 @@ module.exports = {
 				roles = `${roles
 					.array()
 					.slice(0, -1)
-					.map(r => r.name)
-					.join(", ")} and ${roles.last().name}`;
+					.map(r => r)
+					.join(", ")} and ${roles.last()}`;
 			} else {
-				roles = roles.first().name;
+				roles = roles.first();
 			}
 		}
 
@@ -50,7 +50,7 @@ module.exports = {
 			.addField("Joined the server", joinedAt, true)
 			.addField("ID", member.id, true)
 			.addField("Bot :robot:", member.user.bot ? "Bleep bloop, I am a bot" : "This person isn't a bot", true)
-            .addField(`Roles [${size}]`, `\`${roles}\``)
+            .addField(`Roles [${size}]`, `${roles}`)
             .setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
 		msg.channel.send(embed);
 	},
