@@ -90,7 +90,14 @@ module.exports = {
 							.setDescription("Here are all the available custom commands")
 							.setThumbnail(client.user.displayAvatarURL())
 							.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-							.addField("Available Commands", availableCustomCommands.map(command => `\`${command.displayName}\``).join(", "))
+							.addField(
+								"Available Commands",
+								availableCustomCommands
+									.map(command =>
+										command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``
+									)
+									.join(", ")
+							)
 							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
 							.setTimestamp(message.createdAt)
 							.setColor("#206727");
