@@ -5,9 +5,9 @@ const path = require("path");
 const adminIds = require("../ranks.json");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 
-String.prototype.capitalize = function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-}
+String.prototype.capitalize = function () {
+	return this.charAt(0).toUpperCase() + this.slice(1);
+};
 
 const getLevel = xp => Math.max(0, Math.floor(Math.log(xp - 100)));
 
@@ -67,7 +67,9 @@ const modWare = async (msg, args, client, permissions, cb, { twitch } = {}) => {
 	if (hasPermsission(msg.member, permissions)) {
 		await cb(msg, args, client);
 	} else {
-		await msg.channel.send("❌ you don't have permission to use this command");
+		await msg.channel.send(
+			`❌ you don't have permission to use this command, use ${client?.prefix || ""}help to see available commands`
+		);
 	}
 };
 
@@ -155,17 +157,18 @@ const generateRankCard = async (userData, user) => {
 		const adminImage = await loadImage(adminLogo);
 		ctx.drawImage(adminImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75, iconWidth, iconWidth);
 	} else if (isSupporter) {
-		const supporterLogo = "https://icons-for-free.com/iconfiles/png/512/best+bookmark+premium+rating+select+star+icon-1320168257340660520.png";
+		const supporterLogo =
+			"https://icons-for-free.com/iconfiles/png/512/best+bookmark+premium+rating+select+star+icon-1320168257340660520.png";
 		const supporterImage = await loadImage(supporterLogo);
 		ctx.drawImage(supporterImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75, iconWidth, iconWidth);
 	}
 	return canvas;
 };
 
-const isAdmin = (user) => {
-    const discordAdmins = adminIds.discord.developers;
-	return (discordAdmins.includes(user.id))
-}
+const isAdmin = user => {
+	const discordAdmins = adminIds.discord.developers;
+	return discordAdmins.includes(user.id);
+};
 
 const adminWare = async (message, args, client, cb) => {
 	const discordAdmins = adminIds.discord.developers;
@@ -239,7 +242,7 @@ module.exports = {
 	roundRect,
 	applyText,
 	cleanRegex,
-    hoursToMillis: hrs => hrs * 3600000,
-    isAdmin,
-    sleep: async (millis) => new Promise(resolve => setTimeout(resolve, millis))
+	hoursToMillis: hrs => hrs * 3600000,
+	isAdmin,
+	sleep: async millis => new Promise(resolve => setTimeout(resolve, millis)),
 };

@@ -1,3 +1,4 @@
+const { MessageEmbed } = require("discord.js");
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
@@ -60,9 +61,15 @@ module.exports = {
 				break;
 
 			default:
-				await message.channel.send(
-					"❌ Invalid parameter specified. Possible parameters: add and delete, use !help commands for more details"
-				);
+				const errorEmbed = new MessageEmbed()
+					.setColor("#ee1111")
+					.setTitle("Invalid Param")
+					.setAuthor(client.user.tag, client.user.displayAvatarURL())
+					.setDescription(":x: Invalid parameter specified, use !help commands to get help on commands. \nManage commands at: https://www.disstreamchat.com/#/dashboard/discord/customcommands")
+					.addField("Valid Params", "`add`, `delete`")
+					.setFooter(`DisStreamChat Custom Commands`)
+					.setTimestamp(new Date())
+				await message.channel.send(errorEmbed);
 		}
 	},
 };

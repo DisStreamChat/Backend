@@ -7,8 +7,21 @@ const ranks = require("../ranks.json");
 
 const { handleLeveling } = require("./Leveling");
 
+const path = require("path")
+const fs = require("fs")
+const eventPath = path.join(__dirname, "./Events");
+const eventFiles = fs.readdirSync(eventPath);
+const events = {};
+
 module.exports = (DiscordClient, io, app) => {
-	// TODO: move discord events to separate file
+    // TODO: move discord events to separate file
+    eventFiles.forEach(event => {
+        if (event.endsWith(".js")) {
+            const eventHandler = require(path.join(eventPath, event));
+            DiscordClient.on(event.slice(0, -3), eventHandler)
+        }
+    });
+
 	DiscordClient.on("message", async message => {
         try{
 
