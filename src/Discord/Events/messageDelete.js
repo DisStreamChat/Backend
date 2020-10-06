@@ -13,7 +13,7 @@ module.exports = async message => {
 
 	if(DiscordClient.deleter){
 		console.log("bot deleter")
-		executor = DiscordClient.user
+		executor = DiscordClient.deleter
 	}
 
 	const { channel, content, author, id } = message;
