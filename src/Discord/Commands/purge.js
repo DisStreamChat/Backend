@@ -15,13 +15,13 @@ module.exports = {
 		if(amount < 2){
 			return message.channel.send("Minimum amount of messages to delete is 1.")
 		}
-
+		client.deleter = true
 		const messages = await message.channel.messages.fetch({ limit: amount });
 		for(message of messages.values()){
 			await message.delete();
 			await new Promise(resolve => setTimeout(resolve,300)) 
 		}
-		
+		client.deleter = false
 		const msg = await message.channel.send(`Deleted ${amount-1} messages`);
 		setTimeout(() => {
 			msg.delete();
