@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
-
+import {DiscordClient} from "../../utils/initClients"
 module.exports = async message => {
 	const guild = message.guild;
 
@@ -9,7 +9,12 @@ module.exports = async message => {
 
 	const deleteAction = await auditLog.entries.first();
 
-	const executor = deleteAction.executor;
+	let executor = deleteAction.executor;
+
+	if(DiscordClient.deleter){
+		console.log("bot deleter")
+		executor = DiscordClient.deleter
+	}
 
 	const { channel, content, author, id } = message;
 

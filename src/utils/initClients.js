@@ -29,12 +29,12 @@ DiscordClient.on("ready", async () => {
 	}, hoursToMillis(1));
 });
 
-eventFiles.forEach(event => {
-	if (event.endsWith(".js")) {
-		const eventHandler = require(path.join(eventPath, event));
-		DiscordClient.on(event.slice(0, -3), eventHandler)
-	}
-});
+// eventFiles.forEach(event => {
+// 	if (event.endsWith(".js")) {
+// 		const eventHandler = require(path.join(eventPath, event));
+// 		DiscordClient.on(event.slice(0, -3), eventHandler)
+// 	}
+// });
 
 // initialize the twitch client
 const TwitchClient = new tmi.Client({
