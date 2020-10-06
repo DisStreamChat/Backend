@@ -26,6 +26,13 @@ module.exports = async (command, message, client) => {
 	if (command.DM) {
 		embed.setDescription(`${action} Role **${roleObj.name}** ${action === "Removed" ? "from" : "to"} ${member}`);
 		return await message.author.send(embed);
-	}
-	await message.channel.send(embed);
+    }
+    
+    const notification = await message.channel.send(embed);
+    if(command.deleteUsage){
+        setTimeout(() => {
+            notification.delete();
+            message.delete()
+        }, 1500)
+    }
 };
