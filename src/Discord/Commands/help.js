@@ -56,11 +56,11 @@ module.exports = {
 			if (hasPermsission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
 				helpEmbed.addField(
 					"Moderator Tip",
-					"Type `!help module` to get informations about the available module or `help module <module name>` for help on a specific module"
+					"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
 				);
 			}
 			if (isAdmin(message.author)) {
-				helpEmbed.addField("DisStreamChat Admin Tip", "Type `!help admin` for links to DisStreamChat admin tools");
+				helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 			}
 			await message.channel.send(helpEmbed);
 		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
