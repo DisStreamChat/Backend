@@ -24,42 +24,28 @@ module.exports = async ({ command, args, message, client }) => {
 	if (guildData) {
 		for (const [key, value] of Object.entries(guildData)) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
-				// check if this command is still cooling down
-				if (value.allowedChannels?.length) {
-					if (!value.allowedChannels.includes(message.channel.id)) return;
-				}
-
-				const lastUsed = value.lastUsed || 0;
-				const cooldown = value.cooldownTime;
-				const now = new Date().getTime();
-				if (cooldown) {
-					const nextAvailableUse = lastUsed + cooldown;
-					if (nextAvailableUse > now) {
-						return await message.channel.send(
-							`:x: you must wait ${prettyMilliseconds(Math.abs(nextAvailableUse - now))} to use this command`
-						);
-					}
-				}
+                // check if this command is still cooling down
+                const lastUsed = value.lastUsed || 0
+                const cooldown = value.cooldownTime
+                const now = new Date().getTime()
+                if(cooldown){
+                    const nextAvailableUse = lastUsed + cooldown
+                    if(nextAvailableUse > now){
+                        return await message.channel.send(`:x: you must wait ${prettyMilliseconds(Math.abs(nextAvailableUse - now))} to use this command`)
+                    }
+                }
 
 				// check if the user can use this command based on their roles
 				const roles = message.member.roles;
 				const roleIds = roles.cache.array().map(role => role.id);
 				if (value.permittedRoles?.length) {
 					if (!ArrayAny(value.permittedRoles, roleIds)) {
-						const res = await message.channel.send(":x: You don't have permission to use this command");
-						setTimeout(() => {
-							res.delete();
-							message.delete();
-						}, 300);
+						return await message.channel.send(":x: You don't have permission to use this command");
 					}
 				}
 				if (value.bannedRoles?.length) {
 					if (ArrayAny(value.bannedRoles, roleIds)) {
-						const res = await message.channel.send(":x: You don't have permission to use this command");
-						setTimeout(() => {
-							res.delete();
-							message.delete();
-						}, 300);
+						return await message.channel.send(":x: You don't have permission to use this command");
 					}
 				}
 
