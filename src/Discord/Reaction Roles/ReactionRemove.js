@@ -9,5 +9,5 @@ module.exports = (reaction, user) => {
     const guildData = guild.data()
     const reactionRoleMessage = guildData[message.id] 
     if(!reactionRoleMessage) return 
-    // handle reaction and assign the correct role
+    // handle reaction and assign the correct roles
 }
