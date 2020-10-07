@@ -47,17 +47,20 @@ module.exports = {
 				.setThumbnail(client.user.displayAvatarURL())
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
 				.addField("Available Commands", availableCommands.map(command => `\`${command.displayName}\``).join(", "))
-				.addField("Tip", "Type `help <command name>` to get help on a specific command ")
+				.addField(
+					"Tip",
+					"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
+				)
 				.setTimestamp(message.createdAt)
 				.setColor("#206727");
 			if (hasPermsission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
 				helpEmbed.addField(
 					"Moderator Tip",
-					"Type `!help module` to get informations about the available module or help module <module name> for help on a specific module"
+					"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
 				);
 			}
 			if (isAdmin(message.author)) {
-				helpEmbed.addField("DisStreamChat Admin Tip", "Type `!help admin` to links to DisStreamChat admin tools");
+				helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 			}
 			await message.channel.send(helpEmbed);
 		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
@@ -76,22 +79,29 @@ module.exports = {
 					if (args[1]) {
 						const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
 						if (!commandHelpEmbed) {
-							await message.channel.send(":x: Command not found, use help to get the list of available commands");
+							await message.channel.send(":x: Command not found, use `help` to get the list of available commands");
 						} else {
 							await message.channel.send(commandHelpEmbed);
 						}
 					} else {
-						const availableCustomCommands = getCommands(message, { commands: guildData})
+						const availableCustomCommands = getCommands(message, { commands: guildData });
 						const customHelpEmbed = new MessageEmbed()
 							.setTitle("DisStreambot Help")
 							.setDescription("Here are all the available custom commands")
 							.setThumbnail(client.user.displayAvatarURL())
 							.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-							.addField("Available Commands", availableCustomCommands.map(command => `\`${command.displayName}\``).join(", "))
+							.addField(
+								"Available Commands",
+								availableCustomCommands
+									.map(command =>
+										command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``
+									)
+									.join(", ")
+							)
 							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
 							.setTimestamp(message.createdAt)
 							.setColor("#206727");
-						message.channel.send(customHelpEmbed);
+						await message.channel.send(customHelpEmbed);
 					}
 					break;
 			}
