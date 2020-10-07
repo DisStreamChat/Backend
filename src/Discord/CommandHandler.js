@@ -32,10 +32,18 @@ module.exports = async (message, client) => {
 		prefix = settings?.prefix || "!";
 	} catch (err) {}
 	if (process.env.BOT_DEV == "true") prefix = "?";
-	client.prefix = prefix;
-	if (!message.content.startsWith(prefix)) return;
+    client.prefix = prefix;
+    const isMention = (message?.mentions?.users?.has(client.user.id))
+	let isCommand = message.content.startsWith(prefix) || isMention;
+    if (!isCommand) return;
+    if(isMention){
+        message.content = message.content.replace(`<@!${client.user.id}> `, "")
+    }
 	const args = message.content.split(" ");
-	const command = args.shift().slice(1);
+    let command = args.shift();
+    if(!isMention){
+        command = command.slice(1)
+    }
 	const commandObj = commands[command];
 	if (!commandObj) {
 		customCommandHandler({ message, args, client, command });
