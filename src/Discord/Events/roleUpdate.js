@@ -1,19 +1,35 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
+const rdiff = require("recursive-diff");
 
 module.exports = async (oldRole, newRole) => {
-    // const guild = channel.guild;
+    console.log("role updated")
+	const guild = oldRole.guild;
 
-    // let channelId = null;
-    // const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-    // const serverData = serverRef.data();
-    // if (serverData) {
-    //     channelId = serverData.server;
-    //     const activeLogging = serverData.activeEvents || {}
-    //     if(!activeLogging["roleUpdate"]) return 
-    // }
+	const auditLog = await guild.fetchAuditLogs();
 
-    // if (!channelId) return;
+	const deleteAction = await auditLog.entries.first();
 
-    // console.log(oldRole, newRole)
+	let executor = deleteAction.executor;
+
+	let channelId = null;
+	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+	const serverData = serverRef.data();
+	if (serverData) {
+		channelId = serverData.server;
+		const activeLogging = serverData.activeEvents || {};
+		if (!activeLogging["roleUpdate"]) return;
+	}
+
+	if (!channelId) return;
+	// let changed = "";
+	// if (oldRold.name !== newRole.name) {
+	// 	changed = "name";
+	// } else if (oldRole.color !== newRole.color) {
+	// 	changed = "color";
+	// } else if(oldRole.hoist !== newRole.hoist){
+
+	// }
+
+	// console.log(oldRole, newRole)
 };
