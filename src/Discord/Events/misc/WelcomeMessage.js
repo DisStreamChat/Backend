@@ -1,7 +1,8 @@
 import admin from "firebase-admin";
-const { formatFromNow } = require("../../utils/functions");
+const { formatFromNow } = require("../../../utils/functions");
 import { MessageEmbed } from "discord.js";
 import generateView from "../../Commands/CustomCommands/GenerateView";
+import Mustache from "mustache"
 
 Mustache.tags = ["{", "}"];
 
