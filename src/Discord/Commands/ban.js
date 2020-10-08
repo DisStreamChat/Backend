@@ -11,12 +11,14 @@ module.exports = {
 	execute: async (message, args, client) => {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
-		}
-		let member = resolveUser(message, args.join(" "));
-		if (!member.bannable) {
-			return await message.channel.send(new MessageEmbed().setAuthor(`:x: Unable to ban ${member}`, member.user.avatarURL()));
         }
-        const nickname = member.user.username
+        // user = await message.guild.fetchBan(args[0].replace(/[\\<>@#&!]/g, ""))
+        let member = resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
+        console.log(member)
+		if (!member.bannable) {
+			return await message.channel.send(new MessageEmbed().setDescription(`:x: Unable to ban ${member}`));
+		}
+		const nickname = member.user.username;
 		await member.ban();
 		const embed = new MessageEmbed()
 			.setTitle("Banned user")

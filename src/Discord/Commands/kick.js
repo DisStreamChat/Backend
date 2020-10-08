@@ -12,7 +12,7 @@ module.exports = {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
 		}
-		let member = resolveUser(message, args.join(" "));
+		let member = resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
 		if (!member) {
 			return await message.channel.send(":x: Invalid User");
 		}
@@ -22,9 +22,9 @@ module.exports = {
 		const nickname = member.user.username;
 		await member.kick();
 		const embed = new MessageEmbed()
-			.setTitle("Banned user")
+			.setTitle("Kicked user")
 			.setAuthor(client.user.tag, client.user.avatarURL())
-			.setDescription(`Banned **${nickname}**`);
+			.setDescription(`Kicked **${nickname}**`);
 		message.channel.send(embed);
 	},
 };
