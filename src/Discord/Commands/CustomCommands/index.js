@@ -47,11 +47,13 @@ module.exports = async ({ command, args, message, client }) => {
                 console.log(value.permittedRoles, roleIds)
 				if (value.permittedRoles?.length) {
 					if (!ArrayAny(value.permittedRoles, roleIds)) {
+                        console.log("allowed")
 						const res = await message.channel.send(":x: You don't have permission to use this command");
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-						}, 300);
+                        }, 300);
+                        return
 					}
 				}
 				if (value.bannedRoles?.length) {
@@ -60,7 +62,8 @@ module.exports = async ({ command, args, message, client }) => {
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-						}, 300);
+                        }, 300);
+                        return
 					}
 				}
 
