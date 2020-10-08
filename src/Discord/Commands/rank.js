@@ -28,6 +28,11 @@ module.exports = {
 		const guildData = guildRef.data();
 		let userData = guildData[user.id];
 		if (!userData) userData = { xp: 0, level: 0 };
+		const sorted = Object.entries(guildData || {}).filter(entry => !["message", "notifications", "type"].includes(entry[0])).sort((a, b) => b[1].xp - a[1].xp)
+		let rank = sorted.findIndex(entry => entry[0] === user.id)+1
+		if(rank === 0) rank = sorted.length+1
+		console.log("rank:", rank)
+		userData.rank = rank
 		const rankCard = await generateRankCard(userData, user);
 		const attachment = new MessageAttachment(rankCard.toBuffer(), "card.png");
 		fs.writeFileSync(path.join(__dirname, `../../../images/${user.user.username}.png`), rankCard.toBuffer());

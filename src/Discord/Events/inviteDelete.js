@@ -15,7 +15,7 @@ module.exports = async invite => {
 		.setFooter(`Code: ${invite.code}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
-
+		
 	if (!channelId) return;
 
 	const logChannel = guild.channels.resolve(channelId);

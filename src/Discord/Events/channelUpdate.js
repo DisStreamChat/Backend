@@ -5,7 +5,7 @@ import setupLogging from "./utils/setupLogging";
 module.exports = async (oldEmoji, newEmoji) => {
     const guild = newEmoji.guild;
 
-    const [channelId, active] = setupLogging(guild, "emojiUpdate")
+    const [channelId, active] = setupLogging(guild, "channelUpdate")
     if(!active) return
 
     if (!channelId) return;

@@ -100,34 +100,54 @@ const generateRankCard = async (userData, user) => {
 	const canvas = createCanvas(700, 250);
 	const ctx = canvas.getContext("2d");
 	const xpToNextLevel = getXp(userData.level + 1);
+	const xpForCurrentLevel = getXp(userData.level);
+	const xpLevelDif = Math.abs(xpToNextLevel - xpForCurrentLevel);
 	const currentXp = userData.xp;
 	const percentDone = currentXp / xpToNextLevel;
-	ctx.fillStyle = "#090b0b";
+	ctx.fillStyle = "#1f2525a0";
 	roundRect(ctx, 0, 0, canvas.width, canvas.height, 125);
+	ctx.fillStyle = "#090b0b";
+	const gap = 20;
+	roundRect(ctx, gap, gap, canvas.width - gap * 2, canvas.height - gap * 2, 125);
 
 	const barWidth = canvas.width / 1.75;
 	const barHeight = 25;
 
+	const bary = 160;
+	//xp bar
 	ctx.fillStyle = "#484b4e";
-	roundRect(ctx, canvas.width / 3, 175, barWidth, barHeight, barHeight / 2);
+	roundRect(ctx, canvas.width / 3, bary, barWidth, barHeight, barHeight / 2);
 	ctx.fillStyle = "#c31503";
-	roundRect(ctx, canvas.width / 3, 175, barWidth * percentDone, barHeight, barHeight / 2);
+	roundRect(ctx, canvas.width / 3, bary, barWidth * percentDone, barHeight, barHeight / 2);
 
 	ctx.font = "24px Poppins";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText(`${user.user.tag}`, canvas.width / 3, 160);
+	ctx.fillText(`${user.user.tag}`, canvas.width / 3, 100);
+	ctx.strokeStyle = "#c31503";
+	ctx.lineWidth = 4;
+	ctx.lineCap = "round";
+	ctx.beginPath();
+	const lineY = 112;
+	ctx.moveTo(canvas.width / 3, lineY);
+	ctx.lineTo(canvas.width - canvas.width / 5, lineY);
+	ctx.stroke();
 	ctx.font = "18px Poppins";
-	const displayXp = userData.xp > 1000 ? `${(userData.xp / 1000).toFixed(2)}k` : userData.xp;
-	const displayXpToGo = xpToNextLevel > 1000 ? `${(xpToNextLevel / 1000).toFixed(2)}k` : xpToNextLevel;
+	const xpProgress = Math.abs(userData.xp - xpForCurrentLevel);
+	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : xpProgress;
+	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
 	const xpText = `${displayXp}/${displayXpToGo} XP`;
 	const xpTextWidth = ctx.measureText(xpText).width;
 	ctx.fillStyle = "#dddddd";
-	ctx.fillText(xpText, canvas.width - xpTextWidth - 80, 160);
+	const textY = 145;
+	ctx.fillText(xpText, canvas.width - xpTextWidth - 80, textY);
 	ctx.fillStyle = "#ffffff";
-	ctx.font = "42px Poppins";
+	ctx.font = "24px Poppins";
 	const levelText = `Level ${userData.level + 1}`;
 	const levelTextWidth = ctx.measureText(levelText).width;
-	ctx.fillText(levelText, canvas.width - levelTextWidth - 80, 50);
+	ctx.fillText(levelText, canvas.width / 3, textY);
+	if (userData.rank) {
+		ctx.fillText(`Rank ${userData.rank}`, canvas.width / 3 + levelTextWidth + 20, textY);
+	}
 	ctx.save();
 	ctx.fillStyle = "#000000";
 	ctx.beginPath();
@@ -160,7 +180,7 @@ const generateRankCard = async (userData, user) => {
 		const supporterLogo =
 			"https://icons-for-free.com/iconfiles/png/512/best+bookmark+premium+rating+select+star+icon-1320168257340660520.png";
 		const supporterImage = await loadImage(supporterLogo);
-		ctx.drawImage(supporterImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75, iconWidth, iconWidth);
+		ctx.drawImage(supporterImage, 25 * 1.75 + 200 / 1.25 - (iconWidth * 0.8) / 1.15, 25 * 1.75, iconWidth * 0.8, iconWidth * 0.8);
 	}
 	return canvas;
 };

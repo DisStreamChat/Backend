@@ -19,10 +19,15 @@ setTimeout(() => {
 
 module.exports = async (guild, id) => {
 	let channelId = null;
-	let active = true;
+	let active = false;
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
+	const serverSettingsRef = await admin.firestore().collection("DiscordSettings").doc(guild.id).get()
+	const serverSettingsData = serverSettingsRef.data()
 	const serverData = serverRef.data();
 	if (serverData) {
+		if(serverSettingsData){
+			active = serverSettingsData.activePlugins.logging
+		}
 		channelId = serverData.server;
 		const channelOverrides = serverData.channelOverrides || {};
 		const eventDetails = defaultLogging[id];
