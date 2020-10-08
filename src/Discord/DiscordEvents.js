@@ -31,7 +31,7 @@ module.exports = (DiscordClient, io, app) => {
             if (!message.author.bot) {
                 await handleLeveling(message);
             }
-            if ((message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") && !message.author.bot) {
+            if (/*(message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") &&*/ !message.author.bot) {
                 // remove in the future to make it work on all guilds
                 await CommandHandler(message, DiscordClient);
             }
