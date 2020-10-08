@@ -6,6 +6,8 @@ const { getXp } = require("../utils/functions");
 
 module.exports = {
 	handleLeveling: async message => {
+		const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get()).data();
+		if (!settings?.activePlugins?.leveling) return;
 		const levelingDataRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
 		const levelingData = levelingDataRef.data();
 		if (levelingData) {
@@ -26,8 +28,8 @@ module.exports = {
 				if (userLevelingData.xp >= xpToNextLevel) {
 					userLevelingData.level++;
 					if (levelingData.type !== 1) {
-                        const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
-                            .replace("{ping}", message.author)
+						const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
+							.replace("{ping}", message.author)
 							.replace("{player}", message.member.displayName)
 							.replace("{level}", userLevelingData.level + 1);
 						try {
@@ -42,7 +44,11 @@ module.exports = {
 				await admin.firestore().collection("Leveling").doc(message.guild.id).update(levelingData);
 			}
 		} else {
-			// await admin.firestore().collection("Leveling").doc(message.guild.id).set({});
+			try {
+				await admin.firestore().collection("Leveling").doc(message.guild.id).update({});
+			} catch (err) {
+				await admin.firestore().collection("Leveling").doc(message.guild.id).set({});
+			}
 		}
 	},
 };
