@@ -42,7 +42,7 @@ module.exports = async (message, client) => {
 	const args = message.content.split(" ");
     let command = args.shift();
     if(!isMention){
-        command = command.slice(1)
+        command = command.slice(prefix.length)
     }
 	const commandObj = commands[command];
 	if (!commandObj) {
