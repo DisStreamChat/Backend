@@ -14,7 +14,7 @@ module.exports = async message => {
     let executor = deleteAction.executor;
     
     if(deleteAction.action !== "MESSAGE_DELETE"){
-        executor = null
+        executor = message.author
     }
 
 	if(DiscordClient.deleter){
