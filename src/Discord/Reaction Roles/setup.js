@@ -1,5 +1,6 @@
+const admin = require("firebase-admin");
 
-module.exports = (reaction, user) => {
+module.exports = async (reaction, user) => {
     const message = reaction.message
     const guild = message.guild
     const member = guild.members.resolve(user)
@@ -8,7 +9,9 @@ module.exports = (reaction, user) => {
     const guildData = guildDB.data()
     const reactionRoleMessage = guildData[message.id] 
     if(!reactionRoleMessage) return 
-    const roleToGiveId = reactionRoleMessage.roles[reaction.emoji.id]
+    let roleToGiveId = reactionRoleMessage.roles[reaction.emoji.id]
+    if(!roleToGiveId) roleToGiveId = reactionRoleMessage.roles["catch-all"]
+    const toggle = reactionRoleMessage.toggle
     const roleToGive = await guild.roles.fetch(roleToGiveId)
-    if(!roleToGive) return 
+    return {roleToGive, toggle}
 }
