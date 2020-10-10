@@ -33,6 +33,6 @@ module.exports = async (command, message, client) => {
         setTimeout(() => {
             notification.delete();
             message.delete()
-        }, 1500)
+        }, 2500)
     }
 };
