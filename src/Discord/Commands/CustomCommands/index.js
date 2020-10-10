@@ -52,7 +52,7 @@ module.exports = async ({ command, args, message, client }) => {
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-                        }, 500);
+                        }, 2500);
                         return
 					}
 				}
@@ -62,7 +62,7 @@ module.exports = async ({ command, args, message, client }) => {
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-                        }, 500);
+                        }, 2500);
                         return
 					}
 				}
