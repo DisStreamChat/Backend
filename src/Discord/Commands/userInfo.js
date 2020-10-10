@@ -52,7 +52,7 @@ module.exports = {
 			.addField(`Playing`, game, true)
 			.addField("Account created", createdAt, true)
 			.addField("Joined the server", joinedAt, true)
-			.addField("Bot?", member.user.bot ? "Beep boop, I am a bot" : "This person human", true)
+			.addField("Bot?", member.user.bot ? "Beep boop, I am a bot" : "This person is not a bot", true)
             .addField(`Roles - ${size}`, `${roles}`)
             .setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
             .setFooter(`ID: ${member.id}`)
