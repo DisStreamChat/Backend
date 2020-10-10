@@ -9,9 +9,17 @@ module.exports = async (reaction, user) => {
     const guildData = guildDB.data()
     const reactionRoleMessage = guildData[message.id] 
     if(!reactionRoleMessage) return 
-    let roleToGiveId = reactionRoleMessage.roles[reaction.emoji.id]
-    if(!roleToGiveId) roleToGiveId = reactionRoleMessage.roles["catch-all"]
-    const toggle = reactionRoleMessage.toggle
+    let action = reactionRoleMessage.actions[reaction.emoji.id]
+    if(!action) action = reactionRoleMessage.actions["catch-all"]
+    if(!action) return
+    const roleToGive = action.role
     const roleToGive = await guild.roles.fetch(roleToGiveId)
-    return {roleToGive, toggle}
+    return {roleToGive, ...action}
 }
+
+/*
+action = {
+    role: role id that is handled by this action
+}
+
+*/
