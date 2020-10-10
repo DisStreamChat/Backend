@@ -1,9 +1,13 @@
 const admin = require("firebase-admin");
-import setup from "./setup";
+
 module.exports = async (reaction, user) => {
-	const {roleToGive} = await setup(reaction, user);
-    if (!roleToGive) return;
-    const member = await reaction.message.guild.members.resolve(user)
-	await member.roles.add(roleToGive);
-	// handle reaction and assign the correct role
-};
+    const message = reaction.message
+    const guild = message.guild
+    const member = guild.members.resolve(user)
+    const guildRef = admin.firestore().collection("reactionRoles").doc(guild.id)
+    const guildDB = await guildRef.get()
+    const guildData = guildDB.data()
+    const reactionRoleMessage = guildData[message.id] 
+    if(!reactionRoleMessage) return 
+    // handle reaction and assign the correct role
+}
