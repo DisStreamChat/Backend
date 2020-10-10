@@ -56,6 +56,7 @@ module.exports = {
             .addField(`Roles - ${size}`, `${roles}`)
             .setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
             .setFooter(`ID: ${member.id}`)
+            .setTimestamp(new Date())
 		msg.channel.send(embed);
 	},
 };
