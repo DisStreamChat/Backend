@@ -1,7 +1,7 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 const { formatMessage } = require("../utils/messageManipulation");
 const CommandHandler = require("./CommandHandler");
-const ReactionRoles = require("./Reaction Roles")
+const ReactionRoles = require("./Reaction Manager")
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 
