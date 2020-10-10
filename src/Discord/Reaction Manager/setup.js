@@ -3,10 +3,17 @@ const admin = require("firebase-admin");
 module.exports = async (reaction, user, onJoin) => {
 	const message = reaction.message;
 	const guild = message.guild;
-	const member = guild.members.resolve(user);
 	const guildRef = admin.firestore().collection("reactions").doc(guild.id);
 	const guildDB = await guildRef.get();
 	const guildData = guildDB.data();
+	if (!guildData) {
+		try {
+			guildRef.update({});
+		} catch (err) {
+			guildRef.set({});
+		}
+		return {};
+	}
 	const reactionRoleMessage = guildData[message.id];
 	if (!reactionRoleMessage) return {};
 	let action;
@@ -17,7 +24,7 @@ module.exports = async (reaction, user, onJoin) => {
 		if (!action) action = reactionRoleMessage.actions["catch-all"];
 	}
 	if (!action) return {};
-	const roleToGive = action.role;
+	const roleToGiveId = action.role;
 	const roleToGive = await guild.roles.fetch(roleToGiveId);
 	return { roleToGive, ...action };
 };
