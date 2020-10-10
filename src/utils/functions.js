@@ -102,8 +102,9 @@ const generateRankCard = async (userData, user) => {
 	const xpToNextLevel = getXp(userData.level + 1);
 	const xpForCurrentLevel = getXp(userData.level);
 	const xpLevelDif = Math.abs(xpToNextLevel - xpForCurrentLevel);
-	const currentXp = userData.xp;
-	const percentDone = currentXp / xpToNextLevel;
+    const currentXp = userData.xp;
+    const xpProgress = Math.abs(userData.xp - xpForCurrentLevel);
+	const percentDone = xpProgress / xpLevelDif;
 	ctx.fillStyle = "#1f2525a0";
 	roundRect(ctx, 0, 0, canvas.width, canvas.height, 125);
 	ctx.fillStyle = "#090b0b";
@@ -118,7 +119,7 @@ const generateRankCard = async (userData, user) => {
 	ctx.fillStyle = "#484b4e";
 	roundRect(ctx, canvas.width / 3, bary, barWidth, barHeight, barHeight / 2);
 	ctx.fillStyle = "#c31503";
-	roundRect(ctx, canvas.width / 3, bary, barWidth * percentDone, barHeight, barHeight / 2);
+	roundRect(ctx, canvas.width / 3, bary, Math.max(barWidth * percentDone, barHeight), barHeight, barHeight / 2);
 
 	ctx.font = "24px Poppins";
 	ctx.fillStyle = "#ffffff";
@@ -132,7 +133,7 @@ const generateRankCard = async (userData, user) => {
 	ctx.lineTo(canvas.width - canvas.width / 5, lineY);
 	ctx.stroke();
 	ctx.font = "18px Poppins";
-	const xpProgress = Math.abs(userData.xp - xpForCurrentLevel);
+	
 	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : xpProgress;
 	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
 	const xpText = `${displayXp}/${displayXpToGo} XP`;
