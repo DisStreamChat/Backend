@@ -33,7 +33,7 @@ DiscordClient.on("ready", async () => {
 		} else {
 			DiscordClient.user.setPresence({
 				status: "online",
-				activity: { type: "WATCHING", name: `@${DiscordClient.user.name} help` },
+				activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
 			});
 		}
 		serverPresence = !serverPresence;
