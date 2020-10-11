@@ -14,7 +14,7 @@ const eventFiles = fs.readdirSync(eventPath);
 const events = {};
 
 module.exports = (DiscordClient, io, app) => {
-    // ReactionRoles(DiscordClient)
+    ReactionRoles(DiscordClient)
     // TODO: move discord events to separate file
     eventFiles.forEach(event => {
         if (event.endsWith(".js")) {
