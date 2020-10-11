@@ -15,7 +15,7 @@ const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REA
 DiscordClient.login(process.env.BOT_TOKEN);
 
 let serverLength = 0;
-let serverPresence = true;
+let serverPresence = false;
 
 DiscordClient.on("ready", async () => {
 	console.log("bot ready");
