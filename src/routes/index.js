@@ -229,7 +229,7 @@ router.get("/getchannels", async (req, res, next) => {
 				return { id: channel.id, name: channel.name, parent: parent };
 			});
 		const roleManager = selectedGuild.roles;
-		const roles = roleManager.cache.array()/*.filter(role => !role.managed);*/
+		const roles = roleManager.cache.array(); /*.filter(role => !role.managed);*/
 		if (req.query.new) {
 			res.json({ channels, roles });
 		} else {
@@ -322,7 +322,61 @@ router.get("/discord/token", async (req, res, next) => {
 		};
 		console.log(body);
 		const tokenData = await oauth.tokenRequest(body);
-		res.json(await getUserInfo(tokenData));
+		const discordInfo = await getUserInfo(tokenData);
+		if (req.query.create) {
+			const uid = sha1(discordInfo.id);
+			let token = await admin.auth().createCustomToken(uid);
+			try {
+				await admin.firestore().collection("Streamers").doc(uid).update({
+					displayName: discordInfo.name,
+					profilePicture: discordInfo.profilePicture,
+					name: discordInfo.name.toLowerCase(),
+				});
+			} catch (err) {
+				await admin
+					.firestore()
+					.collection("Streamers")
+					.doc(uid)
+					.set({
+						displayName: discordInfo.name,
+						profilePicture: discordInfo.profilePicture,
+						name: discordInfo.name.toLowerCase(),
+						uid: uid,
+						ModChannels: [],
+						appSettings: {
+							TwitchColor: "",
+							YoutubeColor: "",
+							discordColor: "",
+							displayPlatformColors: false,
+							displayPlatformIcons: false,
+							highlightedMessageColor: "",
+							showHeader: true,
+							showSourceButton: false,
+							compact: false,
+							showBorder: false,
+							nameColors: true,
+						},
+						discordLinked: true,
+						guildId: [],
+						liveChatId: [],
+						overlaySettings: {
+							TwitchColor: "",
+							YoutubeColor: "",
+							discordColor: "",
+							displayPlatformColors: false,
+							displayPlatformIcons: false,
+							highlightedMessageColor: "",
+							nameColors: true,
+							compact: false,
+						},
+                        twitchAuthenticated: false,
+						youtubeAuthenticated: false,
+					});
+			}
+			res.json({ ...discordInfo, token });
+		} else {
+			res.json(discordInfo);
+		}
 	} catch (err) {
 		// res.send
 		next(err);
