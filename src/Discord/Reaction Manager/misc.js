@@ -11,7 +11,7 @@ const getDmEmbed = ({ user, action, role }) =>
 const removeRole = async ({ member, role, DMuser }) => {
 	await member.roles.remove(role);
 	if (DMuser) {
-		const embed = GetDmEmbed({ user, role, action: "remove" });
+		const embed = getDmEmbed({ user, role, action: "remove" });
 		await member.user.send(embed);
 	}
 };
@@ -19,7 +19,7 @@ const removeRole = async ({ member, role, DMuser }) => {
 const addRole = async ({ member, role, DMuser }) => {
 	await member.roles.add(role);
 	if (DMuser) {
-		const embed = GetDmEmbed({ user, role, action: "add" });
+		const embed = getDmEmbed({ user, role, action: "add" });
 		await member.user.send(embed);
 	}
 };
