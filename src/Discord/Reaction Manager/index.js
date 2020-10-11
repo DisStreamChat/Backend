@@ -5,5 +5,5 @@ import MemberAdd from "./GuildMemberAdd"
 module.exports = (client) => {
     client.on("messageReactionAdd", ReactionAdd)
     client.on("messageReactionRemove", ReactionRemove)
-    client.on("GuildMemberAdd", MemberAdd)
+    client.on("guildMemberAdd", MemberAdd)
 }
