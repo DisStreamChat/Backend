@@ -8,20 +8,24 @@ const getDmEmbed = ({ user, action, role }) =>
 		.setDescription(`${action === "add" ? "Added" : "Removed"} the Role **${role.name}**`)
 		.setTimestamp(new Date());
 
+const removeRole = async ({ member, role, DMuser }) => {
+	await member.roles.remove(role);
+	if (DMuser) {
+		const embed = GetDmEmbed({ user, role, action: "remove" });
+		await member.user.send(embed);
+	}
+};
+
+const addRole = async ({ member, role, DMuser }) => {
+	await member.roles.add(role);
+	if (DMuser) {
+		const embed = GetDmEmbed({ user, role, action: "add" });
+		await member.user.send(embed);
+	}
+};
+
 module.exports = {
 	getDmEmbed,
-	removeRole: async ({ member, role, DMuser }) => {
-		await member.roles.remove(role);
-		if (DMuser) {
-			const embed = GetDmEmbed({ user, role, action: "remove" });
-			await member.user.send(embed);
-		}
-	},
-	addRole: async ({ member, role, DMuser }) => {
-		await member.roles.add(role);
-		if (DMuser) {
-			const embed = GetDmEmbed({ user, role, action: "add" });
-			await member.user.send(embed);
-		}
-	},
+	removeRole,
+	addRole,
 };
