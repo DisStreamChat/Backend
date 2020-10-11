@@ -331,6 +331,7 @@ router.get("/discord/token", async (req, res, next) => {
 					displayName: discordInfo.name,
 					profilePicture: discordInfo.profilePicture,
 					name: discordInfo.name.toLowerCase(),
+					discordId: discordInfo.id,
 				});
 			} catch (err) {
 				await admin
@@ -342,6 +343,7 @@ router.get("/discord/token", async (req, res, next) => {
 						profilePicture: discordInfo.profilePicture,
 						name: discordInfo.name.toLowerCase(),
 						uid: uid,
+						discordId: discordInfo.id,
 						ModChannels: [],
 						appSettings: {
 							TwitchColor: "",
@@ -369,7 +371,7 @@ router.get("/discord/token", async (req, res, next) => {
 							nameColors: true,
 							compact: false,
 						},
-                        twitchAuthenticated: false,
+						twitchAuthenticated: false,
 						youtubeAuthenticated: false,
 					});
 			}
@@ -478,8 +480,9 @@ router.get("/profilepicture", async (req, res, next) => {
 		console.log(user);
 		if (platform === "twitch" || !platform) {
 			profilePicture = (await Api.getUserInfo(user))["profile_image_url"];
-		} else if (platform === "youtube") {
-			// get profile picture from youtube api
+		} else if (platform === "discord") {
+			const userObj = await DiscordClient.users.fetch(req.query.user);
+			profilePicture = userObj.displayAvatarURL({ format: "png" });
 		}
 		if (!profilePicture) {
 			throw new Error("invalid profile picture");
