@@ -2,7 +2,8 @@ import setup from "./setup";
 import { addRole, removeRole } from "./misc";
 
 module.exports = async (reaction, user) => {
-	const { roleToGive, type, role, DMuser } = await setup(reaction, user);
+    const { roleToGive, type, role, DMuser } = await setup(reaction, user);
+    console.log(DMuser)
 	if (!roleToGive) return;
 	const member = await reaction.message.guild.members.resolve(user);
 	switch (type) {

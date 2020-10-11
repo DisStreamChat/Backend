@@ -6,12 +6,13 @@ const getDmEmbed = ({ user, action, role }) =>
 		.setTitle(`Role ${action === "add" ? "Added" : "Removed"}`)
 		.setAuthor(DiscordClient.user.tag, DiscordClient.user.displayAvatarURL())
 		.setDescription(`${action === "add" ? "Added" : "Removed"} the Role **${role.name}**`)
-		.setTimestamp(new Date());
+		.setTimestamp(new Date())
+		.setColor(role.hexColor === "#000000" ? "#FFFFFF" : role.hexColor);
 
 const removeRole = async ({ member, role, DMuser }) => {
 	await member.roles.remove(role);
 	if (DMuser) {
-		const embed = getDmEmbed({ user, role, action: "remove" });
+		const embed = getDmEmbed({ role, action: "remove" });
 		await member.user.send(embed);
 	}
 };
@@ -19,7 +20,7 @@ const removeRole = async ({ member, role, DMuser }) => {
 const addRole = async ({ member, role, DMuser }) => {
 	await member.roles.add(role);
 	if (DMuser) {
-		const embed = getDmEmbed({ user, role, action: "add" });
+		const embed = getDmEmbed({ role, action: "add" });
 		await member.user.send(embed);
 	}
 };
