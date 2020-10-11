@@ -20,7 +20,7 @@ module.exports = async (reaction, user, onJoin) => {
 	if (onJoin) {
 		action = reactionRoleMessage.actions["user-join"];
 	} else {
-		action = reactionRoleMessage.actions[reaction.emoji.id];
+		action = reactionRoleMessage.actions[reaction?.emoji?.id];
 		if (!action) action = reactionRoleMessage.actions["catch-all"];
 	}
 	if (!action) return {};
