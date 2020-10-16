@@ -8,7 +8,11 @@ module.exports = {
 	handleLeveling: async message => {
 		const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get()).data();
 		if (!settings?.activePlugins?.leveling) return;
-		const levelingDataRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
+		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
+		const levelingDataRef = await levelingRef.get();
+		const levelingSettingsRef = await levelingRef.collection("settings").get();
+        const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+        console.log(levelingSettings)
 		const levelingData = levelingDataRef.data();
 		if (levelingData) {
 			const levelingChannelId = levelingData.type === 3 ? levelingData.notifications || message.channel.id : message.channel.id;
