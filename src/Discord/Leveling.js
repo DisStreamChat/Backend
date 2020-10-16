@@ -12,11 +12,18 @@ module.exports = {
 		const levelingDataRef = await levelingRef.get();
 		const levelingSettingsRef = await levelingRef.collection("settings").get();
         const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
-        console.log(levelingSettings)
 		const levelingData = levelingDataRef.data();
 		if (levelingData) {
+			const channel = message.channel
+			const channelsToIgnore = levelingSettings?.bannedItems?.channels
+			const member = message.member
+			const highestRole = member.roles.highest
+			const highestRoleId = highestRole.id
+			const generalScaling = levelingSettings?.scaling?.general
+			const roleScaling = levelingSettings?.scaling?.roles?.[highestRoleId]
+			const finalScaling = (roleScaling ?? generalScaling) ?? 1
+			console.log(finalScaling)
 			const levelingChannelId = levelingData.type === 3 ? levelingData.notifications || message.channel.id : message.channel.id;
-			// console.log(levelingChannelId);
 			let userLevelingData = levelingData[message.author.id];
 			if (!userLevelingData) {
 				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
@@ -26,7 +33,7 @@ module.exports = {
 			const expireTime = userLevelingData.cooldown + cooldownTime;
 			if (now > expireTime) {
 				userLevelingData.cooldown = now;
-				userLevelingData.xp += Random(10, 20);
+				userLevelingData.xp += (Random(10, 20)*finalScaling);
 				userLevelingData.xp = Math.floor(userLevelingData.xp);
 				let xpToNextLevel = getXp(userLevelingData.level + 1);
 				if (userLevelingData.xp >= xpToNextLevel) {
