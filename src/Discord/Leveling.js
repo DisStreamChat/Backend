@@ -1,8 +1,16 @@
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
-const { Random } = require("../utils/functions");
+const { Random, ArrayAny } = require("../utils/functions");
 
 const { getXp } = require("../utils/functions");
+
+const getRoleScaling = (roles, scaling) => {
+	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
+	for (const role of roles) {
+		const scale = scaling?.[role.id];
+		if (scale != undefined) return scale;
+	}
+};
 
 module.exports = {
 	handleLeveling: async message => {
@@ -11,18 +19,24 @@ module.exports = {
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
 		const levelingDataRef = await levelingRef.get();
 		const levelingSettingsRef = await levelingRef.collection("settings").get();
-        const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+		const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
 		const levelingData = levelingDataRef.data();
 		if (levelingData) {
-			const channel = message.channel
-			const channelsToIgnore = levelingSettings?.bannedItems?.channels
-			const member = message.member
-			const highestRole = member.roles.highest
-			const highestRoleId = highestRole.id
-			const generalScaling = levelingSettings?.scaling?.general
-			const roleScaling = levelingSettings?.scaling?.roles?.[highestRoleId]
-			const finalScaling = (roleScaling ?? generalScaling) ?? 1
-			console.log(finalScaling)
+			const channel = message.channel;
+			const channelsToIgnore = levelingSettings?.bannedItems?.channels || [];
+			if (channelsToIgnore.includes(channel.id)) return;
+			const rolesToIgnore = levelingSettings?.bannedItems?.roles || [];
+			const member = message.member;
+			if (
+				ArrayAny(
+					rolesToIgnore,
+					member.roles.cache.array().map(role => role.id)
+				)
+			)
+				return;
+			const generalScaling = levelingSettings?.scaling?.general;
+			const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
+			const finalScaling = roleScaling ?? generalScaling ?? 1;
 			const levelingChannelId = levelingData.type === 3 ? levelingData.notifications || message.channel.id : message.channel.id;
 			let userLevelingData = levelingData[message.author.id];
 			if (!userLevelingData) {
@@ -33,7 +47,7 @@ module.exports = {
 			const expireTime = userLevelingData.cooldown + cooldownTime;
 			if (now > expireTime) {
 				userLevelingData.cooldown = now;
-				userLevelingData.xp += (Random(10, 20)*finalScaling);
+				userLevelingData.xp += Random(10, 20) * finalScaling;
 				userLevelingData.xp = Math.floor(userLevelingData.xp);
 				let xpToNextLevel = getXp(userLevelingData.level + 1);
 				if (userLevelingData.xp >= xpToNextLevel) {
