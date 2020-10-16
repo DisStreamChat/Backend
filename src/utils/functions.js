@@ -136,7 +136,7 @@ const generateRankCard = async (userData, user) => {
 	
 	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : xpProgress;
 	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
-	const xpText = `${displayXp}/${displayXpToGo} XP`;
+	const xpText = `${Math.floor(displayXp)}/${displayXpToGo} XP`;
 	const xpTextWidth = ctx.measureText(xpText).width;
 	ctx.fillStyle = "#dddddd";
 	const textY = 145;
