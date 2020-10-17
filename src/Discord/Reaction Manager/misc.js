@@ -6,6 +6,8 @@ const getDmEmbed = ({ user, action, role }) =>
 		.setTitle(`Role ${action === "add" ? "Added" : "Removed"}`)
 		.setAuthor(DiscordClient.user.tag, DiscordClient.user.displayAvatarURL())
 		.setDescription(`${action === "add" ? "Added" : "Removed"} the Role **${role.name}**`)
+		.addField("Server", role.guild.name)
+		.setThumbnail(role.guild.iconURL())
 		.setTimestamp(new Date())
 		.setColor(role.hexColor === "#000000" ? "#FFFFFF" : role.hexColor);
 
