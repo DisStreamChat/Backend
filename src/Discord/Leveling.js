@@ -6,7 +6,7 @@ const { getXp } = require("../utils/functions");
 
 const getRoleScaling = (roles, scaling) => {
 	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
-	for (const sortedRoles of roles) {
+	for (const role of sortedRoles) {
 		const scale = scaling?.[role.id];
 		if (scale != undefined) return scale;
 	}
