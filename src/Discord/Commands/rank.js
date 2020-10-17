@@ -24,15 +24,17 @@ module.exports = {
 		if (user.user.bot) {
 			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
 		}
-		const guildRef = await admin.firestore().collection("Leveling").doc(message.guild.id).get();
-		const guildData = guildRef.data();
-		let userData = guildData[user.id];
+		const userData = (
+			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(message.author.id).get()
+		).data();
 		if (!userData) userData = { xp: 0, level: 0 };
-		const sorted = Object.entries(guildData || {}).filter(entry => !["message", "notifications", "type"].includes(entry[0])).sort((a, b) => b[1].xp - a[1].xp)
-		let rank = sorted.findIndex(entry => entry[0] === user.id)+1
-		if(rank === 0) rank = sorted.length+1
-		console.log("rank:", rank)
-		userData.rank = rank
+		const sorted = (
+			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").orderBy("xp", "desc").get()
+		).docs.map(doc => ({ id: doc.id, ...doc.data() }));
+		let rank = sorted.findIndex(entry => entry.id === user.id) + 1;
+		if (rank === 0) rank = sorted.length + 1;
+		console.log("rank:", rank);
+		userData.rank = rank;
 		const rankCard = await generateRankCard(userData, user);
 		const attachment = new MessageAttachment(rankCard.toBuffer(), "card.png");
 		fs.writeFileSync(path.join(__dirname, `../../../images/${user.user.username}.png`), rankCard.toBuffer());
