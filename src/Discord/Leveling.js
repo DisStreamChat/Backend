@@ -6,7 +6,7 @@ const { getXp } = require("../utils/functions");
 
 const getRoleScaling = (roles, scaling) => {
 	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
-	for (const role of roles) {
+	for (const sortedRoles of roles) {
 		const scale = scaling?.[role.id];
 		if (scale != undefined) return scale;
 	}
@@ -38,7 +38,7 @@ module.exports = {
 			const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
 			const finalScaling = roleScaling ?? generalScaling ?? 1;
 			const levelingChannelId = levelingData.type === 3 ? levelingData.notifications || message.channel.id : message.channel.id;
-			let userLevelingData = levelingData[message.author.id];
+			let userLevelingData = (await levelingRef.collection("users").doc(message.author.id).get()).data();
 			if (!userLevelingData) {
 				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
 			}
@@ -66,7 +66,13 @@ module.exports = {
 					}
 				}
 				levelingData[message.author.id] = userLevelingData;
-				await admin.firestore().collection("Leveling").doc(message.guild.id).update(levelingData);
+				await admin
+					.firestore()
+					.collection("Leveling")
+					.doc(message.guild.id)
+					.collection("users")
+					.doc(message.author.id)
+					.set({ ...userLevelingData, name: message.author.username, avatar: message.author.displayAvatarURL() });
 			}
 		} else {
 			try {
