@@ -25,7 +25,7 @@ module.exports = {
 			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
 		}
 		const userData = (
-			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(message.author.id).get()
+			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()
 		).data();
 		if (!userData) userData = { xp: 0, level: 0 };
 		const sorted = (
