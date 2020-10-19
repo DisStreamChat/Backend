@@ -11,6 +11,7 @@ import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { UserManager } from "discord.js";
+import { generateRankCard } from "../utils/functions";
 
 
 
@@ -926,6 +927,17 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	} catch (err) {
 		next(err);
 	}
+});
+
+router.get("/rankcard", async (req, res, next) => {
+	const { user, guild } = req.query;
+	console.log(DiscordClient.guilds);
+	const guildObj = DiscordClient.guilds.cache.get(guild);
+	const member = await guildObj.members.fetch(user);
+	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
+	const rankcard = await generateRankCard(userData, member);
+	res.write(rankcard.toBuffer(), "binary");
+	res.end(null, "binary");
 });
 
 module.exports = router;
