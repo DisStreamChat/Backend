@@ -303,7 +303,8 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 
 router.get("/discord/token", async (req, res, next) => {
 	try {
-		console.log(process.env.REDIRECT_URI + "/?discord=true");
+        const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI  
+		console.log(redirect_uri + "/?discord=true");
 		const code = req.query.code;
 		if (!code) {
 			return res.status(401).json({
@@ -317,11 +318,11 @@ router.get("/discord/token", async (req, res, next) => {
 			grantType: "authorization_code",
 			clientId: process.env.DISCORD_CLIENT_ID,
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
-			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+			redirectUri: redirect_uri + "/?discord=true",
 		};
 		console.log(body);
 		const tokenData = await oauth.tokenRequest(body);
-		const discordInfo = await getUserInfo(tokenData);
+        const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
 			const uid = sha1(discordInfo.id);
 			let token = await admin.auth().createCustomToken(uid);
