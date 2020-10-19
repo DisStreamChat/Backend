@@ -13,11 +13,21 @@ import DiscordEvents from "./Discord/DiscordEvents";
 import crypto from "crypto";
 import fetch from "node-fetch";
 import tmi from "tmi.js";
-import Socket from "socketio-promises"
+import Socket from "socketio-promises";
 // get the initialized clients from another file
-const { DiscordClient, TwitchClient } = require("./utils/initClients");
-const admin = require("firebase-admin");
+const { DiscordClient, TwitchClient, customBots } = require("./utils/initClients");
 const { ArrayAny } = require("./utils/functions.js");
+const admin = require("firebase-admin");
+
+try {
+	// get the serviceAccount details from the base64 string stored in environment variables
+	const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
+
+	// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
+	admin.initializeApp({
+		credential: admin.credential.cert(serviceAccount),
+	});
+} catch (err) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -63,6 +73,13 @@ TwitchEvents(TwitchClient, io, app);
 
 // see ./DiscordEvents.js
 DiscordEvents(DiscordClient, io, app);
+if (process.env.BOT_DEV != "true") {
+	customBots.then(bots => {
+		for (const bot of bots.values()) {
+			DiscordEvents(bot, io, app);
+		}
+	});
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
@@ -71,7 +88,7 @@ DiscordEvents(DiscordClient, io, app);
 const UserClients = {};
 
 io.on("connection", socket => {
-    const socketWrapper = new Socket(socket)
+	const socketWrapper = new Socket(socket);
 	console.log("a user connected");
 	socket.emit("imConnected");
 	// the addme event is sent from the frontend on load with the data from the database
@@ -410,8 +427,8 @@ io.on("connection", socket => {
 		const message = data.message;
 		const TwitchName = Object.keys(socket.rooms)
 			.find(room => room.includes("twitch"))
-            ?.split?.("-")?.[1];
-        console.log(TwitchName)
+			?.split?.("-")?.[1];
+		console.log(TwitchName);
 		if (sender && message) {
 			try {
 				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", sender).get()).docs[0];
@@ -470,8 +487,8 @@ io.on("connection", socket => {
 	});
 
 	socket.on("disconnect", () => {
-        console.log("a user disconnected");
-        console.log(socket.rooms)
+		console.log("a user disconnected");
+		console.log(socket.rooms);
 	});
 });
 

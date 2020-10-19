@@ -12,10 +12,10 @@ module.exports = {
 		if (!member) return await msg.channel.send("This user can't be found.");
 
 		const status = {
-			online: `User is online!`,
-			idle: `User is idle`,
-			offline: `User is offline`,
-			dnd: `User doesn't want to be disturbed right now`,
+			online: `<:online:726982918064570400> User is online!`,
+			idle: `<:away:726982942181818450> User is idle`,
+			offline: `<:offline:727669088201080889> User is offline`,
+			dnd: `<:dnd:726982954580181063> User doesn't want to be disturbed right now`,
         };
         
 		const game = member.presence.game ? member.presence.game.name : "Not playing a game";
@@ -52,10 +52,10 @@ module.exports = {
 			.addField(`Playing`, game, true)
 			.addField("Account created", createdAt, true)
 			.addField("Joined the server", joinedAt, true)
-			.addField("Bot?", member.user.bot ? "Beep boop, I am a bot" : "This person human", true)
             .addField(`Roles - ${size}`, `${roles}`)
             .setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
             .setFooter(`ID: ${member.id}`)
+            .setTimestamp(new Date())
 		msg.channel.send(embed);
 	},
 };
