@@ -195,16 +195,22 @@ module.exports = (TwitchClient, io, app) => {
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: tags.color,
 			messageType: tags["message-type"],
-			replyParentDisplayName: tags["reply-parent-display-name"],
-			replyParentMessageBody: tags["reply-parent-msg-body"],
-			replyParentMessageId: tags["reply-parent-msg-id"],
-			replyParentMessageUserId: tags["reply-parent-user-id"],
+			replyParentDisplayName: tags["reply-parent-display-name"] || "",
+			replyParentMessageBody: tags["reply-parent-msg-body"] || "",
+			replyParentMessageId: tags["reply-parent-msg-id"] || "",
+			replyParentMessageUserId: tags["reply-parent-user-id"] || "",
 		};
 
 		if (messageObject.body.length <= 0) return;
 
 		// send the message object to all io connected to this channel
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+		try{
+			await admin.firestore().collection("messages").doc(channelName).set({messages: true})
+			await admin.firestore().collection("messages").doc(channelName).collection("messages").doc(tags.id).set(messageObject)
+		}catch(err){
+			console.log(err.message)
+		}
 	});
 
 	let globalCheerMotes = [];
