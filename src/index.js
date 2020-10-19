@@ -73,11 +73,13 @@ TwitchEvents(TwitchClient, io, app);
 
 // see ./DiscordEvents.js
 DiscordEvents(DiscordClient, io, app);
-customBots.then(bots => {
-	for(const bot of bots.values()){
-		DiscordEvents(bot, io, app)
-	}
-})
+if (process.env.BOT_DEV != "true") {
+	customBots.then(bots => {
+		for (const bot of bots.values()) {
+			DiscordEvents(bot, io, app);
+		}
+	});
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
