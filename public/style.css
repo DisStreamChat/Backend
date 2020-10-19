@@ -1,0 +1,41 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    font-family: Montserrat;
+    /* font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'; */
+    font-weight: 400;
+    font-size: 16px;
+    background: linear-gradient(119.36deg, #17181b 21.35%, #24252a 76.56%);
+    ;
+    color: #4693c4;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+h1 {
+    margin: 1em 0 0 0;
+    font-weight: 300;
+}
+
+#logo {
+    animation: hover 1s infinite alternate ease-in-out
+}
+
+@keyframes hover {
+    from {
+        transform: translateY(-15px);
+    }
+
+    to {
+        transform: translateY(15px);
+    }
+}

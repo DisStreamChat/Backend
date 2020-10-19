@@ -193,6 +193,10 @@ router.get("/oauth/twitch", async (req, res, next) => {
     res.sendFile(path.join(__dirname, "../../public/twitch.html"))
 });
 
+router.get("/oauth/discord", async (req, res, next) => {
+    res.sendFile(path.join(__dirname, "../../public/discord.html"))
+});
+
 // default endpoint
 router.get("/", (req, res) => {
 	res.json({
