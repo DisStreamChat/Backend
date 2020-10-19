@@ -8,7 +8,7 @@ Mustache.tags = ["{", "}"];
 
 module.exports = async (guild, member) => {
 	const settings = await admin.firestore().collection("DiscordSettings").doc(guild.id).get();
-	const settingsData = settings.data();
+	const data = settings.data();
 	if (!data) return;
 	if (!data.activeEvents["welcome-message"]) return;
 	if (!data.welcomeMessage) return;
