@@ -13,7 +13,13 @@ import { v4 as uuidv4 } from "uuid";
 import { UserManager } from "discord.js";
 import { generateRankCard } from "../utils/functions";
 
+// get the serviceAccount details from the base64 string stored in environment variables
+const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
+// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+});
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({

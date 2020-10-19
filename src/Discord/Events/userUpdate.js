@@ -1,9 +1,9 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
-// import { DiscordClient } from "../../utils/initClients";
+import { DiscordClient } from "../../utils/initClients";
 
-module.exports = async (oldMember, newMember, DiscordClient) => {
+module.exports = async (oldMember, newMember) => {
 	const serversToLog = await admin.firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
 	console.log(serversToLog.docs.length);
 	const serversData = serversToLog.docs.map(doc => ({ id: doc.id, ...doc.data() }));
