@@ -13,8 +13,6 @@ import { v4 as uuidv4 } from "uuid";
 import { UserManager } from "discord.js";
 import { generateRankCard } from "../utils/functions";
 
-
-
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
@@ -191,7 +189,9 @@ const validateRequest = async (req, res, next) => {
 };
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
-router.use("/oauth/twitch", express.static("public"));
+router.get("/oauth/twitch", async (req, res, next) => {
+    res.sendFile(path.join(__dirname, "../../public/twitch.html"))
+});
 
 // default endpoint
 router.get("/", (req, res) => {
