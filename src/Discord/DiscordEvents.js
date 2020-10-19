@@ -160,11 +160,11 @@ module.exports = (client, io, app) => {
 	});
 
 	// TODO: add in customizable welcome messages and logging
-	client.on("guildMemberAdd", async member => {
-		if (member.guild.id === "711238743213998091") {
-			await member.send(
-				`Welcome to the DisStreamChat community. If you need help setting up DisStreamChat feel free to ask in any of the help channels. But try to find a help channel related to you problem. If you can't talk in any of the chats just DM a moderator and they will sort out the issue. Any suggestions or bug reports you have should go in the respective channels. 😀`
-			);
-		}
-	});
+	// client.on("guildMemberAdd", async member => {
+	// 	if (member.guild.id === "711238743213998091") {
+	// 		await member.send(
+	// 			`Welcome to the DisStreamChat community. If you need help setting up DisStreamChat feel free to ask in any of the help channels. But try to find a help channel related to you problem. If you can't talk in any of the chats just DM a moderator and they will sort out the issue. Any suggestions or bug reports you have should go in the respective channels. 😀`
+	// 		);
+	// 	}
+	// });
 };

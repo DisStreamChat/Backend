@@ -1,8 +1,8 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
-import {DiscordClient} from "../../utils/initClients"
-module.exports = async message => {
+// import {DiscordClient} from "../../utils/initClients"
+module.exports = async (message, DiscordClient) => {
     await new Promise(res => setTimeout(res, 500))
 	const guild = message.guild;
 
