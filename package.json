@@ -76,6 +76,7 @@
 		"tmi.js": "^1.5.0",
 		"twitch-helper": "^1.1.7",
 		"twitch-lib": "^0.2.5",
+		"twitchio-js": "^1.0.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
 		"url-regex": "^5.0.0",
 		"uuidv1": "^1.6.14"

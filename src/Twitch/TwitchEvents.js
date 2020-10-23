@@ -1,5 +1,5 @@
 require("dotenv").config();
-const TwitchApi = require("twitch-helper");
+const TwitchApi = require("twitchio-js");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
 const TPS = require("twitchps");
@@ -34,7 +34,7 @@ const getBadges = async (channelName, tags) => {
 
     const badges = {};
 	if (tags.badges) {
-        const userInfo = await Api.getUserInfo(channelName)
+        const userInfo = await Api.getUserInfo(channelName, true)
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
