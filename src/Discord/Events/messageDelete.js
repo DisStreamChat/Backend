@@ -46,7 +46,7 @@ module.exports = async (message, DiscordClient) => {
         .addField("Message Sender", `${author || "An unknown user"}`, true)
         .addField("Channel", `${channel}`, true)
         .addField("Deleted By", `${executor || "Unknown"}`, true)
-        .addField("Message Content", content || "unkown content")
+        .addField("Message Content", content || "Unknown content")
 		.setFooter(`ID: ${id}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
