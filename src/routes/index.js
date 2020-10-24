@@ -940,7 +940,8 @@ router.get("/rankcard", async (req, res, next) => {
 	const guildObj = DiscordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
 	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
-	const rankcard = await generateRankCard(userData, member);
+    const rankcard = await generateRankCard(userData, member);
+    res.setHeader('content-type', 'image/png');
 	res.write(rankcard.toBuffer(), "binary");
 	res.end(null, "binary");
 });
