@@ -1,5 +1,6 @@
 import setup from "./setup";
 import { addRole, removeRole } from "./misc";
+import { resolveUser } from "../../utils/functions";
 
 module.exports = async (reaction, user, DiscordClient) => {
     const { roleToGive, type, role, DMuser } = await setup(reaction, user);
