@@ -4,6 +4,7 @@ import { resolveUser } from "../../utils/functions";
 
 module.exports = async (reaction, user, DiscordClient) => {
 	const { roleToGive, type, role, DMuser } = await setup(reaction, user);
+	console.log({ roleToGive, type, DMuser, role, user });
 	console.log(DMuser);
 	if (!roleToGive) return;
 	let member = await reaction.message.guild.members.resolve(user);

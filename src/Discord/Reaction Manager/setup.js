@@ -6,7 +6,6 @@ module.exports = async (reaction, user, onJoin) => {
 	const guildRef = admin.firestore().collection("reactions").doc(guild.id);
 	const guildDB = await guildRef.get();
 	const guildData = guildDB.data();
-	console.log(`guildData`, guildData)
 	if (!guildData) {
 		try {
 			guildRef.update({});
