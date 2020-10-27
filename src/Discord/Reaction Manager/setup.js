@@ -1,11 +1,13 @@
 const admin = require("firebase-admin");
 
 module.exports = async (reaction, user, onJoin) => {
+	console.log(reaction, user, onJoin)
 	const message = reaction.message;
 	const guild = message.guild;
 	const guildRef = admin.firestore().collection("reactions").doc(guild.id);
 	const guildDB = await guildRef.get();
 	const guildData = guildDB.data();
+	console.log(`guildData ${guildData}`)
 	if (!guildData) {
 		try {
 			guildRef.update({});

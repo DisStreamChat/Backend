@@ -2,7 +2,9 @@ import setup from "./setup";
 import { addRole, removeRole } from "./misc";
 
 module.exports = async (reaction, user, DiscordClient) => {
+	console.log("role removed")
 	const { roleToGive, type, DMuser, role } = await setup(reaction, user);
+	console.log({ roleToGive, type, DMuser, role })
 	if (!roleToGive) return;
 	const member = await reaction.message.guild.members.resolve(user);
 	switch (type) {
