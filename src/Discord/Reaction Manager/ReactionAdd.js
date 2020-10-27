@@ -5,7 +5,7 @@ module.exports = async (reaction, user, DiscordClient) => {
     const { roleToGive, type, role, DMuser } = await setup(reaction, user);
     console.log(DMuser)
 	if (!roleToGive) return;
-	const member = await reaction.message.guild.members.resolve(user);
+	let member = await reaction.message.guild.members.resolve(user);
 	if(!member){
 		member = reaction.message.guild.members.cache.get(user.id)
 	}
