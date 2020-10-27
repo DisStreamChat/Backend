@@ -1,6 +1,6 @@
 import setup from "./setup";
 import { addRole, removeRole } from "./misc";
-
+// please work
 module.exports = async (reaction, user, DiscordClient) => {
     const { roleToGive, type, role, DMuser } = await setup(reaction, user);
     console.log(DMuser)
