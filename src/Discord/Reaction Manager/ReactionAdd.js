@@ -6,6 +6,9 @@ module.exports = async (reaction, user, DiscordClient) => {
     console.log(DMuser)
 	if (!roleToGive) return;
 	const member = await reaction.message.guild.members.resolve(user);
+	if(!member){
+		member = reaction.message.guild.members.cache.get(user.id)
+	}
 	switch (type) {
 		case "REMOVE_ON_ADD":
 			if (member.roles.cache.has(role)) {

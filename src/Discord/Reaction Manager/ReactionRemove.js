@@ -6,7 +6,10 @@ module.exports = async (reaction, user, DiscordClient) => {
 	const { roleToGive, type, DMuser, role } = await setup(reaction, user);
 	console.log({ roleToGive, type, DMuser, role })
 	if (!roleToGive) return;
-	const member = await reaction.message.guild.members.resolve(user);
+	let member = await reaction.message.guild.members.resolve(user);
+	if(!member){
+		member = reaction.message.guild.members.cache.get(user.id)
+	}
 	switch (type) {
 		case "REMOVE_ON_REMOVE":
 		case "TOGGLE":
