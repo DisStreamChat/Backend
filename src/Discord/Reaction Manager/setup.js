@@ -1,5 +1,4 @@
 const admin = require("firebase-admin");
-import { resolveUser } from "../../utils/functions";
 
 module.exports = async (reaction, user, onJoin) => {
 	const message = reaction.message;
@@ -25,16 +24,9 @@ module.exports = async (reaction, user, onJoin) => {
 		if (!action) action = reactionRoleMessage.actions["catch-all"];
 	}
 	if (!action) return {};
-	let rolesToGiveId = Array.isArray(action.role) ? action.role : [action.role];
-	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGiveId =>  guild.roles.fetch(roleToGiveId)));
-	let member = await reaction.message.guild.members.resolve(user);
-	if (!member) {
-		member = reaction.message.guild.members.cache.get(user.id);
-	}
-	if (!member) {
-		member = resolveUser(reaction.message, user.id || user.username);
-	}
-	return { rolesToGive, member, ...action };
+	const roleToGiveId = action.role;
+	const roleToGive = await guild.roles.fetch(roleToGiveId);
+	return { roleToGive, ...action };
 };
 
 /*
