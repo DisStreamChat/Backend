@@ -25,8 +25,8 @@ module.exports = async (reaction, user, onJoin) => {
 		if (!action) action = reactionRoleMessage.actions["catch-all"];
 	}
 	if (!action) return {};
-	const roleToGiveId = action.role;
-	const roleToGive = await guild.roles.fetch(roleToGiveId);
+	let rolesToGiveId = Array.isArray(action.role) ? action.role : [action.role];
+	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGiveId =>  guild.roles.fetch(roleToGiveId)));
 	let member = await reaction.message.guild.members.resolve(user);
 	if (!member) {
 		member = reaction.message.guild.members.cache.get(user.id);
@@ -34,7 +34,7 @@ module.exports = async (reaction, user, onJoin) => {
 	if (!member) {
 		member = resolveUser(reaction.message, user.id || user.username);
 	}
-	return { roleToGive, member, ...action };
+	return { rolesToGive, member, ...action };
 };
 
 /*
