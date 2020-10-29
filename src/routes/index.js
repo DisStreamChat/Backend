@@ -10,8 +10,9 @@ import { getUserInfo } from "../utils/DiscordClasses";
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import { UserManager } from "discord.js";
+import { MessageEmbed, UserManager } from "discord.js";
 import { generateRankCard } from "../utils/functions";
+import { validateRequest } from "../middleware"
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
@@ -170,31 +171,15 @@ const tenDays = 8.64e8;
 	}
 })();
 
-const validateRequest = async (req, res, next) => {
-	const apiKey = req.query.key;
-	if (apiKey === process.env.DSC_API_KEY) return next();
-	const userId = req.query.id;
-	if (!userId) {
-		return res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
-	}
-	const otc = req.query.otc;
-	const otcData = (await admin.firestore().collection("Secret").doc(userId).get()).data();
-	const otcFromDb = otcData?.value;
-	if (otcFromDb === otc) {
-		const newOtc = uuidv4();
-		await admin.firestore().collection("Secret").doc(userId).set({ value: newOtc });
-		return next();
-	}
-	res.status(401).json({ message: "Missing or invalid credentials", code: 401 });
-};
+
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.get("/oauth/twitch", async (req, res, next) => {
-    res.sendFile(path.join(__dirname, "../../public/twitch.html"))
+	res.sendFile(path.join(__dirname, "../../public/twitch.html"));
 });
 
 router.get("/oauth/discord", async (req, res, next) => {
-    res.sendFile(path.join(__dirname, "../../public/discord.html"))
+	res.sendFile(path.join(__dirname, "../../public/discord.html"));
 });
 
 // default endpoint
@@ -303,7 +288,7 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 
 router.get("/discord/token", async (req, res, next) => {
 	try {
-        const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI  
+		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 		console.log(redirect_uri + "/?discord=true");
 		const code = req.query.code;
 		if (!code) {
@@ -322,7 +307,7 @@ router.get("/discord/token", async (req, res, next) => {
 		};
 		console.log(body);
 		const tokenData = await oauth.tokenRequest(body);
-        const discordInfo = await getUserInfo(tokenData);
+		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
 			const uid = sha1(discordInfo.id);
 			let token = await admin.auth().createCustomToken(uid);
@@ -936,14 +921,50 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 
 router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
-	console.log(DiscordClient.guilds);
 	const guildObj = DiscordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
 	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
-    const rankcard = await generateRankCard(userData, member);
-    res.setHeader('content-type', 'image/png');
+	const rankcard = await generateRankCard(userData, member);
+	res.setHeader("content-type", "image/png");
 	res.write(rankcard.toBuffer(), "binary");
 	res.end(null, "binary");
+});
+
+router.post("/discord/reactionmessage", validateRequest, async (req, res, next) => {
+	try {
+		const { channel, message, reactions, server } = req.body;
+		const guild = await DiscordClient.guilds.cache.get(server);
+		const channelObj = guild.channels.resolve(channel);
+		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		const sentMessage = await channelObj.send(embed);
+		for (const reaction of reactions) {
+			try {
+				if (reaction.length > 5) {
+					reaction = guild.emojis.cache.get(reaction);
+				}
+				console.log(reaction);
+				await sentMessage.react(reaction);
+			} catch (err) {
+				console.log(`error in reacting to message: ${err.message}`);
+			}
+		}
+		res.json({ code: 200, message: "success", messageId: sentMessage.id });
+	} catch (err) {
+		res.json({ code: 500, message: err.message });
+	}
+});
+
+router.delete("/discord/reactionmessage", validateRequest, async (req, res, next) => {
+	try {
+		const { channel, message, server } = req.body;
+		const guild = await DiscordClient.guilds.cache.get(server);
+		const channelObj = guild.channels.resolve(channel);
+		const messageToDelete = await channelObj.messages.fetch(message);
+		await messageToDelete.delete();
+		res.json({ code: 200, message: "success" });
+	} catch (err) {
+		res.json({ code: 500, message: err.message });
+	}
 });
 
 module.exports = router;
