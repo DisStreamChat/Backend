@@ -43,7 +43,8 @@ module.exports = {
 		if (args.length === 0) {
 			const helpEmbed = new MessageEmbed()
 				.setTitle("DisStreambot Help")
-				.setDescription(`Here are all the available commands. The prefix for this server is \`${client.prefix || "!"}\``)
+				.setDescription(`Here are all the available commands.`)
+				.addField("Prefix", client.prefix || "!")
 				.setThumbnail(client.user.displayAvatarURL())
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
 				.addField("Available Commands", availableCommands.map(command => `\`${command.displayName}\``).join(", "))
