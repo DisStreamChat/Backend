@@ -54,6 +54,7 @@ module.exports = {
 				if (userLevelingData.xp >= xpToNextLevel) {
 					userLevelingData.level++;
 					if (levelingData.type !== 1) {
+						// TODO: replace with mustache
 						const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
 							.replace("{ping}", message.author)
 							.replace("{player}", message.member.displayName)
@@ -62,7 +63,7 @@ module.exports = {
 							const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
 							levelingChannel.send(levelupMessage);
 						} catch (err) {
-							message.channel.send(levelupMessage);
+							// message.channel.send(levelupMessage);
 						}
 					}
 				}
