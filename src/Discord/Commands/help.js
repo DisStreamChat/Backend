@@ -28,7 +28,7 @@ const getHelpText = ({ message, client, selectedCommand }) =>
 				.setTimestamp(message.createdAt)
 				.setColor("#206727")
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-				.addField("Description", selectedCommand.description)
+				.addField("Description", selectedCommand.description || "No Description Provided")
 				.addField("Parameters. <> => Required. () => optional", selectedCommand.usage?.join("\n") || "None")
 				.setThumbnail(client.user.displayAvatarURL())
 		: null;
