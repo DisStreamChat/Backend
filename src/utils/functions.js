@@ -256,6 +256,7 @@ module.exports = {
 		}
 		return Math.random() * (max - min) + min;
 	},
+	getRoleIds: user => user.roles.cache.array().map(role => role.id),
 	generateRankCard,
 	getLevel,
 	getXp,
