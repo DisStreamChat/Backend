@@ -1,20 +1,24 @@
-const { isAdmin, hasPermsission } = require("../../utils/functions");
+const { isAdmin, hasPermsission, ArrayAny, getRoleIds } = require("../../utils/functions");
 const { MessageEmbed } = require("discord.js");
 
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const getCommands = (message, client) => {
+const getCommands = (message, client, plugins) => {
 	let availableCommands = [];
 	for (const [key, command] of Object.entries(client.commands)) {
+		const commandObj = { displayName: key, ...command };
+		//check if command is enabled
+		const enabled = !!command.plugin ? plugins[command.plugin] : true;
+		if (!enabled) continue;
 		if (!command.adminOnly && !command.permissions?.length) {
-			availableCommands.push({ displayName: key, ...command });
+			availableCommands.push(commandObj);
 			continue;
 		} else if (command.adminOnly && isAdmin(message.author)) {
-			availableCommands.push({ displayName: key, ...command });
+			availableCommands.push(commandObj);
 			continue;
 		} else if (command.permissions?.length && hasPermsission(message.member, command.permissions || [])) {
-			availableCommands.push({ displayName: key, ...command });
+			availableCommands.push(commandObj);
 			continue;
 		}
 	}
@@ -33,13 +37,33 @@ const getHelpText = ({ message, client, selectedCommand }) =>
 				.setThumbnail(client.user.displayAvatarURL())
 		: null;
 
+const filterCustomCommands = (commands, { member, channel }) => {
+	let availableCommands = [];
+	const RoleIds = getRoleIds(member);
+	for (const [key, command] of Object.entries(commands)) {
+		const commandObj = { displayName: key, ...command };
+		const { allowedChannels = [], bannedRoles = [], permittedRoles = [] } = command;
+		const hasBannedRole = ArrayAny(bannedRoles, RoleIds);
+		const hasPermittedRole = permittedRoles.length === 0 || ArrayAny(permittedRoles, RoleIds);
+		const inAllowedChannel = allowedChannels.length === 0 || allowedChannels.includes(channel);
+		if (hasBannedRole || !hasPermittedRole || !inAllowedChannel) continue;
+		availableCommands.push(commandObj);
+	}
+	return availableCommands;
+};
 module.exports = {
 	name: "help",
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
 	usage: "(command_name)",
 	execute: async (message, args, client) => {
-		let availableCommands = getCommands(message, client);
+		const guildSettingsRef = await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get();
+		const guildSettings = guildSettingsRef.data();
+		let availableCommands = getCommands(message, client, guildSettings.activePlugins);
+		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
+		const guildData = guildRef.data();
+		let customCommands = filterCustomCommands(guildData, message);
+		const allCommands = [...availableCommands, ...customCommands];
 		if (args.length === 0) {
 			const helpEmbed = new MessageEmbed()
 				.setTitle("DisStreambot Help")
@@ -47,7 +71,7 @@ module.exports = {
 				.addField("Prefix", client.prefix || "!")
 				.setThumbnail(client.user.displayAvatarURL())
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-				.addField("Available Commands", availableCommands.map(command => `\`${command.displayName}\``).join(", "))
+				.addField("Available Commands", allCommands.map(command => `\`${command.displayName}\``).join(", "))
 				.addField(
 					"Tip",
 					"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
@@ -63,9 +87,14 @@ module.exports = {
 			if (isAdmin(message.author)) {
 				helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 			}
+			helpEmbed.addField(
+				"Support Server",
+				"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
+			);
+			helpEmbed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 			await message.channel.send(helpEmbed);
 		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
-			const selectedCommand = availableCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
+			const selectedCommand = allCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
 			const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
 			if (!commandHelpEmbed) {
 				await message.channel.send(":x: Command not found, use help to get the list of available commands");
@@ -75,8 +104,6 @@ module.exports = {
 		} else {
 			switch (args[0]) {
 				case "commands":
-					const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
-					const guildData = guildRef.data();
 					if (args[1]) {
 						const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
 						if (!commandHelpEmbed) {
@@ -101,7 +128,11 @@ module.exports = {
 							)
 							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
 							.setTimestamp(message.createdAt)
-							.setColor("#206727");
+							.setColor("#206727")
+							.addField(
+								"Support Server",
+								"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
+							);
 						await message.channel.send(customHelpEmbed);
 					}
 					break;
