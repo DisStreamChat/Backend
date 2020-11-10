@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-require("dotenv").config()
+require("dotenv").config();
 
 const createDOMPurify = require("dompurify");
 
@@ -18,6 +18,7 @@ const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
+const linkifyUrls = require("linkify-urls");
 
 // intialize the twitch api class from the twitch-lib package
 const Api = new TwitchApi({
@@ -110,7 +111,7 @@ async function getFfzEmotes(channelName) {
 }
 
 const getAllEmotes = async () => {
-    if(process.env.BOT_DEV == "true") return
+	if (process.env.BOT_DEV == "true") return;
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
@@ -134,7 +135,7 @@ setTimeout(() => {
 			setInterval(getAllEmotes, emoteRefresh);
 		})
 		.catch(err => {
-            console.log("error getting emotes "+err.message)
+			console.log("error getting emotes " + err.message);
 			setInterval(getAllEmotes, emoteRefresh);
 		});
 }, emoteRefresh / 50);
@@ -142,20 +143,22 @@ setTimeout(() => {
 const formatMessage = async (message, platform, tags, { HTMLClean, channelName } = {}) => {
 	let dirty = message.slice();
 	if (HTMLClean)
-		dirty = dirty
-			.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
-			.replace(/<([a-z])/gi, "&lt;$1")
-			.replace(/([a-z])>/gi, "$1&gt;")
-			.replace(urlRegex, `<a href="$&">$&</a>`);
+		dirty = linkifyUrls(
+			dirty
+				.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
+				.replace(/<([a-z])/gi, "&lt;$1")
+				.replace(/([a-z])>/gi, "$1&gt;")
+		);
+	// .replace(urlRegex, `<a href="$&">$&</a>`);
 	if (tags.emotes) {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	const cachedBTTVEmotes = cache.get("bttv " + channelName);
-    const cachedFFZEmotes = cache.get("ffz " + channelName);
+	const cachedFFZEmotes = cache.get("ffz " + channelName);
 	if (platform === "twitch" && channelName && cachedBTTVEmotes && cachedFFZEmotes) {
-		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes ;
-		const { ffzEmotes, ffzRegex } = cachedFFZEmotes ;
+		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes;
+		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;
 		cachedBTTVEmotes.messageSent = true;
 		cachedFFZEmotes.messageSent = true;
 		setTimeout(() => {
@@ -169,9 +172,9 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
 	} else if (platform === "discord") {
 		dirty = dirty.replace(customEmojiRegex, (match, p1, p2, p3) => {
-			return `<img alt="${p2 ? p1.slice(1) : p1}" title="${p2 ? p1.slice(1) : p1}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${
-				p2 ? "gif" : "png"
-			}?v=1">`;
+			return `<img alt="${p2 ? p1.slice(1) : p1}" title="${
+				p2 ? p1.slice(1) : p1
+			}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
 		});
 	}
 	return dirty;
@@ -195,7 +198,7 @@ const parseEmotes = (message, emotes) => {
 	let emojiDetected = 0;
 	for (let i = 0; i < parts.length; i++) {
 		const emoteInfo = emoteStart[i];
-		emojiDetected += (parts[i].length-1)
+		emojiDetected += parts[i].length - 1;
 		if (emoteInfo) {
 			emoteNames[message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)] =
 				emoteInfo.emoteUrl + ` title="${message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)}">`;
