@@ -63,6 +63,11 @@ module.exports = {
 			if (isAdmin(message.author)) {
 				helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 			}
+			helpEmbed.addField(
+				"Support Server",
+				"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
+			);
+			helpEmbed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 			await message.channel.send(helpEmbed);
 		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
 			const selectedCommand = availableCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
@@ -101,7 +106,11 @@ module.exports = {
 							)
 							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
 							.setTimestamp(message.createdAt)
-							.setColor("#206727");
+							.setColor("#206727")
+							.addField(
+								"Support Server",
+								"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
+							);
 						await message.channel.send(customHelpEmbed);
 					}
 					break;
