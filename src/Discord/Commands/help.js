@@ -4,11 +4,13 @@ const { MessageEmbed } = require("discord.js");
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const getCommands = (message, client) => {
+const getCommands = (message, client, plugins) => {
 	let availableCommands = [];
 	for (const [key, command] of Object.entries(client.commands)) {
 		const commandObj = { displayName: key, ...command };
 		//check if command is enabled
+		const enabled = !!command.plugin ? plugins[command.plugin] : true;
+		if (!enabled) continue;
 		if (!command.adminOnly && !command.permissions?.length) {
 			availableCommands.push(commandObj);
 			continue;
@@ -55,7 +57,9 @@ module.exports = {
 	description: "See the commands you can use and get on help on each command",
 	usage: "(command_name)",
 	execute: async (message, args, client) => {
-		let availableCommands = getCommands(message, client);
+		const guildSettingsRef = await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get();
+		const guildSettings = guildSettingsRef.data();
+		let availableCommands = getCommands(message, client, guildSettings.activePlugins);
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 		const guildData = guildRef.data();
 		let customCommands = filterCustomCommands(guildData, message);

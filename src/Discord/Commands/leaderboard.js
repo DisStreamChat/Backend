@@ -10,6 +10,7 @@ registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf")
 module.exports = {
 	name: "leaderboard",
 	aliases: [],
+	plugin: "leveling",
 	description: "Get the link to the leaderboard for this guild.",
 	usage: "leaderboard",
 	execute: async (message, args, client) => {
