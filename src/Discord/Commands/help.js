@@ -43,7 +43,7 @@ const getHelpText = ({ message, client, selectedCommand }) =>
 const filterCustomCommands = (commands, { member, channel }) => {
 	let availableCommands = [];
 	const RoleIds = getRoleIds(member);
-	for (const [key, command] of Object.entries(commands)) {
+	for (const [key, command] of Object.entries(commands || {})) {
 		const commandObj = { displayName: key, ...command };
 		const { allowedChannels = [], bannedRoles = [], permittedRoles = [] } = command;
 		const hasBannedRole = ArrayAny(bannedRoles, RoleIds);
