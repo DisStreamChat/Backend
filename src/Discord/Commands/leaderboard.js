@@ -12,7 +12,7 @@ module.exports = {
 	aliases: [],
 	plugin: "leveling",
 	description: "Get the link to the leaderboard for this guild.",
-	usage: "leaderboard",
+	usage: ["leaderboard"],
 	execute: async (message, args, client) => {
 		message.channel.send(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`)
 	},
