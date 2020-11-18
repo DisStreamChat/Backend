@@ -12,10 +12,10 @@ module.exports = {
 		if (!member) return await msg.channel.send("This user can't be found.");
 
 		const status = {
-			online: `<:online:726982918064570400> User is online!`,
-			idle: `<:away:726982942181818450> User is idle`,
-			offline: `<:offline:727669088201080889> User is offline`,
-			dnd: `<:dnd:726982954580181063> User doesn't want to be disturbed right now`,
+			online: `:green_circle: User is online!`,
+			idle: `:yellow_circle: User is idle`,
+			offline: `:black_circle: User is offline`,
+			dnd: `:red_circle: User doesn't want to be disturbed right now`,
         };
         
 		const game = member.presence.game ? member.presence.game.name : "Not playing a game";
