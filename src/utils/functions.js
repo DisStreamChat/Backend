@@ -3,7 +3,186 @@ const { MessageEmbed, MessageAttachment } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
-const { createCanvas, loadImage, registerFont } = require("canvas");
+const Canvas = require("canvas");
+
+Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", {family: "OpenMoji", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoEmoji-Regular.ttf", {family: "Noto Emoji", weight: "normal", style: "normal"});
+
+// Language Support (Devanagari, Bengali, Tamil, Gujarati and Telugu)
+Canvas.registerFont("./assets/fonts/Hind-Regular.ttf", {family: "Hind", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/Hind-Bold.ttf", {family: "Hind", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/Hind-Light.ttf", {family: "Hind", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindGuntur-Regular.ttf", {family: "Hind Guntur", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindGuntur-Bold.ttf", {family: "Hind Guntur", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindGuntur-Light.ttf", {family: "Hind Guntur", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindMadurai-Regular.ttf", {family: "Hind Madurai", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindMadurai-Bold.ttf", {family: "Hind Madurai", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindMadurai-Light.ttf", {family: "Hind Madurai", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindSiliguri-Regular.ttf", {family: "Hind Siliguri", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindSiliguri-Bold.ttf", {family: "Hind Siliguri", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindSiliguri-Light.ttf", {family: "Hind Siliguri", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindVadodara-Regular.ttf", {family: "Hind Vadodara", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindVadodara-Bold.ttf", {family: "Hind Vadodara", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/HindVadodara-Light.ttf", {family: "Hind Vadodara", weight: "light", style: "normal"});
+
+// Language Support (Burmese and Thai)
+Canvas.registerFont("./assets/fonts/Kanit-Regular.ttf", {family: "Kanit", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/Kanit-Italic.ttf", {family: "Kanit", weight: "normal", style: "italic"});
+Canvas.registerFont("./assets/fonts/Kanit-Bold.ttf", {family: "Kanit", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/Kanit-BoldItalic.ttf", {family: "Kanit", weight: "bold", style: "italic"});
+Canvas.registerFont("./assets/fonts/Kanit-Light.ttf", {family: "Kanit", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/Kanit-LightItalic.ttf", {family: "Kanit", weight: "light", style: "italic"});
+Canvas.registerFont("./assets/fonts/Padauk-Regular.ttf", {family: "Padauk", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/Padauk-Bold.ttf", {family: "Padauk", weight: "bold", style: "normal"});
+
+// Language Support (Japanese, Korean and Chinese)
+Canvas.registerFont("./assets/fonts/NotoSansJP-Regular.otf", {family: "Noto Sans JP", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansJP-Bold.otf", {family: "Noto Sans JP", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansJP-Light.otf", {family: "Noto Sans JP", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansKR-Regular.otf", {family: "Noto Sans KR", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansKR-Bold.otf", {family: "Noto Sans KR", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansKR-Light.otf", {family: "Noto Sans KR", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansTC-Regular.otf", {family: "Noto Sans TC", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansTC-Bold.otf", {family: "Noto Sans TC", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansTC-Light.otf", {family: "Noto Sans TC", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansSC-Regular.otf", {family: "Noto Sans SC", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansSC-Bold.otf", {family: "Noto Sans SC", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansSC-Light.otf", {family: "Noto Sans SC", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansHK-Regular.otf", {family: "Noto Sans HK", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansHK-Bold.otf", {family: "Noto Sans HK", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/NotoSansHK-Light.otf", {family: "Noto Sans HK", weight: "light", style: "normal"});
+
+// Main Fonts
+Canvas.registerFont("./assets/fonts/whitney-medium.otf", {family: "Whitney", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/whitney-mediumitalic.otf", {family: "Whitney", weight: "normal", style: "italic"});
+Canvas.registerFont("./assets/fonts/whitney-boldsc.otf", {family: "Whitney", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/whitney-bolditalicsc.otf", {family: "Whitney", weight: "bold", style: "italic"});
+Canvas.registerFont("./assets/fonts/whitney-light.otf", {family: "Whitney", weight: "light", style: "normal"});
+Canvas.registerFont("./assets/fonts/whitney-lightitalic.otf", {family: "Whitney", weight: "light", style: "italic"});
+Canvas.registerFont("./assets/fonts/PTSans-Regular.ttf", {family: "PT Sans", weight: "normal", style: "normal"});
+Canvas.registerFont("./assets/fonts/PTSans-Italic.ttf", {family: "PT Sans", weight: "normal", style: "italic"});
+Canvas.registerFont("./assets/fonts/PTSans-Bold.ttf", {family: "PT Sans", weight: "bold", style: "normal"});
+Canvas.registerFont("./assets/fonts/PTSans-BoldItalic.ttf", {family: "PT Sans", weight: "bold", style: "italic"});
+
+
+
+
+
+const fonts = "PT Sans, Noto Emoji, Whitney, Noto Sans JP, Noto Sans KR, Noto Sans TC, Noto Sans SC, Noto Sans HK";
+const backgrounds = ["Base", "Purple Checker", "B&W Spiral", "Waterfall", "Country Hill", "Stars", "Bamboo Forest", "Dandelion", "Snowy Mountains", "Campfire By A Lake"];
+const styles = [
+    {
+        id: "default",
+        data: {
+            font: `9px ${fonts}`,
+            textAlign: "left",
+            textBaseline: "top",
+            fillStyle: "#000",
+            strokeStyle: "#000"
+        }
+    },
+    {
+        id: "level",
+        data: {
+            font: `20px ${fonts}`,
+            textAlign: "center"
+        }
+    },
+    {
+        id: "h1",
+        data: {
+            font: `bold 16px ${fonts}`
+        }
+    },
+    {
+        id: "h2",
+        data: {
+            font: `14px ${fonts}`
+        }
+    },
+    {
+        id: "h3",
+        data: {
+            font: `12px ${fonts}`
+        }
+    },
+    {
+        id: "h4",
+        data: {
+            font: `bold 10px ${fonts}`
+        }
+    },
+    {
+        id: "center",
+        data: {
+            textAlign: "center"
+        }
+    },
+    {
+        id: "h3-center",
+        data: {
+            font: `12px ${fonts}`,
+            textAlign: "center"
+        }
+    },
+    {
+        id: "h1-center",
+        data: {
+            font: `bold 16px ${fonts}`,
+            textAlign: "center"
+        }
+    },
+];
+
+const bkstyles = [
+    {
+        id: "default",
+        data: {
+            font: "9px \"PT Sans\"",
+            textAlign: "left",
+            textBaseline: "top",
+            fillStyle: "#000",
+            strokeStyle: "#000"
+        }
+    },
+    {
+        id: "h1",
+        data: {
+            font: "bold 16px \"PT Sans\""
+        }
+    },
+    {
+        id: "h2",
+        data: {
+            font: "14px \"PT Sans\""
+        }
+    },
+    {
+        id: "h3",
+        data: {
+            font: "12px \"PT Sans\""
+        }
+    },
+    {
+        id: "h4",
+        data: {
+            font: "bold 10px \"PT Sans\""
+        }
+    },
+    {
+        id: "center",
+        data: {
+            textAlign: "center"
+        }
+    }
+];
+
+
+
+
+
+
+
 
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
@@ -97,7 +276,7 @@ const resolveUser = (msg, username) => {
 };
 
 const generateRankCard = async (userData, user) => {
-	const canvas = createCanvas(700, 250);
+	const canvas = Canvas.createCanvas(700, 250);
 	const ctx = canvas.getContext("2d");
 	const xpToNextLevel = getXp(userData.level + 1);
 	const xpForCurrentLevel = getXp(userData.level);
@@ -123,7 +302,12 @@ const generateRankCard = async (userData, user) => {
 
 	ctx.font = "24px Poppins";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText(`${user.user.tag}`, canvas.width / 3, 100);
+	const name = `${user.nickname}${user.user.tag.slice(-5)}`
+	const nameWidth = ctx.measureText(name).width
+	if(nameWidth > canvas.width*.75){
+		ctx.font = "16px Poppins";
+	}
+	ctx.fillText(`${name}`, canvas.width / 3, 100);
 	ctx.strokeStyle = "#c31503";
 	ctx.lineWidth = 4;
 	ctx.lineCap = "round";
@@ -155,7 +339,7 @@ const generateRankCard = async (userData, user) => {
 	ctx.fill();
 	ctx.clip();
 	const profileUrl = user.user.displayAvatarURL({ format: "png" });
-	const avatar = await loadImage(profileUrl);
+	const avatar = await Canvas.loadImage(profileUrl);
 	ctx.drawImage(avatar, 25 * 1.75, 25 * 1.75, 200 / 1.25, 200 / 1.25);
 	const discordAdmins = adminIds.discord.developers;
 	const isAdmin = discordAdmins.includes(user.id);
@@ -168,18 +352,18 @@ const generateRankCard = async (userData, user) => {
 	ctx.restore();
 	const iconWidth = 60;
 	const statusUrl = statuses[user.presence.status];
-	const statusImage = await loadImage(statusUrl);
+	const statusImage = await Canvas.loadImage(statusUrl);
 	ctx.drawImage(statusImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, iconWidth, iconWidth);
 	const supporters = adminIds.discord.supporters;
 	const isSupporter = supporters.includes(user.id);
 	if (isAdmin) {
 		const adminLogo = "https://www.disstreamchat.com/logo.png";
-		const adminImage = await loadImage(adminLogo);
+		const adminImage = await Canvas.loadImage(adminLogo);
 		ctx.drawImage(adminImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75, iconWidth, iconWidth);
 	} else if (isSupporter) {
 		const supporterLogo =
 			"https://icons-for-free.com/iconfiles/png/512/best+bookmark+premium+rating+select+star+icon-1320168257340660520.png";
-		const supporterImage = await loadImage(supporterLogo);
+		const supporterImage = await Canvas.loadImage(supporterLogo);
 		ctx.drawImage(supporterImage, 25 * 1.75 + 200 / 1.25 - (iconWidth * 0.8) / 1.15, 25 * 1.75, iconWidth * 0.8, iconWidth * 0.8);
 	}
 	return canvas;
