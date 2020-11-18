@@ -302,7 +302,7 @@ const generateRankCard = async (userData, user) => {
 
 	ctx.font = "24px Poppins";
 	ctx.fillStyle = "#ffffff";
-	const name = `${user.nickname}${user.user.tag.slice(-5)}`
+	const name = `${user.nickname || user.user.username}${user.user.tag.slice(-5)}`
 	const nameWidth = ctx.measureText(name).width
 	if(nameWidth > canvas.width*.75){
 		ctx.font = "16px Poppins";
