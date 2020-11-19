@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
 const Canvas = require("canvas");
+import admin from "firebase-admin"
 
 Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", {family: "OpenMoji", weight: "normal", style: "normal"});
 Canvas.registerFont("./assets/fonts/NotoEmoji-Regular.ttf", {family: "Noto Emoji", weight: "normal", style: "normal"});
@@ -414,7 +415,13 @@ const embedJSON = (obj, title = "") => {
 	}
 };
 
+const getDiscordSettings = async ({guild, client}) => {
+	if(client.settings?.guild === guild) return client.settings
+	return (await admin.firestore().collection("DiscordSettings").doc(guild).get()).data()
+}
+
 module.exports = {
+	getDiscordSettings,
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},

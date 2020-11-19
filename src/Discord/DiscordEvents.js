@@ -6,14 +6,16 @@ const ReactionRoles = require("./Reaction Manager");
 const ranks = require("../ranks.json");
 
 const { handleLeveling } = require("./Leveling");
+const { getDiscordSettings } = require("../utils/functions");
 
 const path = require("path");
 const fs = require("fs");
+const admin = require("firebase-admin");
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 const events = {};
 
-module.exports = (client, io, app) => {
+module.exports = async (client, io, app) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
@@ -23,27 +25,25 @@ module.exports = (client, io, app) => {
 		}
 	});
 
+	admin.firestore().collection("DiscordSettings").onSnapshot(snapshot => {
+		const changes = snapshot.docChanges()
+		changes.map(change => {
+			
+		})
+	})
+
 	client.on("message", async message => {
 		try {
 			if (!message.guild) return;
-
+			const settings = await getDiscordSettings({ client, guild: message.guild.id });
+			client.settings = settings
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
 				await handleLeveling(message);
 			}
-			if (/*(message.guild.id === "711238743213998091" || message.guild.id === "702522791018102855") &&*/ !message.author.bot) {
-				// remove in the future to make it work on all guilds
+			if (!message.author.bot) {
 				await CommandHandler(message, client);
 			}
-
-			// after commands try to send message through the io, but only if there are io connected to the guild
-			// if (!io.hasOwnProperty(message.guild.id)) return;
-			// if (![...io[message.guild.id]].length) return;
-
-			// const { liveChatId } = [...io[message.guild.id]][0].userInfo;
-
-			// don't waste time with the rest of the stuff if there isn't a connection to this guild
-			// if (message.channel.id != liveChatId && !liveChatId.includes(message.channel.id)) return;
 
 			const senderName = message.member.displayName;
 
@@ -126,7 +126,6 @@ module.exports = (client, io, app) => {
 		}
 	});
 
-	// TODO: add logging
 	client.on("messageDelete", message => {
 		try {
 			io.in(`channel-${message.channel.id}`).emit("deletemessage", message.id);
@@ -145,7 +144,6 @@ module.exports = (client, io, app) => {
 		});
 	});
 
-	// TODO: add logging
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
 			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
@@ -158,13 +156,4 @@ module.exports = (client, io, app) => {
 			console.log(err.message);
 		}
 	});
-
-	// TODO: add in customizable welcome messages and logging
-	// client.on("guildMemberAdd", async member => {
-	// 	if (member.guild.id === "711238743213998091") {
-	// 		await member.send(
-	// 			`Welcome to the DisStreamChat community. If you need help setting up DisStreamChat feel free to ask in any of the help channels. But try to find a help channel related to you problem. If you can't talk in any of the chats just DM a moderator and they will sort out the issue. Any suggestions or bug reports you have should go in the respective channels. 😀`
-	// 		);
-	// 	}
-	// });
 };

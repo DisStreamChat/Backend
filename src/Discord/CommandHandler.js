@@ -1,7 +1,7 @@
 require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
-const { adminWare, modWare } = require("../utils/functions");
+const { adminWare, modWare, getDiscordSettings } = require("../utils/functions");
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = fs.readdirSync(commandPath);
 const commands = {};
@@ -28,22 +28,22 @@ module.exports = async (message, client) => {
 	}
 	let prefix = "!";
 	try {
-		const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get())?.data();
+		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		prefix = settings?.prefix || "!";
 	} catch (err) {}
 	if (process.env.BOT_DEV == "true") prefix = "?";
-    client.prefix = prefix;
-    const isMention = (message?.mentions?.users?.has(client.user.id))
+	client.prefix = prefix;
+	const isMention = message?.mentions?.users?.has(client.user.id);
 	let isCommand = message.content.startsWith(prefix) || isMention;
-    if (!isCommand) return;
-    if(isMention){
-        message.content = message.content.replace(`<@!${client.user.id}> `, "")
-    }
+	if (!isCommand) return;
+	if (isMention) {
+		message.content = message.content.replace(`<@!${client.user.id}> `, "");
+	}
 	const args = message.content.split(" ");
-    let command = args.shift();
-    if(!isMention){
-        command = command.slice(prefix.length)
-    }
+	let command = args.shift();
+	if (!isMention) {
+		command = command.slice(prefix.length);
+	}
 	const commandObj = commands[command];
 	if (!commandObj) {
 		customCommandHandler({ message, args, client, command });

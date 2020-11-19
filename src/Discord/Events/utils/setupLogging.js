@@ -1,4 +1,5 @@
 import admin from "firebase-admin";
+import { getDiscordSettings } from "../../../utils/functions";
 
 let defaultLogging;
 setTimeout(() => {
@@ -17,16 +18,15 @@ setTimeout(() => {
 	})();
 }, 1000);
 
-module.exports = async (guild, id) => {
+module.exports = async (guild, id, client) => {
 	let channelId = null;
 	let active = false;
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-	const serverSettingsRef = await admin.firestore().collection("DiscordSettings").doc(guild.id).get()
-	const serverSettingsData = serverSettingsRef.data()
+	const serverSettingsData = await getDiscordSettings({ guild: guild.id, client });
 	const serverData = serverRef.data();
 	if (serverData) {
-		if(serverSettingsData){
-			active = serverSettingsData.activePlugins.logging
+		if (serverSettingsData) {
+			active = serverSettingsData.activePlugins.logging;
 		}
 		channelId = serverData.server;
 		const channelOverrides = serverData.channelOverrides || {};
