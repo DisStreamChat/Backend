@@ -37,8 +37,7 @@ module.exports = async (client, io, app) => {
 	client.on("message", async message => {
 		try {
 			if (!message.guild) return;
-			const settings = await getDiscordSettings({ client, guild: message.guild.id });
-			client.settings = settings
+			
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
 				await handleLeveling(message);
