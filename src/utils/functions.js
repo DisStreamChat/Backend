@@ -416,7 +416,7 @@ const embedJSON = (obj, title = "") => {
 };
 
 const getDiscordSettings = async ({guild, client}) => {
-	if(client.settings?.guild === guild) return client.settings
+	if(client.settings[guild]) return client.settings[guild]
 	return (await admin.firestore().collection("DiscordSettings").doc(guild).get()).data()
 }
 
