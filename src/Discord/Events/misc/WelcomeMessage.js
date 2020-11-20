@@ -7,8 +7,7 @@ import Mustache from "mustache";
 Mustache.tags = ["{", "}"];
 
 module.exports = async (guild, member, client) => {
-	const settings = await getDiscordSettings({ client, guild: guild.id });
-	const data = settings.data();
+	const data = await getDiscordSettings({ client, guild: guild.id });
 	if (!data) return;
 	if (!data.activePlugins["welcome-message"]) return;
 	if (!data.welcomeMessage) return;
