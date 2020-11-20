@@ -25,32 +25,37 @@ module.exports = async (client, io, app) => {
 		}
 	});
 
-	client.settings = {}
-	client.logging = {}
+	client.settings = {};
+	client.logging = {};
 
-	admin.firestore().collection("loggingChannel").onSnapshot(snapshot => {
-		const changes = snapshot.docChanges()
-		changes.map(change => {
-			client.logging[change.doc.id] = change.doc.data()
-		})
-	})
+	admin
+		.firestore()
+		.collection("loggingChannel")
+		.onSnapshot(snapshot => {
+			const changes = snapshot.docChanges();
+			changes.map(change => {
+				client.logging[change.doc.id] = change.doc.data();
+			});
+		});
 
-	admin.firestore().collection("DiscordSettings").onSnapshot(snapshot => {
-		const changes = snapshot.docChanges()
-		changes.map(change => {
-			client.settings[change.doc.id] = change.doc.data()
-		})
-	})
+	admin
+		.firestore()
+		.collection("DiscordSettings")
+		.onSnapshot(snapshot => {
+			const changes = snapshot.docChanges();
+			changes.map(change => {
+				client.settings[change.doc.id] = change.doc.data();
+			});
+		});
 
 	client.on("message", async message => {
 		try {
 			if (!message.guild) return;
-			
+
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
-				await handleLeveling(message);
-			}
-			if (!message.author.bot) {
+				await handleLeveling(message, client);
+
 				await CommandHandler(message, client);
 			}
 
