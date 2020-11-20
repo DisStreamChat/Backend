@@ -6,7 +6,7 @@ module.exports = async invite => {
     const guild = invite.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "InviteDelete")
+    const [channelId, active] = await setupLogging(guild, "InviteDelete", client)
     if(!active) return
 
 	const embed = new MessageEmbed()

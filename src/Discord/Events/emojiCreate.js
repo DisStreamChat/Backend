@@ -7,7 +7,7 @@ module.exports = async emoji => {
     if(!guild) return
 
 
-    const [channelId, active] = await setupLogging(guild, "emojiCreate")
+    const [channelId, active] = await setupLogging(guild, "emojiCreate", client)
     if(!active) return
 
 

@@ -26,6 +26,14 @@ module.exports = async (client, io, app) => {
 	});
 
 	client.settings = {}
+	client.logging = {}
+
+	admin.firestore().collection("loggingChannel").onSnapshot(snapshot => {
+		const changes = snapshot.docChanges()
+		changes.map(change => {
+			client.logging[change.doc.id] = change.doc.data()
+		})
+	})
 
 	admin.firestore().collection("DiscordSettings").onSnapshot(snapshot => {
 		const changes = snapshot.docChanges()

@@ -6,7 +6,7 @@ module.exports = async emoji => {
     const guild = emoji.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "emojiDelete")
+    const [channelId, active] = await setupLogging(guild, "emojiDelete", client)
     if(!active) return
 
 	const embed = new MessageEmbed()

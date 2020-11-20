@@ -11,7 +11,7 @@ module.exports = async (guild, user) => {
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "MemberBanned")
+    const [channelId, active] = await setupLogging(guild, "MemberBanned", client)
     if(!active) return
     
 	const embed = new MessageEmbed()

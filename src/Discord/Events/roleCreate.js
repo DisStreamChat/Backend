@@ -6,7 +6,7 @@ module.exports = async role => {
     const guild = role.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "roleCreate")
+    const [channelId, active] = await setupLogging(guild, "roleCreate", client)
     if(!active) return
     
 	const embed = new MessageEmbed()

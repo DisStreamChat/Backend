@@ -423,8 +423,17 @@ const getDiscordSettings = async ({ guild, client }) => {
 	return settings;
 };
 
+const getLoggingSettings = async ({ guild, client }) => {
+	if (client?.logging?.[guild]) return client.logging[guild];
+	const logging = (await admin.firestore().collection("loggingChannel").doc(guild).get()).data();
+	if (!client) return logging;
+	client.logging = { ...(client.logging || {}), [guild]: logging };
+	return logging;
+};
+
 module.exports = {
 	getDiscordSettings,
+	getLoggingSettings,
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},

@@ -13,7 +13,7 @@ module.exports = async messages => {
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "messageDeleteBulk")
+    const [channelId, active] = await setupLogging(guild, "messageDeleteBulk", client)
     if(!active) return
 
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
