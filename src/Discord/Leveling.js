@@ -2,7 +2,7 @@
 const admin = require("firebase-admin");
 const { Random, ArrayAny } = require("../utils/functions");
 
-const { getXp, getDiscordSettings } = require("../utils/functions");
+const { getXp } = require("../utils/functions");
 
 const getRoleScaling = (roles, scaling) => {
 	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
@@ -13,8 +13,8 @@ const getRoleScaling = (roles, scaling) => {
 };
 
 module.exports = {
-	handleLeveling: async (message, client) => {
-		const settings = await getDiscordSettings({ client, guild: message.guild.id });
+	handleLeveling: async message => {
+		const settings = (await admin.firestore().collection("DiscordSettings").doc(message.guild.id).get()).data();
 		if (!settings?.activePlugins?.leveling) return;
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
 		const levelingDataRef = await levelingRef.get();
@@ -46,7 +46,7 @@ module.exports = {
 			const cooldownTime = 60000;
 			const expireTime = userLevelingData.cooldown + cooldownTime;
 			if (now > expireTime) {
-				console.log(`doing level for ${message.author.username}`);
+                console.log(`doing level for ${message.author.username}`);
 				userLevelingData.cooldown = now;
 				userLevelingData.xp += Random(10, 20) * finalScaling;
 				userLevelingData.xp = Math.floor(userLevelingData.xp);

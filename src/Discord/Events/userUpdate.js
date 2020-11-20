@@ -8,9 +8,7 @@ module.exports = async (oldMember, newMember, DiscordClient) => {
 	console.log(serversToLog.docs.length);
 	const serversData = serversToLog.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const channelsInfo = (
-		await Promise.all(
-			serversData.map(async doc => ({ id: doc.id, info: await setupLogging({ id: doc.id }, "userUpdate", DiscordClient) }))
-		)
+		await Promise.all(serversData.map(async doc => ({ id: doc.id, info: await setupLogging({ id: doc.id }, "userUpdate") })))
 	).filter(channel => channel.info[1]);
 
 	const changeEmbed = new MessageEmbed()

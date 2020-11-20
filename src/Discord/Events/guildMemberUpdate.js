@@ -3,7 +3,7 @@ import { MessageEmbed } from "discord.js";
 const deepEqual = require("deep-equal");
 
 
-module.exports = async (oldMember, newMember, client) => {
+module.exports = async (oldMember, newMember) => {
 	const guild = newMember.guild;
 
 	let channelId = null;

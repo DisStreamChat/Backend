@@ -5,7 +5,7 @@ import setupLogging from "./utils/setupLogging";
 module.exports = async (member, client) => {
 	const guild = member.guild;
 
-    const [channelId, active] = await setupLogging(guild, "MemberRemove", client)
+    const [channelId, active] = await setupLogging(guild, "MemberRemove")
     if(!active) return
 
 	const embed = new MessageEmbed()

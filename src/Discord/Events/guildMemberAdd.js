@@ -7,8 +7,8 @@ import welcomeMessage from "./misc/WelcomeMessage";
 module.exports = async (member, client) => {
     const guild = member.guild;
     // console.log(guild)
-	welcomeMessage(guild, member, client);
-	const [channelId, active] = await setupLogging(guild, "MemberAdd", client);
+	welcomeMessage(guild, member);
+	const [channelId, active] = await setupLogging(guild, "MemberAdd");
 	if (!active) return;
 
 	const embed = new MessageEmbed()
