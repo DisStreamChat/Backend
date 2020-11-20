@@ -967,4 +967,8 @@ router.delete("/discord/reactionmessage", validateRequest, async (req, res, next
 	}
 });
 
+res.get("/dbl", (req, res, next) => {
+	res.redirect("https://top.gg/bot/702929032601403482")
+})
+
 module.exports = router;
