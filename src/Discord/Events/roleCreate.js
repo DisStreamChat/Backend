@@ -2,11 +2,11 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async role => {
+module.exports = async (role, client) => {
     const guild = role.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "roleCreate")
+    const [channelId, active] = await setupLogging(guild, "roleCreate", client)
     if(!active) return
     
 	const embed = new MessageEmbed()

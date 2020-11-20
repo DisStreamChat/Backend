@@ -2,11 +2,11 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async invite => {
+module.exports = async (invite, client) => {
     const guild = invite.guild;
     if(!guild) return
 
-    const [channelId, active] = await setupLogging(guild, "InviteCreate")
+    const [channelId, active] = await setupLogging(guild, "InviteCreate", client)
     if(!active) return
 
     const embed = new MessageEmbed()

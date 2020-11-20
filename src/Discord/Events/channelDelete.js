@@ -5,7 +5,7 @@ import setupLogging from "./utils/setupLogging";
 module.exports = async (channel, client) => {
 	const guild = channel.guild;
 
-    const [channelId, active] = await setupLogging(guild, "channelDelete")
+    const [channelId, active] = await setupLogging(guild, "channelDelete", client)
     if(!active) return
 
 	let parentCheck = '';

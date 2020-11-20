@@ -2,12 +2,12 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async emoji => {
+module.exports = async (emoji, client) => {
     const guild = emoji.guild;
     if(!guild) return
 
 
-    const [channelId, active] = await setupLogging(guild, "emojiCreate")
+    const [channelId, active] = await setupLogging(guild, "emojiCreate", client)
     if(!active) return
 
 
