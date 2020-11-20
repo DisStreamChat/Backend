@@ -26,7 +26,7 @@ module.exports = async (message, DiscordClient) => {
 
 	const { channel, content, author, id } = message;
 
-    const [channelId, active] = await setupLogging(guild, "messageDelete", client)
+    const [channelId, active] = await setupLogging(guild, "messageDelete", DiscordClient)
     if(!active) return
 
 	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();

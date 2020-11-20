@@ -3,7 +3,7 @@ import { MessageEmbed } from "discord.js";
 import {sleep} from "../../utils/functions"
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async (guild, user) => {
+module.exports = async (guild, user, client) => {
     await sleep(1000)
 	const auditLog = await guild.fetchAuditLogs();
 

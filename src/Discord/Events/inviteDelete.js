@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async invite => {
+module.exports = async (invite, client) => {
     const guild = invite.guild;
     if(!guild) return
 

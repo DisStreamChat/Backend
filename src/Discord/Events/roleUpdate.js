@@ -3,7 +3,7 @@ import { MessageEmbed } from "discord.js";
 import messageManipulation from "../../utils/messageManipulation";
 const rdiff = require("recursive-diff");
 
-module.exports = async (oldRole, newRole) => {
+module.exports = async (oldRole, newRole, client) => {
 	await new Promise(res => setTimeout(res, 300));
 	const guild = oldRole.guild;
 

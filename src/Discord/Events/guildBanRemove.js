@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async (guild, user) => {
+module.exports = async (guild, user, client) => {
 	const auditLog = await guild.fetchAuditLogs();
 
 	const deleteAction = await auditLog.entries.first();
