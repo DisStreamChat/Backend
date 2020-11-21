@@ -51,7 +51,6 @@ module.exports = async (client, io, app) => {
 	client.on("message", async message => {
 		try {
 			if (!message.guild) return;
-			console.log(await hasPermission(message.member, ["MANAGE_MESSAGES"], message.channel))
 
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
