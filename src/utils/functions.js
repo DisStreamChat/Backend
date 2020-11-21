@@ -1,5 +1,5 @@
 const formatDistanceToNow = require("date-fns/formatDistanceToNow");
-const { MessageEmbed, MessageAttachment } = require("discord.js");
+const { MessageEmbed, MessageAttachment, Permissions } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
@@ -189,6 +189,8 @@ String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
+const getRoleIds = user => user.roles.cache.array().map(role => role.id);
+
 const getLevel = xp => Math.max(0, Math.floor(Math.log(xp - 100)));
 
 const getXp = level => (5 / 6) * level * (2 * level * level + 27 * level + 91);
@@ -239,12 +241,39 @@ const cleanRegex = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
+const getHighestRole = roles => roles.reduce((acc, cur) => (acc.rawPosition > cur.rawPosition ? acc : cur));
+
 const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
 
-const hasPermsission = (member, perms) => ArrayAny(member.permissions.toArray(), perms);
+const checkOverwrites = (overwrites, perms, admin) => {
+	const Allows = new Permissions(overwrites.allow);
+	const Deny = new Permissions(overwrites.deny);
+	return {allow: Allows.any(perms, admin), deny: !Deny.any(perms, admin)}
+};
+
+const hasPermission = async (member, perms, channel, admin) => {
+	const guild = member.guild;
+	// if(guild.ownerId === member.id) return true
+	const hasGlobalPerms = ArrayAny(member.permissions.toArray(), perms);
+	let hasPerm = hasGlobalPerms;
+	if (channel) {
+		const permissionOverwrites = channel?.permissionOverwrites;
+		if (!permissionOverwrites) return hasPerm;
+		const overWriteRoles = (await Promise.all(permissionOverwrites.keyArray().map(key => guild.roles.fetch(key)))).filter(
+			role => role.name !== "@everyone"
+		);
+		const memberRoles = member.roles.cache.array();
+		const memberOverWriteRoles = overWriteRoles.filter(role => memberRoles.find(r => role.id === r.id));
+		const highestOverWriteRole = getHighestRole(memberOverWriteRoles);
+		const roleOverWrites = permissionOverwrites.get(highestOverWriteRole.id)
+		const {allow, deny} = checkOverwrites(roleOverWrites, perms, admin)
+		return (hasPerm || allow) && (hasPerm && deny);
+	}
+	return hasPerm
+};
 
 const modWare = async (msg, args, client, permissions, cb, { twitch } = {}) => {
-	if (hasPermsission(msg.member, permissions)) {
+	if (await hasPermission(msg.member, permissions)) {
 		await cb(msg, args, client);
 	} else {
 		await msg.channel.send(
@@ -465,7 +494,7 @@ module.exports = {
 
 	capitalize: s => s.charAt(0).toUpperCase() + s.slice(1),
 	ArrayAny,
-	hasPermsission,
+	hasPermission,
 	walkSync,
 	Command,
 	modWare,
@@ -477,7 +506,7 @@ module.exports = {
 		}
 		return Math.random() * (max - min) + min;
 	},
-	getRoleIds: user => user.roles.cache.array().map(role => role.id),
+	getRoleIds,
 	generateRankCard,
 	getLevel,
 	getXp,

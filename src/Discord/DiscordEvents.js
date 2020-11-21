@@ -6,7 +6,7 @@ const ReactionRoles = require("./Reaction Manager");
 const ranks = require("../ranks.json");
 
 const { handleLeveling } = require("./Leveling");
-const { getDiscordSettings } = require("../utils/functions");
+const { getDiscordSettings, hasPermission } = require("../utils/functions");
 
 const path = require("path");
 const fs = require("fs");
