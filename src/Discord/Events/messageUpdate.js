@@ -2,39 +2,13 @@ import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
-module.exports = async (oldMessage, newMessage, client) => {
-	const guild = newMessage.guild;
-	try {
-		await oldMessage.fetch(true);
-		await newMessage.fetch(true);
-		if(newMessage?.author?.bot) return
+module.exports = async (oldEmoji, newEmoji, client) => {
+    // const guild = newEmoji.guild;
 
-		const [channelId, active] = await setupLogging(guild, "messageUpdate", client);
+    // const [channelId, active] = setupLogging(guild, "emojiUpdate", client)
+    // if(!active) return
 
-		if (!active) return;
-		if (!channelId) return;
+    // if (!channelId) return;
 
-		const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-		const serverData = serverRef.data();
-		if (serverData) {
-			const ignoredChannels = serverData.ignoredChannels?.messageUpdated || [];
-			if (ignoredChannels.includes(newMessage.channel.id)) return;
-		}
-
-		const embed = new MessageEmbed()
-			.setAuthor(newMessage.author.tag, newMessage.author.displayAvatarURL())
-			.setDescription(`message edited in ${newMessage.channel} by ${newMessage.author} [Jump to message](${newMessage.url})`)
-			.addField("Before", oldMessage.content || "unknown content")
-			.addField("After", newMessage.content || "unknown content")
-			.setFooter(`User ID: ${newMessage.author.id}`)
-			.setTimestamp(new Date());
-
-		const logChannel = guild.channels.resolve(channelId);
-
-		logChannel.send(embed);
-	} catch (err) {
-		console.log(err.message);
-		console.log("\n\n\n\n\n\n\n");
-	}
-	// console.log(oldEmoji, newEmoji)
+    // // console.log(oldEmoji, newEmoji)
 };
