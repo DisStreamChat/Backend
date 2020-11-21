@@ -1,11 +1,11 @@
-const { isAdmin, hasPermsission, ArrayAny, getRoleIds } = require("../../utils/functions");
+const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../utils/functions");
 const { MessageEmbed } = require("discord.js");
 import { getDiscordSettings } from "../../utils/functions";
 
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const getCommands = (message, client, plugins) => {
+const getCommands = async (message, client, plugins) => {
 	let availableCommands = [];
 	for (const [key, command] of Object.entries(client.commands)) {
 		const commandObj = { displayName: key, ...command };
@@ -18,7 +18,7 @@ const getCommands = (message, client, plugins) => {
 		} else if (command.adminOnly && isAdmin(message.author)) {
 			availableCommands.push(commandObj);
 			continue;
-		} else if (command.permissions?.length && hasPermsission(message.member, command.permissions || [])) {
+		} else if (command.permissions?.length && await hasPermission(message.member, command.permissions || [])) {
 			availableCommands.push(commandObj);
 			continue;
 		}
@@ -62,7 +62,7 @@ module.exports = {
 	usage: "(command_name)",
 	execute: async (message, args, client) => {
 		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
-		let availableCommands = getCommands(message, client, guildSettings?.activePlugins || {});
+		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 		const guildData = guildRef.data();
 		let customCommands = filterCustomCommands(guildData, message);
@@ -81,7 +81,7 @@ module.exports = {
 				)
 				.setTimestamp(message.createdAt)
 				.setColor("#206727");
-			if (hasPermsission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
+			if (await hasPermission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
 				helpEmbed.addField(
 					"Moderator Tip",
 					"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
@@ -115,7 +115,7 @@ module.exports = {
 							await message.channel.send(commandHelpEmbed);
 						}
 					} else {
-						const availableCustomCommands = getCommands(message, { commands: guildData });
+						const availableCustomCommands = await getCommands(message, { commands: guildData });
 						const customHelpEmbed = new MessageEmbed()
 							.setTitle("DisStreambot Help")
 							.setDescription("Here are all the available custom commands")

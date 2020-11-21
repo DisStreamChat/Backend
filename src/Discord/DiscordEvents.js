@@ -6,7 +6,7 @@ const ReactionRoles = require("./Reaction Manager");
 const ranks = require("../ranks.json");
 
 const { handleLeveling } = require("./Leveling");
-const { getDiscordSettings } = require("../utils/functions");
+const { getDiscordSettings, hasPermission } = require("../utils/functions");
 
 const path = require("path");
 const fs = require("fs");
@@ -51,6 +51,7 @@ module.exports = async (client, io, app) => {
 	client.on("message", async message => {
 		try {
 			if (!message.guild) return;
+			console.log(await hasPermission(message.member, ["MANAGE_MESSAGES"], message.channel))
 
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
