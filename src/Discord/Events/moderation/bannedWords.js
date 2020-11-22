@@ -7,5 +7,12 @@ module.exports = async (message, client) => {
 	const guildDoc = await guildRef.get();
 	const guildData = guildDoc.data();
 	if (!guildData) return;
-	
+	if (guildData.bannedWords) {
+		for (const word of guildData.bannedWords) {
+			if (message.content.includes(word)) {
+				message.delete();
+				warn(message.member, guild, client);
+			}
+		}
+	}
 };
