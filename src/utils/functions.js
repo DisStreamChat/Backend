@@ -359,19 +359,27 @@ const checkDiscordInviteLink = async url => {
 		const response = await nodeFetch(url);
 		const text = await response.text();
 		const dom = new JSDOM(text).window.document;
-		const mediaCheck1 = dom.querySelector("[name='twitter:site']");
-		const mediaCheck2 = dom.querySelector("[property='og:url']");
-		return mediaCheck1?.content === "@discord" && mediaCheck2?.content?.includes("invite");
+		const metaCheck1 = dom.querySelector("[name='twitter:site']");
+		const metaCheck2 = dom.querySelector("[property='og:url']");
+		return metaCheck1?.content === "@discord" && metaCheck2?.content?.includes("invite");
 	} catch (err) {
 		console.log(err.message);
 		return false;
 	}
 };
 
-const hasDiscordInviteLink = urls => {};
+const hasDiscordInviteLink = urls => {
+	for (const url of urls) {
+		if (checkDiscordInviteLink(url)) {
+			return true;
+		}
+	}
+	return false
+};
 
 module.exports = {
 	checkDiscordInviteLink,
+	hasDiscordInviteLink,
 	warn,
 	informMods,
 	getDiscordSettings,
