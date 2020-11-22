@@ -39,7 +39,7 @@ module.exports = {
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
 		const levelingDataRef = await levelingRef.get();
 		const levelingData = levelingDataRef.data();
-		const levelingSettings = getLevelSettings(client, message.guild);
+		const levelingSettings = getLevelSettings(client, message.guild.id);
 		if (levelingData) {
 			const channel = message.channel;
 			const channelsToIgnore = levelingSettings?.bannedItems?.channels || [];
