@@ -5,6 +5,7 @@ const path = require("path");
 const adminIds = require("../ranks.json");
 const Canvas = require("canvas");
 import admin from "firebase-admin";
+import nodeFetch from "node-fetch";
 
 Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", { family: "OpenMoji", weight: "normal", style: "normal" });
 Canvas.registerFont("./assets/fonts/NotoEmoji-Regular.ttf", { family: "Noto Emoji", weight: "normal", style: "normal" });
@@ -346,15 +347,31 @@ const Random = (min, max) => {
 	return Math.random() * (max - min) + min;
 };
 
-const warn = (member, guild, client, message) => {
+const warn = (member, guild, client, message) => {};
 
-}
+const informMods = (message, guild, client) => {};
 
-const informMods = (message, guild, client) => {
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
-}
+const checkDiscordInviteLink = async url => {
+	try {
+		const response = await nodeFetch(url);
+		const text = await response.text();
+		const dom = new JSDOM(text).window.document;
+		const mediaCheck1 = dom.querySelector("[name='twitter:site']");
+		const mediaCheck2 = dom.querySelector("[property='og:url']");
+		return mediaCheck1?.content === "@discord" && mediaCheck2?.content?.includes("invite");
+	} catch (err) {
+		console.log(err.message);
+		return false;
+	}
+};
+
+const hasDiscordInviteLink = urls => {};
 
 module.exports = {
+	checkDiscordInviteLink,
 	warn,
 	informMods,
 	getDiscordSettings,
