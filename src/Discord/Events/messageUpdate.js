@@ -35,7 +35,6 @@ module.exports = async (oldMessage, newMessage, client) => {
 		logChannel.send(embed);
 	} catch (err) {
 		console.log(err.message);
-		console.log("\n\n\n\n\n\n\n");
 	}
 	// console.log(oldEmoji, newEmoji)
 };

@@ -15,13 +15,13 @@ const getRoleScaling = (roles, scaling) => {
 const getLevelSettings = async (client, guild) => {
 	if (client.leveling[guild]) return client.leveling[guild];
 
-	if (client.listeners[guild]) client.listeners[guild]();
 	const collectionRef = admin.firestore().collection("Leveling").doc(guild).collection("settings");
-
+	
 	const levelingSettingsRef = await collectionRef.get();
-
+	
 	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
-
+	if (client.listeners[guild]) return levelingSettings;
+	console.log(`creating leveling listener for ${guild.name}`)
 	client.listeners[guild] = collectionRef.onSnapshot(
 		snapshot => {
 			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
