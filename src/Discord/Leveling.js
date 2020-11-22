@@ -12,34 +12,15 @@ const getRoleScaling = (roles, scaling) => {
 	}
 };
 
-const getLevelSettings = async (client, guild) => {
-	if (client.leveling[guild]) return client.leveling[guild];
-
-	if (client.listeners[guild]) client.listeners[guild]();
-	const collectionRef = admin.firestore().collection("Leveling").doc(guild).collection("settings");
-
-	const levelingSettingsRef = await collectionRef.get();
-
-	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
-
-	client.listeners[guild] = collectionRef.onSnapshot(
-		snapshot => {
-			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
-		},
-		err => console.log(`snapshot error: ${err.message}`)
-	);
-
-	return levelingSettings;
-};
-
 module.exports = {
 	handleLeveling: async (message, client) => {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		if (!settings?.activePlugins?.leveling) return;
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
 		const levelingDataRef = await levelingRef.get();
+		const levelingSettingsRef = await levelingRef.collection("settings").get();
+		const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
 		const levelingData = levelingDataRef.data();
-		const levelingSettings = getLevelSettings(client, message.guild);
 		if (levelingData) {
 			const channel = message.channel;
 			const channelsToIgnore = levelingSettings?.bannedItems?.channels || [];
@@ -51,9 +32,8 @@ module.exports = {
 					rolesToIgnore,
 					member.roles.cache.array().map(role => role.id)
 				)
-			) {
+			)
 				return;
-			}
 			const generalScaling = levelingSettings?.scaling?.general;
 			const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
 			const finalScaling = roleScaling ?? generalScaling ?? 1;

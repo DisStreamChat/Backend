@@ -27,8 +27,6 @@ module.exports = async (client, io, app) => {
 
 	client.settings = {};
 	client.logging = {};
-	client.leveling = {}
-	client.listeners = {}
 
 	admin
 		.firestore()
