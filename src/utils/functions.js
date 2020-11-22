@@ -65,9 +65,6 @@ Canvas.registerFont("./assets/fonts/PTSans-Italic.ttf", { family: "PT Sans", wei
 Canvas.registerFont("./assets/fonts/PTSans-Bold.ttf", { family: "PT Sans", weight: "bold", style: "normal" });
 Canvas.registerFont("./assets/fonts/PTSans-BoldItalic.ttf", { family: "PT Sans", weight: "bold", style: "italic" });
 
-const fonts = "PT Sans, Noto Emoji, Whitney, Noto Sans JP, Noto Sans KR, Noto Sans TC, Noto Sans SC, Noto Sans HK";
-
-
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
@@ -131,7 +128,7 @@ const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
 const checkOverwrites = (overwrites, perms, admin) => {
 	const Allows = new Permissions(overwrites.allow);
 	const Deny = new Permissions(overwrites.deny);
-	return {allow: Allows.any(perms, admin), deny: !Deny.any(perms, admin)}
+	return { allow: Allows.any(perms, admin), deny: !Deny.any(perms, admin) };
 };
 
 const hasPermission = async (member, perms, channel, admin) => {
@@ -148,11 +145,11 @@ const hasPermission = async (member, perms, channel, admin) => {
 		const memberRoles = member.roles.cache.array();
 		const memberOverWriteRoles = overWriteRoles.filter(role => memberRoles.find(r => role.id === r.id));
 		const highestOverWriteRole = getHighestRole(memberOverWriteRoles);
-		const roleOverWrites = permissionOverwrites.get(highestOverWriteRole.id)
-		const {allow, deny} = checkOverwrites(roleOverWrites, perms, admin)
-		return (hasPerm || allow) && (hasPerm && deny);
+		const roleOverWrites = permissionOverwrites.get(highestOverWriteRole.id);
+		const { allow, deny } = checkOverwrites(roleOverWrites, perms, admin);
+		return (hasPerm || allow) && hasPerm && deny;
 	}
-	return hasPerm
+	return hasPerm;
 };
 
 const modWare = async (msg, args, client, permissions, cb, { twitch } = {}) => {
@@ -296,25 +293,6 @@ const adminWare = async (message, args, client, cb) => {
 	}
 };
 
-class Command {
-	constructor(func, description, usage, category, perms) {
-		if (!perms || perms.length === 0) {
-			this.perms = [];
-			this.isMod = false;
-			this.execute = func;
-		} else {
-			this.perms = perms;
-			this.isMod = true;
-			this.execute = (msg, args, client, config) => modWare(msg, args, client, config, func);
-		}
-		this.helptext = {
-			description,
-			usage,
-			category,
-		};
-	}
-}
-
 const embedJSON = (obj, title = "") => {
 	const embed = new MessageEmbed().setTitle(title).setFooter("JSON embedded");
 	for (const key of Object.keys(obj)) {
@@ -361,34 +339,31 @@ const getLoggingSettings = async ({ guild, client }) => {
 	return logging;
 };
 
+const Random = (min, max) => {
+	if (!max && min) {
+		return Random(0, min);
+	}
+	return Math.random() * (max - min) + min;
+};
+
 module.exports = {
 	getDiscordSettings,
 	getLoggingSettings,
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},
-
 	randomChoice: arr => {
 		return arr[Math.floor(arr.length * Math.random())];
 	},
-
 	formatFromNow: time => formatDistanceToNow(time, { addSuffix: true }),
 	randomString: len => [...Array(len)].map(i => (~~(Math.random() * 36)).toString(36)).join(""),
-
-	capitalize: s => s.charAt(0).toUpperCase() + s.slice(1),
 	ArrayAny,
 	hasPermission,
 	walkSync,
-	Command,
 	modWare,
 	adminWare,
 	resolveUser,
-	Random: (min, max) => {
-		if (!max && min) {
-			return this.Random(0, min);
-		}
-		return Math.random() * (max - min) + min;
-	},
+	Random,
 	getRoleIds,
 	generateRankCard,
 	getLevel,
