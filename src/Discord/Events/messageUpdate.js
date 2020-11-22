@@ -8,6 +8,7 @@ module.exports = async (oldMessage, newMessage, client) => {
 		await oldMessage.fetch(true);
 		await newMessage.fetch(true);
 		if(newMessage?.author?.bot) return
+		if(oldMessage.content === newMessage.content) return
 
 		const [channelId, active] = await setupLogging(guild, "messageUpdate", client);
 
