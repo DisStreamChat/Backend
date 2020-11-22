@@ -11,4 +11,7 @@ describe("check for discord invite link", () => {
 	test("check discord vanity url", async () => {
 		expect(await checkDiscordInviteLink("https://discord.gg/elf")).toEqual(true);
 	});
+	test("check completely different url", async () => {
+		expect(await checkDiscordInviteLink("https://disstreamchat.com")).toEqual(false);
+	});
 });
