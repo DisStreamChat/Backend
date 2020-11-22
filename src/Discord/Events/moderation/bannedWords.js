@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { getDiscordSettings } from "../../../utils/functions";
+import { getDiscordSettings, informMods, warn } from "../../../utils/functions";
 
 module.exports = async (message, client) => {
 	const settings = await getDiscordSettings({ client, guild: message.guild.id });
@@ -11,7 +11,7 @@ module.exports = async (message, client) => {
 		for (const word of guildData.bannedWords) {
 			if (message.content.includes(word)) {
 				if (guildData.subtle) {
-					informMods(message, guild, client)
+					informMods(message, guild, client);
 				} else {
 					message.delete();
 					warn(message.member, guild, client);

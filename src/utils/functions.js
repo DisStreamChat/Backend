@@ -346,7 +346,17 @@ const Random = (min, max) => {
 	return Math.random() * (max - min) + min;
 };
 
+const warn = (member, guild, client, message) => {
+
+}
+
+const informMods = (message, guild, client) => {
+
+}
+
 module.exports = {
+	warn,
+	informMods,
 	getDiscordSettings,
 	getLoggingSettings,
 	isNumeric: value => {
