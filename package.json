@@ -84,6 +84,7 @@
 		"twitch-lib": "^0.2.5",
 		"twitchio-js": "^1.0.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
+		"url-parse": "^1.4.7",
 		"url-regex": "^5.0.0",
 		"uuidv1": "^1.6.14"
 	},

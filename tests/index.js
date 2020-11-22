@@ -1,4 +1,4 @@
-const { checkDiscordInviteLink } = require("../src/utils/functions");
+const { checkDiscordInviteLink, checkBannedDomain } = require("../src/utils/functions");
 
 describe("check for discord invite link", () => {
 	test("check redirect link", async () => {
@@ -15,3 +15,9 @@ describe("check for discord invite link", () => {
 		expect(await checkDiscordInviteLink("https://disstreamchat.com")).toEqual(false);
 	});
 });
+
+// describe("testing url parser", () => {
+// 	test("parses url properly", async () => {
+// 		expect(checkBannedDomain("https://google.com", ["google.com"])).toBe(true)
+// 	});
+// });

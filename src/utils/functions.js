@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
 const Canvas = require("canvas");
+const URL = require('url-parse');
 import admin from "firebase-admin";
 import nodeFetch from "node-fetch";
 
@@ -374,10 +375,27 @@ const hasDiscordInviteLink = urls => {
 			return true;
 		}
 	}
+	return false;
+};
+
+const checkBannedDomain = (url, domains=[]) => {
+	const parsed = new URL(url)
+	for(const domain of domains){
+		if(parsed?.host?.includes?.(domain)) return true
+	}
 	return false
+}
+
+const hasBannedDomain = (urls, domains) => {
+	for (const url of urls) {
+		if (checkBannedDomain(url, domains)) return true;
+	}
+	return false;
 };
 
 module.exports = {
+	checkBannedDomain,
+	hasBannedDomain,
 	checkDiscordInviteLink,
 	hasDiscordInviteLink,
 	warn,
