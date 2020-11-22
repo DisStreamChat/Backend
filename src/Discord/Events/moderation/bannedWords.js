@@ -10,8 +10,12 @@ module.exports = async (message, client) => {
 	if (guildData.bannedWords) {
 		for (const word of guildData.bannedWords) {
 			if (message.content.includes(word)) {
-				message.delete();
-				warn(message.member, guild, client);
+				if (guildData.subtle) {
+					informMods(message, guild, client)
+				} else {
+					message.delete();
+					warn(message.member, guild, client);
+				}
 			}
 		}
 	}
