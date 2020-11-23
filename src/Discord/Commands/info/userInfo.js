@@ -1,4 +1,4 @@
-const { resolveUser, formatFromNow } = require("../../utils/functions");
+const { resolveUser, formatFromNow } = require("../../../utils/functions");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {

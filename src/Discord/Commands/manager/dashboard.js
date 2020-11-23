@@ -1,4 +1,4 @@
-const { resolveUser, generateRankCard } = require("../../utils/functions");
+const { resolveUser, generateRankCard } = require("../../../utils/functions");
 const { MessageAttachment } = require("discord.js");
 const path = require("path");
 const fs = require("fs");
@@ -8,14 +8,14 @@ const { registerFont } = require("canvas");
 registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf"), { family: "Poppins" });
 
 module.exports = {
-	name: "leaderboard",
+	name: "dashboard",
+	id: "dashboard",
+	category: "manager",
+	
 	aliases: [],
-	plugin: "leveling",
-	id: "leaderboard",
-	category: "leveling",
-	description: "Get the link to the leaderboard for this guild.",
-	usage: ["leaderboard"],
+	description: "Get the link to the bot dashboard for this guild.",
+    permissions: ["MANAGE_SERVER", "ADMINISTRATOR"],
 	execute: async (message, args, client) => {
-		message.channel.send(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`)
+		message.channel.send(`https://www.disstreamchat.com/dashboard/discord/${message.guild.id}`)
 	},
 };

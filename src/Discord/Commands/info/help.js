@@ -1,6 +1,6 @@
-const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../utils/functions");
+const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../../utils/functions");
 const { MessageEmbed } = require("discord.js");
-import { getDiscordSettings } from "../../utils/functions";
+import { getDiscordSettings } from "../../../utils/functions";
 
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");

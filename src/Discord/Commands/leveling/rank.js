@@ -1,4 +1,4 @@
-const { resolveUser, generateRankCard } = require("../../utils/functions");
+const { resolveUser, generateRankCard } = require("../../../utils/functions");
 const { MessageAttachment } = require("discord.js");
 const path = require("path");
 const fs = require("fs");
