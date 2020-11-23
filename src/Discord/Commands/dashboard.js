@@ -9,6 +9,9 @@ registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf")
 
 module.exports = {
 	name: "dashboard",
+	id: "dashboard",
+	category: "manager",
+	
 	aliases: [],
 	description: "Get the link to the bot dashboard for this guild.",
     permissions: ["MANAGE_SERVER", "ADMINISTRATOR"],

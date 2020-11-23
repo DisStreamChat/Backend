@@ -3,6 +3,8 @@ import admin from "firebase-admin";
 
 module.exports = {
 	name: "stats",
+	id: "bot-stats",
+	category: "admin",
 	aliases: [],
     description: "Get DisStreamChat Stats",
 	adminOnly: true,

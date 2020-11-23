@@ -2,6 +2,8 @@ require("dotenv").config()
 
 module.exports = {
 	name: "restart",
+	id: "restart",
+	category: "admin",
 	aliases: [],
     description: "Restarts the Client.",
 	adminOnly: true,

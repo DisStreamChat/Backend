@@ -1,6 +1,8 @@
 module.exports = {
 	name: "serverInfo",
 	aliases: ["server-info"],
+	id: "server-info",
+	category: "info",
     description: "Get information about the server",
     permissions: ["MANAGE_SERVER", "ADMINISTRATOR"],
 	execute: async (message, args, client) => {

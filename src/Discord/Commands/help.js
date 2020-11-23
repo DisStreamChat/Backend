@@ -57,6 +57,8 @@ const filterCustomCommands = (commands, { member, channel }) => {
 };
 module.exports = {
 	name: "help",
+	id: "help",
+	category: "info",
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
 	usage: "(command_name)",

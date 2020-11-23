@@ -10,6 +10,8 @@ registerFont(path.join(__dirname, "../../../public/Poppins/Poppins-Regular.ttf")
 module.exports = {
 	name: "rank",
 	aliases: ["level"],
+	id: "rank",
+	category: "leveling",
 	plugin: "leveling",
 	description: "Get someones experience and level on this server in a rankcard.",
 	usage: ["(user)"],
