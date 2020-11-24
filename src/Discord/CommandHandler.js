@@ -6,12 +6,13 @@ const commandPath = path.join(__dirname, "Commands");
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
 const customCommandHandler = require("./Commands/CustomCommands");
+const { Command } = require("../utils/classes");
 
-// TODO: use WalkSync to allow for nested folders in command directory
 commandFiles.forEach(command => {
 	if (command.name.endsWith(".js")) {
-		const commandObj = require(command.path);
+		let commandObj = require(command.path);
 		if (commandObj.id) {
+			commandObj = new Command(commandObj)
 			const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
 				commands[name] = commandObj;
 			});
@@ -34,7 +35,7 @@ module.exports = async (message, client) => {
 	let isCommand = message.content.startsWith(prefix) || isMention;
 	if (!isCommand) return;
 	if (isMention) {
-		message.content = message.content.replace(`<@!${client.user.id}> `, "");
+		message.content = message.content.replace(new RegExp(`<@!?${client.user.id}> `), "");
 	}
 	const args = message.content.split(" ");
 	let command = args.shift();
@@ -45,8 +46,6 @@ module.exports = async (message, client) => {
 	if (!commandObj) {
 		customCommandHandler({ message, args, client, command });
 	} else {
-		if (commandObj.adminOnly) await adminWare(message, args, client, commandObj.execute);
-		else if (commandObj.permissions) await modWare(message, args, client, commandObj.permissions, commandObj.execute);
-		else await commandObj.execute(message, args, client);
+		await commandObj.execute(message, args, client);
 	}
 };
