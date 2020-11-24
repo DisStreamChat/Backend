@@ -6,8 +6,8 @@ module.exports = {
 	aliases: ["role-info"],
 	id: "roleinfo",
 	category: "info",
-	description: "Get a list of all roles in a server",
-	usage: [],
+	description: "Get information about a role",
+	usage: ["<roleping | roleid | rolename>"],
 	execute: async (msg, args, bot) => {
 		const role = resolveRole(msg, args.join(" "));
 		if (!role) return msg.channel.send(":x: Invalid Role");
