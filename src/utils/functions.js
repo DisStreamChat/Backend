@@ -8,6 +8,7 @@ const URL = require('url-parse');
 import admin from "firebase-admin";
 import nodeFetch from "node-fetch";
 
+Canvas.registerFont(path.join(__dirname, "../../public/Poppins/Poppins-Regular.ttf"), { family: "Poppins" });
 Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", { family: "OpenMoji", weight: "normal", style: "normal" });
 Canvas.registerFont("./assets/fonts/NotoEmoji-Regular.ttf", { family: "Noto Emoji", weight: "normal", style: "normal" });
 
@@ -113,7 +114,7 @@ const walkSync = (files, fileDir, fileList = []) => {
 			const dir = fs.readdirSync(absolutePath);
 			walkSync(dir, absolutePath, fileList);
 		} else {
-			fileList.push(path.relative(__dirname, absolutePath));
+			fileList.push({name: file, path: path.relative(__dirname, absolutePath)});
 		}
 	}
 	return fileList;
