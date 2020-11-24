@@ -32,9 +32,9 @@ const DisTwitchChatProfile =
 const getBadges = async (channelName, tags) => {
 	// get custom badges from twitch api
 
-    const badges = {};
+	const badges = {};
 	if (tags.badges) {
-        const userInfo = await Api.getUserInfo(channelName, true)
+		const userInfo = await Api.getUserInfo(channelName, true);
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
@@ -205,11 +205,11 @@ module.exports = (TwitchClient, io, app) => {
 
 		// send the message object to all io connected to this channel
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
-		try{
-			await admin.firestore().collection("messages").doc(channelName).set({messages: true})
-			await admin.firestore().collection("messages").doc(channelName).collection("messages").doc(tags.id).set(messageObject)
-		}catch(err){
-			console.log(err.message)
+		try {
+			await admin.firestore().collection("messages").doc(channelName).set({ messages: true });
+			await admin.firestore().collection("messages").doc(channelName).collection("messages").doc(tags.id).set(messageObject);
+		} catch (err) {
+			console.log(err.message);
 		}
 	});
 
@@ -610,7 +610,7 @@ module.exports = (TwitchClient, io, app) => {
 						}, 1000);
 					}
 					res.json("success");
-				} 
+				}
 			} else {
 				// it's not from twitch
 				res.status("401").json({ message: "Looks like You aren't twitch" });
@@ -623,212 +623,214 @@ module.exports = (TwitchClient, io, app) => {
 
 	// TODO: refactor so it doesn't fire on follow
 	// get channel point redemptions for each channel
-	let pubsubbedChannels = [];
-	(async () => {
-		admin
-			.firestore()
-			.collection("live-notify")
-			.onSnapshot(async snapshot => {
-				const allNotifyingChannels = [
-					...new Set(
-						(await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))).reduce((acc, cur) => [
-							...acc,
-							...cur,
-						])
-					),
-				].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
-				for(const channel of allNotifyingChannels){
-                    const streamerData = await Api.getUserInfo(channel)
-                    // console.log(streamerData, channel)
-					const init_topics = [
-						{
-							topic: `video-playback.${streamerData.login}`,
-						},
-                    ];
-                    const pubSub = new TPS({
-						init_topics,
-						reconnect: false,
-						debug: false,
-					});
-					pubSub.channelName = streamerData.login;
-                    pubsubbedChannels.push({ listener: pubSub, id: channel });
-                    pubSub.on("stream-up", async data => {
-						const name = "dscnotifications";
-						// console.log(data);
-						// if (!io.hasOwnProperty(name)) return;
-						console.log("notifications");
-						const intervalId = setInterval(async () => {
-							console.log("fetching stream");
-							const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
-							const streamDataResponse = await Api.fetch(apiUrl);
-							const streamData = streamDataResponse.data;
-							const stream = streamData[0];
-							if (stream) {
-								clearInterval(intervalId);
-								io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+	if (process.env.BOT_DEV != "true") {
+		let pubsubbedChannels = [];
+		(async () => {
+			admin
+				.firestore()
+				.collection("live-notify")
+				.onSnapshot(async snapshot => {
+					const allNotifyingChannels = [
+						...new Set(
+							(await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))).reduce((acc, cur) => [
+								...acc,
+								...cur,
+							])
+						),
+					].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
+					for (const channel of allNotifyingChannels) {
+						const streamerData = await Api.getUserInfo(channel);
+						// console.log(streamerData, channel)
+						const init_topics = [
+							{
+								topic: `video-playback.${streamerData.login}`,
+							},
+						];
+						const pubSub = new TPS({
+							init_topics,
+							reconnect: false,
+							debug: false,
+						});
+						pubSub.channelName = streamerData.login;
+						pubsubbedChannels.push({ listener: pubSub, id: channel });
+						pubSub.on("stream-up", async data => {
+							const name = "dscnotifications";
+							// console.log(data);
+							// if (!io.hasOwnProperty(name)) return;
+							console.log("notifications");
+							const intervalId = setInterval(async () => {
+								console.log("fetching stream");
+								const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
+								const streamDataResponse = await Api.fetch(apiUrl);
+								const streamData = streamDataResponse.data;
+								const stream = streamData[0];
+								if (stream) {
+									clearInterval(intervalId);
+									io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+								}
+							}, 60000);
+							// send notifications
+						});
+					}
+				});
+			admin
+				.firestore()
+				.collection("Streamers")
+				.onSnapshot(async allStreamersRef => {
+					const allStreamersTwitchData = (
+						await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
+					).map(doc => doc.data());
+					const authorizedStreamers = allStreamersTwitchData
+						.filter(s => s)
+						.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id && subChannel.isUser));
+					console.log("Authorized Streamers: ", authorizedStreamers.length);
+					authorizedStreamers.forEach(async streamer => {
+						if (!streamer.user_id) return;
+						const streamerData = await Api.getUserInfo(streamer.user_id);
+						const res = await fetch(
+							`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
+						);
+						const json = await res.json();
+						const access_token = json.access_token;
+						if (!json.scope?.includes?.("channel:moderate")) return;
+						const init_topics = [
+							{
+								topic: `channel-points-channel-v1.${streamer.user_id}`,
+								token: access_token,
+							},
+							{
+								topic: `chat_moderator_actions.${streamer.user_id}`,
+								token: access_token,
+							},
+						];
+						const pubSub = new TPS({
+							init_topics,
+							reconnect: false,
+							debug: false,
+						});
+						pubSub.channelName = streamerData.login;
+						pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id, isUser: true });
+						pubSub.on("stream-up", async data => {
+							const name = "dscnotifications";
+							// console.log(data);
+							// if (!io.hasOwnProperty(name)) return;
+							console.log("notifications");
+							const intervalId = setInterval(async () => {
+								console.log("fetching stream");
+								const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
+								const streamDataResponse = await Api.fetch(apiUrl);
+								const streamData = streamDataResponse.data;
+								const stream = streamData[0];
+								if (stream) {
+									clearInterval(intervalId);
+									io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+								}
+							}, 60000);
+							// send notifications
+						});
+						pubSub.on("channel-points", async data => {
+							try {
+								const { redemption, channel_id } = data;
+								const user = await Api.getUserInfo(channel_id);
+								const channelName = user.login;
+								// if (!io.hasOwnProperty(channelName)) return;
+								let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
+									redemption.reward.title
+								} `;
+								if (redemption.reward.prompt.length > 0) {
+									message = `${message} - ${redemption.reward.prompt}`;
+								}
+								const id = uuidv1();
+								const messageObject = {
+									displayName: "DisStreamChat",
+									avatar: DisTwitchChatProfile,
+									body: message,
+									platform: "twitch",
+									messageId: "subscription",
+									messageType: "channel-points",
+									uuid: id,
+									id,
+									badges: {},
+									sentAt: new Date().getTime(),
+									userColor: "#ff0029",
+								};
+								io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
+							} catch (error) {
+								console.log("error sending redemption message", data, error.message);
 							}
-						}, 60000);
-						// send notifications
-					});
-				};
-			});
-		admin
-			.firestore()
-			.collection("Streamers")
-			.onSnapshot(async allStreamersRef => {
-				const allStreamersTwitchData = (
-					await Promise.all(allStreamersRef.docs.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
-				).map(doc => doc.data());
-				const authorizedStreamers = allStreamersTwitchData
-					.filter(s => s)
-					.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id && subChannel.isUser));
-				console.log("Authorized Streamers: ", authorizedStreamers.length);
-				authorizedStreamers.forEach(async streamer => {
-					if (!streamer.user_id) return;
-					const streamerData = await Api.getUserInfo(streamer.user_id);
-					const res = await fetch(
-						`https://api.disstreamchat.com/twitch/token/refresh/?token=${streamer.refresh_token}&key=${process.env.DSC_API_KEY}`
-					);
-					const json = await res.json();
-					const access_token = json.access_token;
-					if (!json.scope?.includes?.("channel:moderate")) return;
-					const init_topics = [
-						{
-							topic: `channel-points-channel-v1.${streamer.user_id}`,
-							token: access_token,
-						},
-						{
-							topic: `chat_moderator_actions.${streamer.user_id}`,
-							token: access_token,
-						},
-					];
-					const pubSub = new TPS({
-						init_topics,
-						reconnect: false,
-						debug: false,
-					});
-					pubSub.channelName = streamerData.login;
-					pubsubbedChannels.push({ listener: pubSub, id: streamer.user_id, isUser: true });
-					pubSub.on("stream-up", async data => {
-						const name = "dscnotifications";
-						// console.log(data);
-						// if (!io.hasOwnProperty(name)) return;
-						console.log("notifications");
-						const intervalId = setInterval(async () => {
-							console.log("fetching stream");
-							const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${data.channel_name}`;
-							const streamDataResponse = await Api.fetch(apiUrl);
-							const streamData = streamDataResponse.data;
-							const stream = streamData[0];
-							if (stream) {
-								clearInterval(intervalId);
-								io.in(`twitch-${name}`).emit("stream-up", { stream, ...data });
+						});
+						pubSub.on("automod_rejected", async data => {
+							try {
+								const { channelName } = pubSub;
+								// if (!io.hasOwnProperty(channelName)) return;
+
+								const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+								const id = uuidv1();
+								const messageObject = {
+									displayName: "AutoMod",
+									avatar: DisTwitchChatProfile,
+									body: theMessage,
+									platform: "twitch",
+									messageId: "",
+									messageType: "auto-mod-reject",
+									uuid: id,
+									id,
+									badges: {},
+									sentAt: new Date().getTime(),
+									userColor: "#ff0029",
+									...data,
+								};
+								io.in(`twitch-${channelName}`).emit("auto-mod", messageObject);
+							} catch (error) {
+								console.log("error sending automod message", data, error.message);
 							}
-						}, 60000);
-						// send notifications
-					});
-					pubSub.on("channel-points", async data => {
-						try {
-							const { redemption, channel_id } = data;
-							const user = await Api.getUserInfo(channel_id);
-							const channelName = user.login;
-							// if (!io.hasOwnProperty(channelName)) return;
-							let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${
-								redemption.reward.title
-							} `;
-							if (redemption.reward.prompt.length > 0) {
-								message = `${message} - ${redemption.reward.prompt}`;
-							}
-							const id = uuidv1();
-							const messageObject = {
-								displayName: "DisStreamChat",
-								avatar: DisTwitchChatProfile,
-								body: message,
-								platform: "twitch",
-								messageId: "subscription",
-								messageType: "channel-points",
-								uuid: id,
-								id,
-								badges: {},
-								sentAt: new Date().getTime(),
-								userColor: "#ff0029",
-							};
-							io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
-						} catch (error) {
-							console.log("error sending redemption message", data, error.message);
-						}
-					});
-					pubSub.on("automod_rejected", async data => {
-						try {
+						});
+
+						pubSub.on("approved_automod_message", data => {
 							const { channelName } = pubSub;
-							// if (!io.hasOwnProperty(channelName)) return;
+							io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
+							// console.log("Mod", data.created_by);
+							// console.log("Mod ID", data.created_by_user_id);
+							// console.log("Approved MessageID", data.message_id);
+							// console.log("TargetUser", data.target_user_login);
+							// console.log("TargetUserID", data.target_user_id);
+						});
 
-							const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
-							const id = uuidv1();
-							const messageObject = {
-								displayName: "AutoMod",
-								avatar: DisTwitchChatProfile,
-								body: theMessage,
-								platform: "twitch",
-								messageId: "",
-								messageType: "auto-mod-reject",
-								uuid: id,
-								id,
-								badges: {},
-								sentAt: new Date().getTime(),
-								userColor: "#ff0029",
-								...data,
-							};
-							io.in(`twitch-${channelName}`).emit("auto-mod", messageObject);
-						} catch (error) {
-							console.log("error sending automod message", data, error.message);
-						}
-					});
+						pubSub.on("denied_automod_message", data => {
+							const { channelName } = pubSub;
+							io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
+							// console.log("Mod", data.created_by);
+							// console.log("Mod ID", data.created_by_user_id);
+							// console.log("Denied MessageID", data.message_id);
+							// console.log("TargetUser", data.target_user_login);
+							// console.log("TargetUserID", data.target_user_id);
+						});
 
-					pubSub.on("approved_automod_message", data => {
-                        const { channelName } = pubSub;
-                        io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
-						// console.log("Mod", data.created_by);
-						// console.log("Mod ID", data.created_by_user_id);
-						// console.log("Approved MessageID", data.message_id);
-						// console.log("TargetUser", data.target_user_login);
-						// console.log("TargetUserID", data.target_user_id);
-					});
+						pubSub.on("add_blocked_term", data => {
+							console.log("Mod", data.created_by);
+							console.log("ModID", data.created_by_user_id);
+							console.log("Added Blocked Term", data.approved_term);
+						});
 
-					pubSub.on("denied_automod_message", data => {
-                        const { channelName } = pubSub;
-                        io.in(`twitch-${channelName}`).emit("remove-auto-mod", data);
-						// console.log("Mod", data.created_by);
-						// console.log("Mod ID", data.created_by_user_id);
-						// console.log("Denied MessageID", data.message_id);
-						// console.log("TargetUser", data.target_user_login);
-						// console.log("TargetUserID", data.target_user_id);
-					});
+						pubSub.on("delete_blocked_term", data => {
+							console.log("Mod", data.created_by);
+							console.log("ModID", data.created_by_user_id);
+							console.log("Deleted Blocked Term", data.blocked_term);
+						});
 
-					pubSub.on("add_blocked_term", data => {
-						console.log("Mod", data.created_by);
-						console.log("ModID", data.created_by_user_id);
-						console.log("Added Blocked Term", data.approved_term);
-					});
+						pubSub.on("add_permitted_term", data => {
+							console.log("Mod", data.created_by);
+							console.log("ModID", data.created_by_user_id);
+							console.log("Added Permitted Term", data.approved_term);
+						});
 
-					pubSub.on("delete_blocked_term", data => {
-						console.log("Mod", data.created_by);
-						console.log("ModID", data.created_by_user_id);
-						console.log("Deleted Blocked Term", data.blocked_term);
-					});
-
-					pubSub.on("add_permitted_term", data => {
-						console.log("Mod", data.created_by);
-						console.log("ModID", data.created_by_user_id);
-						console.log("Added Permitted Term", data.approved_term);
-					});
-
-					pubSub.on("delete_permitted_term", data => {
-						console.log("Mod", data.created_by);
-						console.log("ModID", data.created_by_user_id);
-						console.log("Deleted Permitted Term", data.blocked_term);
+						pubSub.on("delete_permitted_term", data => {
+							console.log("Mod", data.created_by);
+							console.log("ModID", data.created_by_user_id);
+							console.log("Deleted Permitted Term", data.blocked_term);
+						});
 					});
 				});
-			});
-	})();
+		})();
+	}
 };
