@@ -1,14 +1,13 @@
-const { adminWare, modWare } = require("./functions");
-
+const { adminWare, modWare, setArray } = require("./functions");
 class Command {
 	constructor({ name, plugin, isAdmin, permissions, id, category, aliases, description, usage, execute }) {
 		this.name = name;
 		this.plugin = plugin;
 		this.id = id || name;
 		this.category = category;
-		this.aliases = aliases || [];
+		this.aliases = setArray(aliases);
 		this.description = description;
-		this.usage = usage || [];
+		this.usage = setArray(usage);
 		this.rawExecute = execute;
 		this.permissions = permissions || [];
 		if (isAdmin) {

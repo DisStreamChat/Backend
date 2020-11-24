@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
 const Canvas = require("canvas");
-const URL = require('url-parse');
+const URL = require("url-parse");
 import admin from "firebase-admin";
 import nodeFetch from "node-fetch";
 
@@ -114,7 +114,7 @@ const walkSync = (files, fileDir, fileList = []) => {
 			const dir = fs.readdirSync(absolutePath);
 			walkSync(dir, absolutePath, fileList);
 		} else {
-			fileList.push({name: file, path: path.relative(__dirname, absolutePath)});
+			fileList.push({ name: file, path: path.relative(__dirname, absolutePath) });
 		}
 	}
 	return fileList;
@@ -379,13 +379,13 @@ const hasDiscordInviteLink = urls => {
 	return false;
 };
 
-const checkBannedDomain = (url, domains=[]) => {
-	const parsed = new URL(url)
-	for(const domain of domains){
-		if(parsed?.host?.includes?.(domain)) return true
+const checkBannedDomain = (url, domains = []) => {
+	const parsed = new URL(url);
+	for (const domain of domains) {
+		if (parsed?.host?.includes?.(domain)) return true;
 	}
-	return false
-}
+	return false;
+};
 
 const hasBannedDomain = (urls, domains) => {
 	for (const url of urls) {
@@ -428,4 +428,5 @@ module.exports = {
 	hoursToMillis: hrs => hrs * 3600000,
 	isAdmin,
 	sleep: async millis => new Promise(resolve => setTimeout(resolve, millis)),
+	setArray: items => (items ? (Array.isArray(items) ? items : [items]) : []),
 };
