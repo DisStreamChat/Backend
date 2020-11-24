@@ -10,6 +10,7 @@ class Command {
 		this.usage = setArray(usage);
 		this.rawExecute = execute;
 		this.permissions = permissions || [];
+		this.adminOnly = adminOnly
 		if (adminOnly) {
 			this.execute = (message, args, client) => adminWare(message, args, client, execute);
 		} else if (permissions?.length > 0) {
