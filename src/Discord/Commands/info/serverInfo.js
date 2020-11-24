@@ -20,7 +20,14 @@ module.exports = {
 			.addField("Text Channels", guild.channels.cache.array().filter(channel => channel.type === "text").length, true)
 			.addField("Voice Channels", guild.channels.cache.array().filter(channel => channel.type === "voice").length, true)
 			.addField("Members", guild.memberCount, true)
-			.addField(`Roles - ${guild.roles.cache.array().length}`, guild.roles.cache.array().join(", "))
+			.addField(
+				`Roles - ${guild.roles.cache.array().length}`,
+				guild.roles.cache
+					.array()
+					.filter(role => !role.managed && role.name !== "@everyone")
+					.sort((a, b) => b.rawPosition - a.rawPosition)
+					.join(", ")
+			)
 			.setFooter(`ID: ${guild.id} | Server Created`)
 			.setTimestamp(guild.createdAt);
 
