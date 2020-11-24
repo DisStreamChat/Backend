@@ -52,7 +52,7 @@ module.exports = async (client, io, app) => {
 
 	client.on("message", async message => {
 		try {
-			if (!message.guild) return;
+			if (!message.guild || !message.member) return;
 
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
