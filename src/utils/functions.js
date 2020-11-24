@@ -6,7 +6,7 @@ const adminIds = require("../ranks.json");
 const URL = require("url-parse");
 import admin from "firebase-admin";
 import nodeFetch from "node-fetch";
-import Canvas from "./Canvas"
+import Canvas from "./Canvas";
 
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
@@ -334,7 +334,37 @@ const hasBannedDomain = (urls, domains) => {
 	return false;
 };
 
+const getRoleScaling = (roles, scaling) => {
+	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
+	for (const role of sortedRoles) {
+		const scale = scaling?.[role.id];
+		if (scale != undefined) return scale;
+	}
+};
+
+const getLevelSettings = async (client, guild) => {
+	if (client.leveling[guild]) return client.leveling[guild];
+
+	const collectionRef = admin.firestore().collection("Leveling").doc(guild).collection("settings");
+
+	const levelingSettingsRef = await collectionRef.get();
+
+	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+	if (client.listeners[guild]) return levelingSettings;
+	console.log(`creating leveling listener for ${guild}`);
+	client.listeners[guild] = collectionRef.onSnapshot(
+		snapshot => {
+			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+		},
+		err => console.log(`snapshot error: ${err.message}`)
+	);
+
+	return levelingSettings;
+};
+
 module.exports = {
+	getLevelSettings,
+	getRoleScaling,
 	checkBannedDomain,
 	hasBannedDomain,
 	checkDiscordInviteLink,
