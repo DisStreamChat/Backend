@@ -22,8 +22,6 @@ module.exports = async (message, DiscordClient) => {
 		executor = DiscordClient.deleter
 	}
 
-    console.log(deleteAction.action, DiscordClient.deleter)
-
 	const { channel, content, author, id } = message;
 
     const [channelId, active] = await setupLogging(guild, "messageDelete", DiscordClient)

@@ -1,8 +1,11 @@
 const { MessageEmbed } = require("discord.js");
-const { resolveUser } = require("../../utils/functions");
+const { resolveUser } = require("../../../utils/functions");
 
 module.exports = {
 	name: "kick",
+	id: "kick",
+	category: "moderation",
+	
 	aliases: [],
 	description: "kick a user",
 	usage: ["<user>"],

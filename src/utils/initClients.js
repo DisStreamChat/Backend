@@ -2,11 +2,6 @@ require("dotenv").config();
 const discord = require("discord.js");
 const tmi = require("tmi.js");
 const { hoursToMillis } = require("./functions");
-const path = require("path");
-const fs = require("fs");
-const eventPath = path.join(__dirname, "../Discord/Events");
-const eventFiles = fs.readdirSync(eventPath);
-const events = {};
 const admin = require("firebase-admin");
 
 // get the serviceAccount details from the base64 string stored in environment variables

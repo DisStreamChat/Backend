@@ -1,9 +1,11 @@
-const { resolveUser, formatFromNow } = require("../../utils/functions");
+const { resolveUser, formatFromNow } = require("../../../utils/functions");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
 	name: "userinfo",
-	aliases: ["info"],
+	aliases: ["info", "whois"],
+	id: "userinfo",
+	category: "info",
 	description: "Get a users info.",
 	usage: ["(username | nickname | ping | id)"],
 	execute: async (msg, args, bot) => {
