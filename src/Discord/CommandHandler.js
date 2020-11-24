@@ -1,7 +1,7 @@
 require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
-const { adminWare, modWare, getDiscordSettings, walkSync } = require("../utils/functions");
+const { getDiscordSettings, walkSync } = require("../utils/functions");
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
