@@ -136,8 +136,8 @@ const resolveRole = (msg, role) => {
 	if (roleCache.has(role)) {
 		return roleCache.get(role);
 	}
-	if (roleCache.find(r => r.id === role)) {
-		return roleCache.find(r => r.id === role);
+	if (roleCache.find(r => r.name === role)) {
+		return roleCache.find(r => r.name === role);
 	}
 	return null;
 };
