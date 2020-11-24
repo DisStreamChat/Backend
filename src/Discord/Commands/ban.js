@@ -1,14 +1,13 @@
 const { MessageEmbed } = require("discord.js");
-const { resolveUser, formatFromNow } = require("../../../utils/functions");
+const { resolveUser, formatFromNow } = require("../../utils/functions");
 
 module.exports = {
 	name: "ban",
-	id: "ban",
-	category: "moderation",
 	aliases: [],
 	description: "Ban a user",
 	usage: ["<user>"],
 	permissions: ["MANAGE_SERVER", "BAN_MEMBERS", "ADMINISTRATOR"],
+	//TODO: check MANAGE_MESSAGES for the channel not the server
 	execute: async (message, args, client) => {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");

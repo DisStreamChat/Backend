@@ -1,10 +1,8 @@
 const { MessageEmbed } = require("discord.js");
-const { resolveUser, formatFromNow } = require("../../../utils/functions");
+const { resolveUser, formatFromNow } = require("../../utils/functions");
 
 module.exports = {
 	name: "unban",
-	id: "unban",
-	category: "moderation",
 	aliases: [],
 	description: "Unban a user",
 	usage: ["<user>"],

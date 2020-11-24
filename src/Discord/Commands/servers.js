@@ -1,7 +1,5 @@
 module.exports = {
 	name: "servers",
-	id: "servers",
-	category: "admin",
 	aliases: [],
 	private: true,
 	adminOnly: true,

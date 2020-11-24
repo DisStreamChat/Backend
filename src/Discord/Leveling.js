@@ -1,7 +1,36 @@
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
+const { Random, ArrayAny } = require("../utils/functions");
 
-const { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } = require("../utils/functions");
+const { getXp, getDiscordSettings } = require("../utils/functions");
+
+const getRoleScaling = (roles, scaling) => {
+	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
+	for (const role of sortedRoles) {
+		const scale = scaling?.[role.id];
+		if (scale != undefined) return scale;
+	}
+};
+
+const getLevelSettings = async (client, guild) => {
+	if (client.leveling[guild]) return client.leveling[guild];
+
+	const collectionRef = admin.firestore().collection("Leveling").doc(guild).collection("settings");
+	
+	const levelingSettingsRef = await collectionRef.get();
+	
+	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+	if (client.listeners[guild]) return levelingSettings;
+	console.log(`creating leveling listener for ${guild.name}`)
+	client.listeners[guild] = collectionRef.onSnapshot(
+		snapshot => {
+			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+		},
+		err => console.log(`snapshot error: ${err.message}`)
+	);
+
+	return levelingSettings;
+};
 
 module.exports = {
 	handleLeveling: async (message, client) => {

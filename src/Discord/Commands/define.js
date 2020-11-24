@@ -4,8 +4,6 @@ import fetch from "fetchio-js";
 module.exports = {
 	name: "define",
 	aliases: [],
-	id: "define",
-	category: "misc",
 	description: "Get the definition of a word from the unoffical google dictionary api",
 	usage: ["(username | nickname | ping | id)"],
 	execute: async (msg, args, bot) => {

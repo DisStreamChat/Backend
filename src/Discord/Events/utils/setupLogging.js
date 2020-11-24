@@ -13,7 +13,7 @@ setTimeout(() => {
 				if (data) {
 				}
 				defaultLogging = data;
-				// console.log(defaultLogging);
+				console.log(defaultLogging);
 			});
 	})();
 }, 1000);
@@ -31,6 +31,7 @@ module.exports = async (guild, id, client) => {
 		const channelOverrides = serverData.channelOverrides || {};
 		const eventDetails = defaultLogging[id];
 		const category = eventDetails?.category;
+		console.log(category);
 		const override = channelOverrides[category];
 		if (override) channelId = override;
 		const activeLogging = serverData.activeEvents || {};

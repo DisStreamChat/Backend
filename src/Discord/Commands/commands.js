@@ -6,8 +6,6 @@ module.exports = {
 	name: "commands",
 	aliases: ["customCommands"],
 	plugin: "commands",
-	id: "commands",
-	category: "manager",
 	description: "Command to manage custom commands. use `help commands <command name>` for help on a specific custom command",
 	permissions: ["MANAGE_MESSAGES"],
 	usage: ["<add | delete>"],

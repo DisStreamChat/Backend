@@ -1,8 +1,6 @@
 module.exports = {
 	name: "purge",
 	aliases: ["massdelete", "prune"],
-	id: "purge",
-	category: "moderation",
 	description: "Delete multiple messages at once. If a message id is given it will delete all messages up to that one",
 	usage: ["<amount | message_id>"],
 	permissions: ["MANAGE_MESSAGES"],

@@ -1,5 +1,3 @@
-import { Random, isNumeric } from "../../../utils/functions";
-
 module.exports = ({ message, args }) => {
 	const fullArgs = args.join(" ");
 	const argObj = {
@@ -7,14 +5,9 @@ module.exports = ({ message, args }) => {
 		toString: () => fullArgs,
 	};
 	const view = {
-		random: () => (val, render) => {
-			if (!val) val = 1;
-			if (!isNumeric(val)) val = 1;
-			return Random(Number(val));
-		},
 		member: message.member,
 		author: message.author,
-		me: message.member,
+        me: message.member,
 		time: () => (val, render) => {
 			const now = new Date();
 			try {
@@ -24,7 +17,7 @@ module.exports = ({ message, args }) => {
 			}
 		},
 		msg: argObj,
-		args: argObj,
+		args: argObj
 	};
 	view.time.value = () => new Date().toLocaleTimeString();
 	for (let i = 0; i < args.length; i++) {
