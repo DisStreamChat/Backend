@@ -128,6 +128,20 @@ const resolveUser = (msg, username) => {
 	return null;
 };
 
+const resolveRole = (msg, role) => {
+	const roleCache = msg.guild.roles.cache;
+	if (/<@&\d+>/g.test(role)) {
+		return roleCache.get(msg.mentions.roles.first().id);
+	}
+	if (roleCache.has(role)) {
+		return roleCache.get(role);
+	}
+	if (roleCache.find(r => r.id === role)) {
+		return roleCache.find(r => r.id === role);
+	}
+	return null;
+};
+
 const generateRankCard = async (userData, user) => {
 	const canvas = Canvas.createCanvas(700, 250);
 	const ctx = canvas.getContext("2d");
@@ -371,8 +385,10 @@ module.exports = {
 	hasDiscordInviteLink,
 	warn,
 	informMods,
+	resolveRole,
 	getDiscordSettings,
 	getLoggingSettings,
+	convertDiscordRoleColor: color => color === "#000000" ? "#FFFFFF" : color,
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},
