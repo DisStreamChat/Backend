@@ -61,7 +61,7 @@ module.exports = {
 	category: "info",
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
-	usage: "(command_name)",
+	usage: ["(command_name)"],
 	execute: async (message, args, client) => {
 		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
 		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
