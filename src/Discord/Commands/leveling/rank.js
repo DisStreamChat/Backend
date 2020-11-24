@@ -38,7 +38,7 @@ module.exports = {
 		userData.rank = rank;
 		const rankCard = await generateRankCard(userData, user);
 		const attachment = new MessageAttachment(rankCard.toBuffer(), "card.png");
-		fs.writeFileSync(path.join(__dirname, `../../../images/${user.user.username}.png`), rankCard.toBuffer());
 		message.channel.send(msg, attachment);
+		fs.writeFileSync(path.join(__dirname, `../../../../images/${user.user.username}.png`), rankCard.toBuffer());
 	},
 };
