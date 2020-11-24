@@ -1,6 +1,6 @@
 const { adminWare, modWare, setArray } = require("./functions");
 class Command {
-	constructor({ name, plugin, isAdmin, permissions, id, category, aliases, description, usage, execute }) {
+	constructor({ name, plugin, adminOnly, permissions, id, category, aliases, description, usage, execute }) {
 		this.name = name;
 		this.plugin = plugin;
 		this.id = id || name;
@@ -10,7 +10,7 @@ class Command {
 		this.usage = setArray(usage);
 		this.rawExecute = execute;
 		this.permissions = permissions || [];
-		if (isAdmin) {
+		if (adminOnly) {
 			this.execute = (message, args, client) => adminWare(message, args, client, execute);
 		} else if (permissions?.length > 0) {
 			this.execute = (message, args, client) => modWare(message, args, client, permissions, execute);
