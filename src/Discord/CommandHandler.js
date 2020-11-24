@@ -1,19 +1,21 @@
 require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
-const { adminWare, modWare, getDiscordSettings } = require("../utils/functions");
+const { adminWare, modWare, getDiscordSettings, walkSync } = require("../utils/functions");
 const commandPath = path.join(__dirname, "Commands");
-const commandFiles = fs.readdirSync(commandPath);
+const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
 const customCommandHandler = require("./Commands/CustomCommands");
 
 // TODO: use WalkSync to allow for nested folders in command directory
 commandFiles.forEach(command => {
-	if (command.endsWith(".js")) {
-		const commandObj = require(path.join(commandPath, command));
-		const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
-			commands[name] = commandObj;
-		});
+	if (command.name.endsWith(".js")) {
+		const commandObj = require(command.path);
+		if (commandObj.id) {
+			const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
+				commands[name] = commandObj;
+			});
+		}
 	}
 });
 
