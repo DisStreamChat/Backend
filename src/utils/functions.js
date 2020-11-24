@@ -3,67 +3,10 @@ const { MessageEmbed, MessageAttachment, Permissions } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 const adminIds = require("../ranks.json");
-const Canvas = require("canvas");
+const URL = require("url-parse");
 import admin from "firebase-admin";
-
-Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", { family: "OpenMoji", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoEmoji-Regular.ttf", { family: "Noto Emoji", weight: "normal", style: "normal" });
-
-// Language Support (Devanagari, Bengali, Tamil, Gujarati and Telugu)
-Canvas.registerFont("./assets/fonts/Hind-Regular.ttf", { family: "Hind", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/Hind-Bold.ttf", { family: "Hind", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/Hind-Light.ttf", { family: "Hind", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindGuntur-Regular.ttf", { family: "Hind Guntur", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindGuntur-Bold.ttf", { family: "Hind Guntur", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindGuntur-Light.ttf", { family: "Hind Guntur", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindMadurai-Regular.ttf", { family: "Hind Madurai", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindMadurai-Bold.ttf", { family: "Hind Madurai", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindMadurai-Light.ttf", { family: "Hind Madurai", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindSiliguri-Regular.ttf", { family: "Hind Siliguri", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindSiliguri-Bold.ttf", { family: "Hind Siliguri", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindSiliguri-Light.ttf", { family: "Hind Siliguri", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindVadodara-Regular.ttf", { family: "Hind Vadodara", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindVadodara-Bold.ttf", { family: "Hind Vadodara", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/HindVadodara-Light.ttf", { family: "Hind Vadodara", weight: "light", style: "normal" });
-
-// Language Support (Burmese and Thai)
-Canvas.registerFont("./assets/fonts/Kanit-Regular.ttf", { family: "Kanit", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/Kanit-Italic.ttf", { family: "Kanit", weight: "normal", style: "italic" });
-Canvas.registerFont("./assets/fonts/Kanit-Bold.ttf", { family: "Kanit", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/Kanit-BoldItalic.ttf", { family: "Kanit", weight: "bold", style: "italic" });
-Canvas.registerFont("./assets/fonts/Kanit-Light.ttf", { family: "Kanit", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/Kanit-LightItalic.ttf", { family: "Kanit", weight: "light", style: "italic" });
-Canvas.registerFont("./assets/fonts/Padauk-Regular.ttf", { family: "Padauk", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/Padauk-Bold.ttf", { family: "Padauk", weight: "bold", style: "normal" });
-
-// Language Support (Japanese, Korean and Chinese)
-Canvas.registerFont("./assets/fonts/NotoSansJP-Regular.otf", { family: "Noto Sans JP", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansJP-Bold.otf", { family: "Noto Sans JP", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansJP-Light.otf", { family: "Noto Sans JP", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansKR-Regular.otf", { family: "Noto Sans KR", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansKR-Bold.otf", { family: "Noto Sans KR", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansKR-Light.otf", { family: "Noto Sans KR", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansTC-Regular.otf", { family: "Noto Sans TC", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansTC-Bold.otf", { family: "Noto Sans TC", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansTC-Light.otf", { family: "Noto Sans TC", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansSC-Regular.otf", { family: "Noto Sans SC", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansSC-Bold.otf", { family: "Noto Sans SC", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansSC-Light.otf", { family: "Noto Sans SC", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansHK-Regular.otf", { family: "Noto Sans HK", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansHK-Bold.otf", { family: "Noto Sans HK", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/NotoSansHK-Light.otf", { family: "Noto Sans HK", weight: "light", style: "normal" });
-
-// Main Fonts
-Canvas.registerFont("./assets/fonts/whitney-medium.otf", { family: "Whitney", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/whitney-mediumitalic.otf", { family: "Whitney", weight: "normal", style: "italic" });
-Canvas.registerFont("./assets/fonts/whitney-boldsc.otf", { family: "Whitney", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/whitney-bolditalicsc.otf", { family: "Whitney", weight: "bold", style: "italic" });
-Canvas.registerFont("./assets/fonts/whitney-light.otf", { family: "Whitney", weight: "light", style: "normal" });
-Canvas.registerFont("./assets/fonts/whitney-lightitalic.otf", { family: "Whitney", weight: "light", style: "italic" });
-Canvas.registerFont("./assets/fonts/PTSans-Regular.ttf", { family: "PT Sans", weight: "normal", style: "normal" });
-Canvas.registerFont("./assets/fonts/PTSans-Italic.ttf", { family: "PT Sans", weight: "normal", style: "italic" });
-Canvas.registerFont("./assets/fonts/PTSans-Bold.ttf", { family: "PT Sans", weight: "bold", style: "normal" });
-Canvas.registerFont("./assets/fonts/PTSans-BoldItalic.ttf", { family: "PT Sans", weight: "bold", style: "italic" });
+import nodeFetch from "node-fetch";
+import Canvas from "./Canvas";
 
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
@@ -111,7 +54,7 @@ const walkSync = (files, fileDir, fileList = []) => {
 			const dir = fs.readdirSync(absolutePath);
 			walkSync(dir, absolutePath, fileList);
 		} else {
-			fileList.push(path.relative(__dirname, absolutePath));
+			fileList.push({ name: file, path: path.relative(__dirname, absolutePath) });
 		}
 	}
 	return fileList;
@@ -181,6 +124,20 @@ const resolveUser = (msg, username) => {
 	}
 	if (memberCache.find(member => member.id === username)) {
 		return memberCache.find(member => member.id === username);
+	}
+	return null;
+};
+
+const resolveRole = (msg, role) => {
+	const roleCache = msg.guild.roles.cache;
+	if (/<@&\d+>/g.test(role)) {
+		return roleCache.get(msg.mentions.roles.first().id);
+	}
+	if (roleCache.has(role)) {
+		return roleCache.get(role);
+	}
+	if (roleCache.find(r => r.id === role)) {
+		return roleCache.find(r => r.id === role);
 	}
 	return null;
 };
@@ -346,9 +303,92 @@ const Random = (min, max) => {
 	return Math.random() * (max - min) + min;
 };
 
+const warn = (member, guild, client, message) => {};
+
+const informMods = (message, guild, client) => {};
+
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
+const checkDiscordInviteLink = async url => {
+	try {
+		const response = await nodeFetch(url);
+		const text = await response.text();
+		const dom = new JSDOM(text).window.document;
+		const metaCheck1 = dom.querySelector("[name='twitter:site']");
+		const metaCheck2 = dom.querySelector("[property='og:url']");
+		return metaCheck1?.content === "@discord" && metaCheck2?.content?.includes("invite");
+	} catch (err) {
+		console.log(err.message);
+		return false;
+	}
+};
+
+const hasDiscordInviteLink = urls => {
+	for (const url of urls) {
+		if (checkDiscordInviteLink(url)) {
+			return true;
+		}
+	}
+	return false;
+};
+
+const checkBannedDomain = (url, domains = []) => {
+	const parsed = new URL(url);
+	for (const domain of domains) {
+		if (parsed?.host?.includes?.(domain)) return true;
+	}
+	return false;
+};
+
+const hasBannedDomain = (urls, domains) => {
+	for (const url of urls) {
+		if (checkBannedDomain(url, domains)) return true;
+	}
+	return false;
+};
+
+const getRoleScaling = (roles, scaling) => {
+	const sortedRoles = roles.sort((a, b) => -1 * a.comparePositionTo(b));
+	for (const role of sortedRoles) {
+		const scale = scaling?.[role.id];
+		if (scale != undefined) return scale;
+	}
+};
+
+const getLevelSettings = async (client, guild) => {
+	if (client.leveling[guild]) return client.leveling[guild];
+
+	const collectionRef = admin.firestore().collection("Leveling").doc(guild).collection("settings");
+
+	const levelingSettingsRef = await collectionRef.get();
+
+	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+	if (client.listeners[guild]) return levelingSettings;
+	console.log(`creating leveling listener for ${guild}`);
+	client.listeners[guild] = collectionRef.onSnapshot(
+		snapshot => {
+			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+		},
+		err => console.log(`snapshot error: ${err.message}`)
+	);
+
+	return levelingSettings;
+};
+
 module.exports = {
+	getLevelSettings,
+	getRoleScaling,
+	checkBannedDomain,
+	hasBannedDomain,
+	checkDiscordInviteLink,
+	hasDiscordInviteLink,
+	warn,
+	informMods,
+	resolveRole,
 	getDiscordSettings,
 	getLoggingSettings,
+	convertDiscordRoleColor: color => color === "#000000" ? "#FFFFFF" : color,
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},
@@ -374,4 +414,5 @@ module.exports = {
 	hoursToMillis: hrs => hrs * 3600000,
 	isAdmin,
 	sleep: async millis => new Promise(resolve => setTimeout(resolve, millis)),
+	setArray: items => (items ? (Array.isArray(items) ? items : [items]) : []),
 };

@@ -1,6 +1,6 @@
-const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../utils/functions");
+const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../../utils/functions");
 const { MessageEmbed } = require("discord.js");
-import { getDiscordSettings } from "../../utils/functions";
+import { getDiscordSettings } from "../../../utils/functions";
 
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
@@ -57,9 +57,11 @@ const filterCustomCommands = (commands, { member, channel }) => {
 };
 module.exports = {
 	name: "help",
+	id: "help",
+	category: "info",
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
-	usage: "(command_name)",
+	usage: ["(command_name)"],
 	execute: async (message, args, client) => {
 		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
 		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});

@@ -10,7 +10,8 @@
 		"dev": "npm-run-all build server",
 		"prod": "npm-run-all build server",
 		"transpile": "babel ./src --out-dir dist-server --copy-files",
-		"clean": "rimraf dist-server"
+		"clean": "rimraf dist-server",
+		"test": "jest"
 	},
 	"repository": {
 		"type": "git",
@@ -54,13 +55,16 @@
 		"discord-anti-spam": "^2.4.1",
 		"discord-oauth2": "^2.2.0",
 		"discord.js": "^12.2.0",
+		"dom-parser": "^0.1.6",
 		"dompurify": "^2.0.11",
 		"dotenv": "^8.2.0",
 		"express": "^4.17.1",
 		"fetchio-js": "^1.1.1",
 		"firebase-admin": "^8.12.1",
+		"get-urls": "^10.0.0",
 		"helmet": "^3.22.0",
-		"jsdom": "^16.2.2",
+		"jest": "^26.6.3",
+		"jsdom": "^16.4.0",
 		"linkify-urls": "^3.1.1",
 		"memory-cache": "^0.2.0",
 		"morgan": "^1.10.0",
@@ -80,6 +84,7 @@
 		"twitch-lib": "^0.2.5",
 		"twitchio-js": "^1.0.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
+		"url-parse": "^1.4.7",
 		"url-regex": "^5.0.0",
 		"uuidv1": "^1.6.14"
 	},
