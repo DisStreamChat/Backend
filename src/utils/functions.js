@@ -324,9 +324,9 @@ const checkDiscordInviteLink = async url => {
 	}
 };
 
-const hasDiscordInviteLink = urls => {
+const hasDiscordInviteLink = async urls => {
 	for (const url of urls) {
-		if (checkDiscordInviteLink(url)) {
+		if (await checkDiscordInviteLink(url)) {
 			return true;
 		}
 	}
@@ -388,7 +388,7 @@ module.exports = {
 	resolveRole,
 	getDiscordSettings,
 	getLoggingSettings,
-	convertDiscordRoleColor: color => color === "#000000" ? "#FFFFFF" : color,
+	convertDiscordRoleColor: color => (color === "#000000" ? "#FFFFFF" : color),
 	isNumeric: value => {
 		return /^-?\d+[.\,]?\d*$/.test(value);
 	},
