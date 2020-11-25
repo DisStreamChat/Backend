@@ -18,6 +18,9 @@ admin.initializeApp({
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
+// const DBL = require("dblapi.js");
+// const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
+
 let serverLength = 0;
 let serverPresence = false;
 
