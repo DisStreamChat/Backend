@@ -71,6 +71,12 @@ module.exports = {
 		const guildData = guildRef.data();
 		let customCommands = filterCustomCommands(guildData, message);
 		const allCommands = [...availableCommands, ...customCommands];
+		const commandCategories = availableCommands.reduce((categories, current) => {
+			if(categories[current.category]) categories[current.category].push(current)
+			else categories[current.category] = [current]
+			return categories
+		}, {})
+		const allCommandCategories = {...commandCategories, custom: customCommands}
 		if (args.length === 0) {
 			const helpEmbed = new MessageEmbed()
 				.setTitle("DisStreambot Help")
@@ -78,7 +84,9 @@ module.exports = {
 				.addField("Prefix", client.prefix || "!")
 				.setThumbnail(client.user.displayAvatarURL())
 				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-				.addField("Available Commands", allCommands.map(command => `\`${command.displayName}\``).join(", "))
+				.addField("Available Commands", Object.entries(allCommandCategories).map(([key, value]) => {
+					return `**${key}**\n${value.map(command => `\`${command.displayName}\``).join(", ")}\n`
+				}))
 				.addField(
 					"Tip",
 					"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
