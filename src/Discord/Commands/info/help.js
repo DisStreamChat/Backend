@@ -55,6 +55,8 @@ const filterCustomCommands = (commands, { member, channel }) => {
 	}
 	return availableCommands;
 };
+
+
 module.exports = {
 	name: "help",
 	id: "help",
@@ -98,7 +100,7 @@ module.exports = {
 			);
 			helpEmbed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 			await message.channel.send(helpEmbed);
-		} else if (args[0] !== "module" && args[0] !== "admin" && args[0] !== "commands") {
+		} else if (!["module", "admin", "commands"].includes(args[0])) {
 			const selectedCommand = allCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
 			const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
 			if (!commandHelpEmbed) {
