@@ -64,6 +64,7 @@ const TwitchClient = new tmi.Client({
 TwitchClient.connect();
 
 const getCustomBots = async () => {
+	if(process.env.BOT_DEV == "true") return new Map()
 	const botQuery = admin.firestore().collection("customBot");
 	const botRef = await botQuery.get();
 	const bots = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
