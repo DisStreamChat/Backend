@@ -2,13 +2,23 @@ import { sleep, hasDiscordInviteLink } from "../../../utils/functions";
 const getUrls = require("get-urls");
 
 const fetchAmountfromId = async (message, id) => {
-	const messages = await message.channel.messages.fetch({ limit: 99 });
-	const messageToDelete = await messages.get(id);
+	let after
+	let messageToDelete
+	let messages = []
+	for(const i = 0; i < 10; i++){
+		const options = { limit: 100 };
+		if (after) options.after = after;
+		const allMessages = (await message.channel.messages.fetch(options));
+		messageToDelete = allMessages.get(id)
+		messages = [...messages, ...allMessages.array()]
+		if(messageToDelete) break
+		after = allMessages.last()
+	}
 	let amount;
 	if (messageToDelete) {
-		amount = messages.array().findIndex(msg => msg.id === messageToDelete.id) + 1;
+		amount = messages.findIndex(msg => msg.id === messageToDelete.id) + 1;
 	} else {
-		const res = await message.channel.send(":x: message not found");
+		const res = await message.channel.send(":x: message not found or is more than 1000 messages away");
 		setTimeout(() => {
 			res.delete();
 		}, 300);
@@ -18,7 +28,7 @@ const fetchAmountfromId = async (message, id) => {
 
 const checkAmountLimits = (message, amount) => {
 	if (amount > 1000) {
-		message.channel.send("Maximum amount of messages to delete is 99.");
+		message.channel.send("Maximum amount of messages to delete is 999.");
 		return true;
 	}
 	if (amount < 2) {
@@ -27,22 +37,21 @@ const checkAmountLimits = (message, amount) => {
 	}
 };
 
-const fetchMessages = async (message, amount) => {
-	if (amount <= 100) return (await message.channel.messages.fetch({ limit: amount })).array();
-
+const fetchMessages = async (message, amount, filter) => {
 	let messages = [];
-	while (amount > 0) {
-		const options = { limit: Math.min(100, Math.max(0, amount)) };
-		if (messages[messages.length - 1]) options.after = messages[messages.length - 1].id;
-		messages = [...messages, ...(await message.channel.messages.fetch(options)).array()];
-		amount -= 100;
+	let after = message.id;
+	while (messages.length < amount) {
+		const options = { limit: 100 };
+		if (after) options.after = after;
+		const allMessages = (await message.channel.messages.fetch(options)).array();
+		const filteredMessages = await filterMessages(message, allMessages, filter);
+		messages = [...messages, ...filteredMessages];
+		after = allMessages[allMessages.length - 1]?.id;
 	}
-	return messages;
+	return messages.slice(0, amount);
 };
 
-const getMessages = async (message, amount, filter) => {
-	let messages = await fetchMessages(message, amount);
-
+const filterMessages = async (message, messages, filter) => {
 	switch (filter) {
 		case "text":
 			return messages.filter(msg => {
@@ -90,6 +99,10 @@ const getMessages = async (message, amount, filter) => {
 	}
 };
 
+const getMessages = async (message, amount, filter) => {
+	let messages = await fetchMessages(message, amount);
+};
+
 const hasOldMessage = async messages => {
 	const now = new Date();
 	const fourteenDaysAgo = new Date(now - 1.21e9);
@@ -102,10 +115,12 @@ const hasOldMessage = async messages => {
 
 const purgeMessages = async (messages, message) => {
 	if ((await hasOldMessage(messages)) || messages.length > 100) {
-		for (const msg of messages) {
-			await msg.delete();
-			await sleep(350);
-		}
+		try {
+			for (const msg of messages) {
+				await msg.delete();
+				await sleep(350);
+			}
+		} catch (err) {}
 	} else {
 		await message.channel.bulkDelete(messages);
 	}
@@ -150,9 +165,9 @@ module.exports = {
 		}
 		if (checkAmountLimits(message, amount)) return;
 		client.deleter = message.author;
-		const messages = await getMessages(message, amount, filter);
+		const messages = await fetchMessages(message, amount, filter);
 		await purgeMessages(messages, message);
-		const msg = await message.channel.send(`Deleted ${messages.length - 1} messages`);
+		const msg = await message.channel.send(`Deleted ${messages.length - 1} message(s)`);
 		setTimeout(() => {
 			msg.delete().then(() => {
 				client.deleter = null;
