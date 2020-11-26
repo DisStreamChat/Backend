@@ -13,14 +13,13 @@ module.exports = {
 	description: "Get a list of all the moderators based on the set moderator roles",
 	usage: ["(username | nickname | ping | id)"],
 	execute: async (msg, args, client) => {
-		const settings = getDiscordSettings({client, guild: msg.guild})
-
-		if(!settings.modRoles) {
-			const error = new MessageEmbed().setDescription(":x: No moderator has been set.")
-			return msg.channel.send(error)
+		const settings = await getDiscordSettings({ client, guild: msg.guild.id });
+		if (!settings.modRoles) {
+			const error = new MessageEmbed().setDescription(":x: There are no moderator roles set.");
+			return msg.channel.send(error);
 		}
-
-		
-
+		const modRoles = await Promise.all(settings.modRoles.map(id => msg.guild.roles.fetch(id)));
+		const embed = new MessageEmbed().setTitle("Moderator Roles").setDescription(modRoles.join("\n"));
+		msg.channel.send(embed);
 	},
 };
