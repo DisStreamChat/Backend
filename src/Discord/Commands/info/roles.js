@@ -5,7 +5,7 @@ module.exports = {
 	name: "roles",
 	aliases: [],
 	id: "roles",
-	category: "info",
+	category: "roles",
 	description: "Get a list of all roles in a server",
 	usage: [],
 	execute: async (msg, args, bot) => {
