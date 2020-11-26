@@ -18,7 +18,7 @@ const getCommands = async (message, client, plugins) => {
 		} else if (command.adminOnly && isAdmin(message.author)) {
 			availableCommands.push(commandObj);
 			continue;
-		} else if (command.permissions?.length && await hasPermission(message.member, command.permissions || [])) {
+		} else if (command.permissions?.length && (await hasPermission(message.member, command.permissions || []))) {
 			availableCommands.push(commandObj);
 			continue;
 		}
@@ -56,6 +56,24 @@ const filterCustomCommands = (commands, { member, channel }) => {
 	return availableCommands;
 };
 
+const addTips = async (embed, msg, client) => {
+	embed.addField(
+		"Tip",
+		"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
+	);
+	// if (await hasPermission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
+	// 	helpEmbed.addField(
+	// 		"Moderator Tip",
+	// 		"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
+	// 	);
+	// }
+	// if (isAdmin(message.author)) {
+	// 	helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
+	// }
+	embed.addField("Support Server", "If you have any questions or bug reports come tell us at http://discord.disstreamchat.com");
+	embed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
+	return embed;
+};
 
 module.exports = {
 	name: "help",
@@ -72,41 +90,28 @@ module.exports = {
 		let customCommands = filterCustomCommands(guildData, message);
 		const allCommands = [...availableCommands, ...customCommands];
 		const commandCategories = availableCommands.reduce((categories, current) => {
-			if(categories[current.category]) categories[current.category].push(current)
-			else categories[current.category] = [current]
-			return categories
-		}, {})
-		const allCommandCategories = {...commandCategories, custom: customCommands}
+			if (categories[current.category]) categories[current.category].push(current);
+			else categories[current.category] = [current];
+			return categories;
+		}, {});
+		const allCommandCategories = { ...commandCategories, custom: customCommands };
 		if (args.length === 0) {
-			const helpEmbed = new MessageEmbed()
-				.setTitle("DisStreambot Help")
-				.setDescription(`Here are all the available commands.`)
-				.addField("Prefix", client.prefix || "!")
-				.setThumbnail(client.user.displayAvatarURL())
-				.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-				.addField("Available Commands", Object.entries(allCommandCategories).map(([key, value]) => {
-					return `**${key}**\n${value.map(command => `\`${command.displayName}\``).join(", ")}\n`
-				}))
-				.addField(
-					"Tip",
-					"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
-				)
-				.setTimestamp(message.createdAt)
-				.setColor("#206727");
-			if (await hasPermission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
-				helpEmbed.addField(
-					"Moderator Tip",
-					"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
-				);
-			}
-			if (isAdmin(message.author)) {
-				helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
-			}
-			helpEmbed.addField(
-				"Support Server",
-				"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
+			const helpEmbed = await addTips(
+				new MessageEmbed()
+					.setTitle("DisStreambot Help")
+					.setDescription(`Here are all the available commands.`)
+					.addField("Prefix", client.prefix || "!")
+					.setThumbnail(client.user.displayAvatarURL())
+					.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
+					.addField(
+						"Available Commands",
+						Object.entries(allCommandCategories).map(([key, value]) => {
+							return `**${key}**\n${value.map(command => `\`${command.displayName}\``).join(", ")}\n`;
+						})
+					)
+					.setTimestamp(message.createdAt)
+					.setColor("#206727")
 			);
-			helpEmbed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 			await message.channel.send(helpEmbed);
 		} else if (!["module", "admin", "commands"].includes(args[0])) {
 			const selectedCommand = allCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
@@ -128,26 +133,24 @@ module.exports = {
 						}
 					} else {
 						const availableCustomCommands = await getCommands(message, { commands: guildData });
-						const customHelpEmbed = new MessageEmbed()
-							.setTitle("DisStreambot Help")
-							.setDescription("Here are all the available custom commands")
-							.setThumbnail(client.user.displayAvatarURL())
-							.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
-							.addField(
-								"Available Commands",
-								availableCustomCommands
-									.map(command =>
-										command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``
-									)
-									.join(", ")
-							)
-							.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
-							.setTimestamp(message.createdAt)
-							.setColor("#206727")
-							.addField(
-								"Support Server",
-								"If you have any questions or bug reports come tell us at http://discord.disstreamchat.com"
-							);
+						const customHelpEmbed = await addTips(
+							new MessageEmbed()
+								.setTitle("DisStreambot Help")
+								.setDescription("Here are all the available custom commands")
+								.setThumbnail(client.user.displayAvatarURL())
+								.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
+								.addField(
+									"Available Commands",
+									availableCustomCommands
+										.map(command =>
+											command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``
+										)
+										.join(", ")
+								)
+								.addField("Tip", "Type `help commands <command name>` to get help on a specific command ")
+								.setTimestamp(message.createdAt)
+								.setColor("#206727")
+						);
 						await message.channel.send(customHelpEmbed);
 					}
 					break;
