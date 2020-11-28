@@ -1,3 +1,5 @@
+import admin from "firebase-admin";
+
 
 const getDiscordSettings = async ({ guild, client }) => {
 	if (client?.settings?.[guild]) return client.settings[guild];
