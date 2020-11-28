@@ -83,7 +83,7 @@ const generateHelpEmbed = async ({ message, client, commands, custom, page = 1 }
 		.setTitle("DisStreambot Help")
 		.setDescription(`Here are all the available commands.`)
 		.addField("Prefix", client.prefix || "!")
-		.setThumbnail(client.user.displayAvatarURL())
+		// .setThumbnail(client.user.displayAvatarURL())
 		.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
 		.setTimestamp(message.createdAt)
 		.setFooter(`Page ${page}/${pages}`)
