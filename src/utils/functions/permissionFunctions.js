@@ -1,6 +1,8 @@
 const adminIds = require("../../ranks.json");
 const { Permissions } = require("discord.js");
 
+const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
+
 const getHighestRole = roles => roles.reduce((acc, cur) => (acc.rawPosition > cur.rawPosition ? acc : cur));
 
 const checkOverwrites = (overwrites, perms, admin) => {
@@ -61,4 +63,5 @@ module.exports = {
 	isAdmin,
 	getHighestRole,
 	checkOverwrites,
+	ArrayAny
 };

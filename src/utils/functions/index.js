@@ -31,7 +31,7 @@ const cleanRegex = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
+
 
 const Random = (min, max) => {
 	if (Array.isArray(min)) {
@@ -67,7 +67,6 @@ module.exports = {
 	convertDiscordRoleColor,
 	formatFromNow,
 	isNumeric,
-	ArrayAny,
 	walkSync,
 	Random,
 	cleanRegex,
