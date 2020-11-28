@@ -1,4 +1,6 @@
 import Canvas from "../Canvas";
+const adminIds = require("../../ranks.json");
+import { getXp } from "./levelingFunctions";
 
 const applyText = (canvas, text) => {
 	const ctx = canvas.getContext("2d");
@@ -126,5 +128,5 @@ const generateRankCard = async (userData, user) => {
 module.exports = {
 	generateRankCard,
 	roundRect,
-	applyText
-}
+	applyText,
+};
