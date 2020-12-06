@@ -18,9 +18,6 @@ admin.initializeApp({
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
-// const DBL = require("dblapi.js");
-// const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
-
 let serverLength = 0;
 let serverPresence = false;
 
@@ -67,7 +64,6 @@ const TwitchClient = new tmi.Client({
 TwitchClient.connect();
 
 const getCustomBots = async () => {
-	if(process.env.BOT_DEV == "true") return new Map()
 	const botQuery = admin.firestore().collection("customBot");
 	const botRef = await botQuery.get();
 	const bots = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));

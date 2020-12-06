@@ -62,28 +62,4 @@ Canvas.registerFont("./assets/fonts/PTSans-Italic.ttf", { family: "PT Sans", wei
 Canvas.registerFont("./assets/fonts/PTSans-Bold.ttf", { family: "PT Sans", weight: "bold", style: "normal" });
 Canvas.registerFont("./assets/fonts/PTSans-BoldItalic.ttf", { family: "PT Sans", weight: "bold", style: "italic" });
 
-class CanvasWrapper {
-	constructor(width, height, type) {
-		this.canvas = Canvas.createCanvas(width, height, type);
-		this.ctx = this.canvas.getContext("2d");
-	}
-
-	rect(x, y, w, h, r = 0) {
-		if (w < 2 * r) r = w / 2;
-		if (h < 2 * r) r = h / 2;
-		this.ctx.beginPath();
-		this.ctx.moveTo(x + r, y);
-		this.ctx.arcTo(x + w, y, x + w, y + h, r);
-		this.ctx.arcTo(x + w, y + h, x, y + h, r);
-		this.ctx.arcTo(x, y + h, x, y, r);
-		this.ctx.arcTo(x, y, x + w, y, r);
-		this.ctx.fill();
-		return this;
-	}
-
-	fill(color){
-		this.ctx.fillStyle = color
-	}
-}
-
 module.exports = Canvas;

@@ -5,7 +5,7 @@ module.exports = {
 	name: "roleinfo",
 	aliases: ["role-info"],
 	id: "roleinfo",
-	category: "roles",
+	category: "info",
 	description: "Get information about a role",
 	usage: ["<roleping | roleid | rolename>"],
 	execute: async (msg, args, bot) => {

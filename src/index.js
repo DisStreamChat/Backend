@@ -16,7 +16,7 @@ import tmi from "tmi.js";
 import Socket from "socketio-promises";
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient, customBots } = require("./utils/initClients");
-const { ArrayAny } = require("./utils/functions");
+const { ArrayAny } = require("./utils/functions.js");
 const admin = require("firebase-admin");
 
 try {
