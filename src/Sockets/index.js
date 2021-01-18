@@ -151,7 +151,6 @@ export const sockets = io => {
 			if (!user) {
 				botTimeout(data);
 			} else {
-				// terribly insecure
 				const modName = data.modName;
 				const refreshToken = data.refresh_token;
 
