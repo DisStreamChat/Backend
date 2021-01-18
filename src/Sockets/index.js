@@ -1,17 +1,12 @@
 require("dotenv").config();
 
-import fetch from "node-fetch";
-import tmi from "tmi.js";
 import Socket from "socketio-promises";
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient } = require("../utils/initClients");
-const { ArrayAny } = require("../utils/functions");
 const admin = require("firebase-admin");
-
-const UserClients = {};
 
 export const sockets = io => {
 	io.on("connection", socket => {
@@ -54,6 +49,15 @@ export const sockets = io => {
 				.filter(room => room.includes("channel"))
 				?.map(id => id.split("-")[1]);
 
+			const modId = data.mod_id;
+			const refreshToken = data.refresh_token;
+
+			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
+			const modData = await modRef.get();
+			const modRefreshToken = modData.refreshToken;
+
+			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
+
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
 			const guildChannels = connectGuild.channels;
 
@@ -77,8 +81,17 @@ export const sockets = io => {
 				.find(room => room.includes("guild"))
 				?.split?.("-")?.[1];
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
+
+			const modId = data.mod_id;
+			const refreshToken = data.refresh_token;
+
+			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
+			const modData = await modRef.get();
+			const modRefreshToken = modData.refreshToken;
+
+			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
+
 			try {
-				console.log(`Banning ${user} - Discord`);
 				connectGuild.members.ban(user, { days: 1 });
 			} catch (err) {
 				console.log(err.message);
@@ -90,6 +103,7 @@ export const sockets = io => {
 			const TwitchName = Object.keys(socket.rooms)
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
+
 			function botDelete(id) {
 				try {
 					TwitchClient.deletemessage(TwitchName, id);
@@ -103,30 +117,11 @@ export const sockets = io => {
 				botDelete(data);
 			} else {
 				const modName = data.modName;
-				const modRef = (
-					await admin
-						.firestore()
-						.collection("Streamers")
-						.where("TwitchName", "==", modName || " ")
-						.get()
-				).docs[0];
-				const modData = modRef.data();
-				if (!modData) {
+				const refreshToken = data.refresh_token;
+				if (!refreshToken) {
 					botDelete(id);
 				} else {
 					try {
-						const modPrivateDataRef = await admin
-							.firestore()
-							.collection("Streamers")
-							.doc(modData.uid)
-							.collection("twitch")
-							.doc("data")
-							.get();
-						const modPrivateData = modPrivateDataRef.data();
-						if (!modPrivateData) {
-							throw new Error("no twitch auth");
-						}
-						const refreshToken = modPrivateData.refresh_token;
 						let UserClient = getUserClient(refreshToken, modName, TwitchName);
 						await UserClient.deletemessage(TwitchName, id);
 						UserClient = null;
@@ -158,27 +153,13 @@ export const sockets = io => {
 			} else {
 				// terribly insecure
 				const modName = data.modName;
-				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
-				const modData = modRef.data();
-				if (!modData) {
+				const refreshToken = data.refresh_token;
+
+				if (!refreshToken) {
 					botTimeout(user);
 				} else {
 					try {
-						const modPrivateDataRef = await admin
-							.firestore()
-							.collection("Streamers")
-							.doc(modData.uid)
-							.collection("twitch")
-							.doc("data")
-							.get();
-						const modPrivateData = modPrivateDataRef.data();
-						if (!modPrivateData) {
-							throw new Error("no twitch auth");
-						}
-						const refreshToken = modPrivateData.refresh_token;
-
 						let UserClient = getUserClient(refreshToken, modName, TwitchName);
-
 						await UserClient.timeout(TwitchName, user, data.time ?? 300);
 						UserClient = null;
 					} catch (err) {
@@ -194,45 +175,19 @@ export const sockets = io => {
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 
-			let user = data.user;
-			async function botBan(user) {
-				console.log(`Timeout ${user} - Twitch`);
+			const modName = data.modName;
+			const refreshToken = modPrivateData.refresh_token;
+
+			if (!modData) {
+				throw Error("no authentication");
+			} else {
 				try {
-					//Possible to do: let default timeouts be assigned in dashboard
-					await TwitchClient.ban(TwitchName, user);
+					let UserClient = getUserClient(refreshToken, modName, TwitchName);
+					await UserClient.ban(TwitchName, user);
+					UserClient = null;
 				} catch (err) {
 					console.log(err.message);
-				}
-			}
-			if (!user) {
-				botBan(data);
-			} else {
-				const modName = data.modName;
-				const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", modName).get()).docs[0];
-				const modData = modRef.data();
-				if (!modData) {
 					botBan(user);
-				} else {
-					try {
-						const modPrivateDataRef = await admin
-							.firestore()
-							.collection("Streamers")
-							.doc(modData.uid)
-							.collection("twitch")
-							.doc("data")
-							.get();
-						const modPrivateData = modPrivateDataRef.data();
-						if (!modPrivateData) {
-							throw new Error("no twitch auth");
-						}
-						const refreshToken = modPrivateData.refresh_token;
-						let UserClient = getUserClient(refreshToken, modName, TwitchName);
-						await UserClient.ban(TwitchName, user);
-						UserClient = null;
-					} catch (err) {
-						console.log(err.message);
-						botBan(user);
-					}
 				}
 			}
 		});
@@ -240,28 +195,17 @@ export const sockets = io => {
 		socket.on("sendchat", async data => {
 			console.log(`send chat: `, data);
 			const sender = data.sender;
+			const refreshToken = data.refreshToken;
 			const message = data.message;
 			const TwitchName = Object.keys(socket.rooms)
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
-			console.log(TwitchName);
+			if (!refreshToken) {
+				throw new Error("no auth");
+			}
 			if (sender && message) {
 				try {
-					const modRef = (await admin.firestore().collection("Streamers").where("TwitchName", "==", sender).get()).docs[0];
-					const modData = modRef.data();
-					const modPrivateDataRef = await admin
-						.firestore()
-						.collection("Streamers")
-						.doc(modData.uid)
-						.collection("twitch")
-						.doc("data")
-						.get();
-					const modPrivateData = modPrivateDataRef.data();
-					if (!modPrivateData) {
-						throw new Error("no twitch auth");
-					}
-					const refreshToken = modPrivateData.refresh_token;
-					let UserClient = getUserClient(refreshToken, modName, TwitchName);
+					let UserClient = getUserClient(refreshToken, sender, TwitchName);
 					try {
 						await UserClient.join(TwitchName);
 						await UserClient.say(TwitchName, message);

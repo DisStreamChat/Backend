@@ -39,5 +39,7 @@ export const createUserClient = async (refreshToken, modName, twitchName) => {
 
 export const getUserClient = async (refreshToken, modName, twitchName) => {
 	if(userClients[modName]) return userClients[modName]
-	else return createUserClient(refreshToken, modName, twitchName)
+	const client = await createUserClient(refreshToken, modName, twitchName)
+	client.join(twitchName)
+	return client
 }
