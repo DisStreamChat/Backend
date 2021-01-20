@@ -102,7 +102,6 @@ export const initWebhooks = async () => {
 		.collection("webhookConnections")
 		.onSnapshot(async snapshot => {
 			const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-			console.log("change");
 			allConnections = docs.filter(doc => doc.channelId != undefined);
 		});
 

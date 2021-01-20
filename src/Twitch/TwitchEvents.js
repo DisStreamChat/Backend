@@ -246,7 +246,7 @@ module.exports = (TwitchClient, io, app) => {
 		customCheerMoteID = 0;
 
 	const getAllCheerMotes = async () => {
-		console.log("getting cheerMotes");
+		// console.log("getting cheerMotes");
 		await getGlobalCheerMotes();
 		await getCustomCheerMotes();
 		clearInterval(customCheerMoteID);
