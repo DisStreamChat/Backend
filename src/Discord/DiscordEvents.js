@@ -4,6 +4,7 @@ const CommandHandler = require("./CommandHandler");
 const ReactionRoles = require("./Reaction Manager");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
+import {log} from "../utils/functions/logging"
 
 const { handleLeveling } = require("./Leveling");
 const { getDiscordSettings, hasPermission } = require("../utils/functions");
@@ -21,14 +22,20 @@ module.exports = async (client, io, app) => {
 	eventFiles.forEach(event => {
 		if (event.endsWith(".js")) {
 			const eventHandler = require(path.join(eventPath, event));
-			client.on(event.slice(0, -3), (...params) => eventHandler(...params, client));
+			client.on(event.slice(0, -3), (...params) => {
+				try{
+					eventHandler(...params, client);
+				}catch(err){
+					log(`Event Error: ${err.message}`)
+				}
+			});
 		}
 	});
 
 	client.settings = {};
 	client.logging = {};
-	client.leveling = {}
-	client.listeners = {}
+	client.leveling = {};
+	client.listeners = {};
 
 	admin
 		.firestore()
