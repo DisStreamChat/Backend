@@ -2,17 +2,19 @@ import Canvas from "../Canvas";
 const adminIds = require("../../ranks.json");
 import { getXp } from "./levelingFunctions";
 
-const applyText = (canvas, text) => {
+const applyText = (canvas, text, defaultFontSize = 70, minFontSize = 0, font = "sans-serif", widthTest = null) => {
 	const ctx = canvas.getContext("2d");
 
 	// Declare a base size of the font
-	let fontSize = 70;
+	let fontSize = defaultFontSize;
+	ctx.font = `${(fontSize)}px ${font}`;
 
-	do {
+	while (ctx.measureText(text).width > (widthTest || canvas.width - 300)) {
 		// Assign the font to the context and decrement it so it can be measured again
-		ctx.font = `${(fontSize -= 10)}px sans-serif`;
+		ctx.font = `${(fontSize -= 5)}px ${font}`;
+		if (fontSize < minFontSize) return ctx.font;
 		// Compare pixel width of the text to the canvas minus the approximate avatar size
-	} while (ctx.measureText(text).width > canvas.width - 300);
+	}
 
 	// Return the result to use in the actual canvas
 	return ctx.font;
@@ -31,40 +33,53 @@ const roundRect = function (ctx, x, y, w, h, r = 0) {
 	return ctx;
 };
 
+
 const generateRankCard = async (userData, user) => {
+
+	const primaryColor = "#c31503"
+	const backgroundColor1 = "#1f2525a0"
+	const backgroundColor2 = "#090b0b"
+	const xpBarBackground = "#484b4e"
+	const black = "#000000"
+
 	const canvas = Canvas.createCanvas(700, 250);
 	const ctx = canvas.getContext("2d");
+
+	// calculate all required values
 	const xpToNextLevel = getXp(userData.level + 1);
 	const xpForCurrentLevel = getXp(userData.level);
 	const xpLevelDif = Math.abs(xpToNextLevel - xpForCurrentLevel);
-	const currentXp = userData.xp;
 	const xpProgress = Math.abs(userData.xp - xpForCurrentLevel);
 	const percentDone = xpProgress / xpLevelDif;
-	ctx.fillStyle = "#1f2525a0";
+	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : Math.floor(xpProgress);
+	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
+	
+	// draw the first background
+	ctx.fillStyle = backgroundColor1;
 	roundRect(ctx, 0, 0, canvas.width, canvas.height, 125);
-	ctx.fillStyle = "#090b0b";
+
+	// draw the second background
+	ctx.fillStyle = backgroundColor2;
 	const gap = 20;
 	roundRect(ctx, gap, gap, canvas.width - gap * 2, canvas.height - gap * 2, 125);
 
+	// draw xp progress bar
 	const barWidth = canvas.width / 1.75;
 	const barHeight = 25;
+	const barY = 160;
+	ctx.fillStyle = xpBarBackground;
+	roundRect(ctx, canvas.width / 3, barY, barWidth, barHeight, barHeight / 2);
+	ctx.fillStyle = primaryColor;
+	roundRect(ctx, canvas.width / 3, barY, Math.max(barWidth * percentDone, barHeight), barHeight, barHeight / 2);
 
-	const bary = 160;
-	//xp bar
-	ctx.fillStyle = "#484b4e";
-	roundRect(ctx, canvas.width / 3, bary, barWidth, barHeight, barHeight / 2);
-	ctx.fillStyle = "#c31503";
-	roundRect(ctx, canvas.width / 3, bary, Math.max(barWidth * percentDone, barHeight), barHeight, barHeight / 2);
-
-	ctx.font = "24px Poppins";
+	// draw nickname
 	ctx.fillStyle = "#ffffff";
 	const name = `${user.nickname || user.user.username}${user.user.tag.slice(-5)}`;
-	const nameWidth = ctx.measureText(name).width;
-	if (nameWidth > canvas.width * 0.75) {
-		ctx.font = "16px Poppins";
-	}
+	ctx.font = applyText(canvas, name, 24, 8, "Poppins");
 	ctx.fillText(`${name}`, canvas.width / 3, 100);
-	ctx.strokeStyle = "#c31503";
+	
+	// draw line under username
+	ctx.strokeStyle = primaryColor;
 	ctx.lineWidth = 4;
 	ctx.lineCap = "round";
 	ctx.beginPath();
@@ -72,14 +87,16 @@ const generateRankCard = async (userData, user) => {
 	ctx.moveTo(canvas.width / 3, lineY);
 	ctx.lineTo(canvas.width - canvas.width / 5, lineY);
 	ctx.stroke();
+
+	// draw xp
 	ctx.font = "18px Poppins";
-	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : Math.floor(xpProgress);
-	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
 	const xpText = `${displayXp}/${displayXpToGo} XP`;
 	const xpTextWidth = ctx.measureText(xpText).width;
 	ctx.fillStyle = "#dddddd";
 	const textY = 145;
 	ctx.fillText(xpText, canvas.width - xpTextWidth - 80, textY);
+
+	// draw users and level and rank
 	ctx.fillStyle = "#ffffff";
 	ctx.font = "24px Poppins";
 	const levelText = `Level ${userData.level + 1}`;
@@ -88,8 +105,10 @@ const generateRankCard = async (userData, user) => {
 	if (userData.rank) {
 		ctx.fillText(`Rank ${userData.rank}`, canvas.width / 3 + levelTextWidth + 20, textY);
 	}
+
+	// draw profile picture
 	ctx.save();
-	ctx.fillStyle = "#000000";
+	ctx.fillStyle = black;
 	ctx.beginPath();
 	ctx.arc(125, 125, 100 / 1.25, 0, Math.PI * 2, true);
 	ctx.fill();
@@ -97,6 +116,10 @@ const generateRankCard = async (userData, user) => {
 	const profileUrl = user.user.displayAvatarURL({ format: "png" });
 	const avatar = await Canvas.loadImage(profileUrl);
 	ctx.drawImage(avatar, 25 * 1.75, 25 * 1.75, 200 / 1.25, 200 / 1.25);
+	ctx.restore();
+
+	// draw status icon
+	const iconWidth = 60;
 	const discordAdmins = adminIds.discord.developers;
 	const isAdmin = discordAdmins.includes(user.id);
 	const statuses = {
@@ -105,11 +128,11 @@ const generateRankCard = async (userData, user) => {
 		dnd: "https://cdn.discordapp.com/emojis/726982954580181063.png?v=1",
 		offline: "https://cdn.discordapp.com/emojis/702707414927015966.png?v=1",
 	};
-	ctx.restore();
-	const iconWidth = 60;
 	const statusUrl = statuses[user.presence.status];
 	const statusImage = await Canvas.loadImage(statusUrl);
 	ctx.drawImage(statusImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, iconWidth, iconWidth);
+	
+	// draw supporter and admin badges
 	const supporters = adminIds.discord.supporters;
 	const isSupporter = supporters.includes(user.id);
 	if (isAdmin) {
@@ -117,6 +140,7 @@ const generateRankCard = async (userData, user) => {
 		const adminImage = await Canvas.loadImage(adminLogo);
 		ctx.drawImage(adminImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75, iconWidth, iconWidth);
 	} else if (isSupporter) {
+		// TODO: add in tiered supporter badges
 		const supporterLogo =
 			"https://icons-for-free.com/iconfiles/png/512/best+bookmark+premium+rating+select+star+icon-1320168257340660520.png";
 		const supporterImage = await Canvas.loadImage(supporterLogo);
