@@ -7,7 +7,7 @@ const applyText = (canvas, text, defaultFontSize = 70, minFontSize = 0, font = "
 
 	// Declare a base size of the font
 	let fontSize = defaultFontSize;
-	ctx.font = `${(fontSize)}px ${font}`;
+	ctx.font = `${fontSize}px ${font}`;
 
 	while (ctx.measureText(text).width > (widthTest || canvas.width - 300)) {
 		// Assign the font to the context and decrement it so it can be measured again
@@ -33,14 +33,28 @@ const roundRect = function (ctx, x, y, w, h, r = 0) {
 	return ctx;
 };
 
+const roundCanvas = function (ctx, x, y, w, h, r = 0, cb) {
+	if (w < 2 * r) r = w / 2;
+	if (h < 2 * r) r = h / 2;
+	ctx.beginPath();
+	ctx.moveTo(x + r, y);
+	ctx.arcTo(x + w, y, x + w, y + h, r);
+	ctx.arcTo(x + w, y + h, x, y + h, r);
+	ctx.arcTo(x, y + h, x, y, r);
+	ctx.arcTo(x, y, x + w, y, r);
+	ctx.clip();
+	cb();
+	ctx.restore();
+	return ctx;
+};
 
 const generateRankCard = async (userData, user) => {
-
-	const primaryColor = "#c31503"
-	const backgroundColor1 = "#1f2525a0"
-	const backgroundColor2 = "#090b0b"
-	const xpBarBackground = "#484b4e"
-	const black = "#000000"
+	const primaryColor = userData.primaryColor || "#c31503";
+	const backgroundColor1 = "#1f2525a0";
+	const backgroundColor2 = `#090b0b${(userData.backgroundOpacity ?? 255).toString(16)}`;
+	const xpBarBackground = "#484b4e";
+	const black = "#000000";
+	const backgroundImage = userData.backgroundImage;
 
 	const canvas = Canvas.createCanvas(700, 250);
 	const ctx = canvas.getContext("2d");
@@ -53,10 +67,17 @@ const generateRankCard = async (userData, user) => {
 	const percentDone = xpProgress / xpLevelDif;
 	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : Math.floor(xpProgress);
 	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
-	
+
 	// draw the first background
-	ctx.fillStyle = backgroundColor1;
-	roundRect(ctx, 0, 0, canvas.width, canvas.height, 125);
+	if (backgroundImage) {
+		const backgroundImageFile = await Canvas.loadImage(backgroundImage);
+		roundCanvas(ctx, 0, 0, canvas.width, canvas.height, 125, () => {
+			ctx.drawImage(backgroundImageFile, 0, 0, canvas.width, canvas.height);
+		});
+	} else {
+		ctx.fillStyle = backgroundColor1;
+		roundRect(ctx, 0, 0, canvas.width, canvas.height, 125);
+	}
 
 	// draw the second background
 	ctx.fillStyle = backgroundColor2;
@@ -77,7 +98,7 @@ const generateRankCard = async (userData, user) => {
 	const name = `${user.nickname || user.user.username}${user.user.tag.slice(-5)}`;
 	ctx.font = applyText(canvas, name, 24, 8, "Poppins");
 	ctx.fillText(`${name}`, canvas.width / 3, 100);
-	
+
 	// draw line under username
 	ctx.strokeStyle = primaryColor;
 	ctx.lineWidth = 4;
@@ -131,7 +152,7 @@ const generateRankCard = async (userData, user) => {
 	const statusUrl = statuses[user.presence.status];
 	const statusImage = await Canvas.loadImage(statusUrl);
 	ctx.drawImage(statusImage, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, 25 * 1.75 + 200 / 1.25 - iconWidth / 1.15, iconWidth, iconWidth);
-	
+
 	// draw supporter and admin badges
 	const supporters = adminIds.discord.supporters;
 	const isSupporter = supporters.includes(user.id);
