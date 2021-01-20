@@ -3,6 +3,8 @@ const discord = require("discord.js");
 const tmi = require("tmi.js");
 const { hoursToMillis } = require("./functions");
 const admin = require("firebase-admin");
+import TwitchApi from "twitch-lib";
+import DiscordOauth2 from "discord-oauth2";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -97,6 +99,26 @@ const getCustomBots = async () => {
 	return customBots;
 };
 
+const TwitchApiClient = new TwitchApi({
+	clientId: process.env.TWITCH_CLIENT_ID,
+	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+});
+
+const DiscordOauthClient  = new DiscordOauth2({
+	clientId: process.env.DISCORD_CLIENT_ID,
+	clientSecret: process.env.DISCORD_CLIENT_SECRET,
+	redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+});
+
+const KrakenApiClient  = new TwitchApi({
+	clientId: process.env.TWITCH_CLIENT_ID,
+	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	kraken: true,
+});
+
 exports.customBots = getCustomBots();
 exports.DiscordClient = DiscordClient;
 exports.TwitchClient = TwitchClient;
+exports.TwitchApiClient = TwitchApiClient
+exports.DiscordOauthClient = DiscordOauthClient
+exports.KrakenApiClient = KrakenApiClient
