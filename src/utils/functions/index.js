@@ -73,20 +73,22 @@ const cycleBotStatus = (bot, statuses, timeout) => {
 	}, timeout);
 };
 
-function get(obj, path) {
-	return path.split(".").reduce((r, e) => {
-		if (!r) return r;
-		else return r[e] || undefined;
-	}, obj);
-}
+const isObject = val => typeof val === "object" && val; // required for "null" comparison
 
-function compare(a, b, prev = "") {
-	return Object.keys(a).reduce((r, e) => {
-		const path = prev + (prev ? "." + e : e);
-		const value = a[e] === get(b, path);
-		r[e] = typeof a[e] === "object" ? compare(a[e], b, path) : value;
-		return r;
-	}, {});
+function compare(obj1 = {}, obj2 = {}, deep) {
+	const output = {},
+		merged = { ...obj1, ...obj2 }; // has properties of both
+
+	for (const key in merged) {
+		const value1 = obj1[key],
+			value2 = obj2[key];
+
+		if ((isObject(value1) || isObject(value2)) && deep) output[key] = compare(value1, value2);
+		// recursively call
+		else output[key] = value1 === value2;
+	}
+
+	return output;
 }
 
 module.exports = {
@@ -96,7 +98,7 @@ module.exports = {
 	...moderationFunctions,
 	...levelingFunctions,
 	...discordFunctions,
-	get, 
+	// get,
 	compare,
 	convertDiscordRoleColor,
 	formatFromNow,
