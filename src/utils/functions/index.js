@@ -31,8 +31,6 @@ const cleanRegex = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-
-
 const Random = (min, max) => {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
@@ -57,6 +55,24 @@ const convertDiscordRoleColor = color => (color === "#000000" ? "#FFFFFF" : colo
 
 const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
 
+const cycleBotStatus = (bot, statuses, timeout) => {
+	const setStatus = status => {
+		if(typeof status === "function"){
+			return bot.user.setPresence(status())
+		}
+		bot.user.setPresence(status)
+	}
+
+	let currentStatus = 0
+	setStatus(statuses[currentStatus])
+
+	setInterval(() => {
+		currentStatus += 1
+		currentStatus = currentStatus % statuses.length
+		setStatus(statuses[currentStatus]) 
+	}, timeout);
+}
+
 module.exports = {
 	...canvasFunctions,
 	...settingsFunctions,
@@ -73,4 +89,5 @@ module.exports = {
 	hoursToMillis,
 	sleep,
 	setArray,
+	cycleBotStatus
 };

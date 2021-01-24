@@ -5,6 +5,7 @@ const { hoursToMillis } = require("./functions");
 const admin = require("firebase-admin");
 import TwitchApi from "twitch-lib";
 import DiscordOauth2 from "discord-oauth2";
+import {cycleBotStatus} from "../utils/functions"
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -13,8 +14,6 @@ const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, 
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount),
 });
-
-// TODO: use WalkSync to allow for nested folders in command directory
 
 // initialize the discord client
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
@@ -29,24 +28,16 @@ let serverPresence = false;
 DiscordClient.on("ready", async () => {
 	console.log("bot ready");
 	serverLength = DiscordClient.guilds.cache.array().length;
-	DiscordClient.user.setPresence({
-		status: "online",
-		activity: { type: "WATCHING", name: `🔴 Live Chat in ${serverLength} servers` },
-	});
-	setInterval(() => {
-		if (serverPresence) {
-			DiscordClient.user.setPresence({
-				status: "online",
-				activity: { type: "WATCHING", name: `🔴 Live Chat in ${serverLength} servers` },
-			});
-		} else {
-			DiscordClient.user.setPresence({
-				status: "online",
-				activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
-			});
+	cycleBotStatus(DiscordClient, [
+		{
+			status: "online",
+			activity: { type: "WATCHING", name: `🔴 Live Chat in ${serverLength} servers` },
+		},
+		{
+			status: "online",
+			activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
 		}
-		serverPresence = !serverPresence;
-	}, 300000);
+	], 30000)
 	setInterval(() => {
 		serverLength = DiscordClient.guilds.cache.array().length;
 	}, hoursToMillis(0.25));
