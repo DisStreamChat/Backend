@@ -52,7 +52,7 @@ const TwitchClient = new tmi.Client({
 		reconnect: true,
 	},
 	identity: {
-		username: "distwitchchat",
+		username: "disstreamchat",
 		password: process.env.TWITH_OAUTH_TOKEN,
 	},
 	channels: [process.env.DEBUG_CHANNEL || ""],
