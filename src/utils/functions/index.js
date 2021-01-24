@@ -57,20 +57,36 @@ const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
 
 const cycleBotStatus = (bot, statuses, timeout) => {
 	const setStatus = status => {
-		if(typeof status === "function"){
-			return bot.user.setPresence(status())
+		if (typeof status === "function") {
+			return bot.user.setPresence(status());
 		}
-		bot.user.setPresence(status)
-	}
+		bot.user.setPresence(status);
+	};
 
-	let currentStatus = 0
-	setStatus(statuses[currentStatus])
+	let currentStatus = 0;
+	setStatus(statuses[currentStatus]);
 
 	setInterval(() => {
-		currentStatus += 1
-		currentStatus = currentStatus % statuses.length
-		setStatus(statuses[currentStatus]) 
+		currentStatus += 1;
+		currentStatus = currentStatus % statuses.length;
+		setStatus(statuses[currentStatus]);
 	}, timeout);
+};
+
+function get(obj, path) {
+	return path.split(".").reduce((r, e) => {
+		if (!r) return r;
+		else return r[e] || undefined;
+	}, obj);
+}
+
+function compare(a, b, prev = "") {
+	return Object.keys(a).reduce((r, e) => {
+		const path = prev + (prev ? "." + e : e);
+		const value = a[e] === get(b, path);
+		r[e] = typeof a[e] === "object" ? compare(a[e], b, path) : value;
+		return r;
+	}, {});
 }
 
 module.exports = {
@@ -80,6 +96,8 @@ module.exports = {
 	...moderationFunctions,
 	...levelingFunctions,
 	...discordFunctions,
+	get, 
+	compare,
 	convertDiscordRoleColor,
 	formatFromNow,
 	isNumeric,
@@ -89,5 +107,5 @@ module.exports = {
 	hoursToMillis,
 	sleep,
 	setArray,
-	cycleBotStatus
+	cycleBotStatus,
 };
