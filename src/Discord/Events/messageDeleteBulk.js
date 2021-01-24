@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
+import { logMessageDelete } from "./utils";
 
 module.exports = async (messages, client) => {
 	const first = messages.first();
@@ -20,7 +21,7 @@ module.exports = async (messages, client) => {
 	const serverData = serverRef.data();
 	if (serverData) {
         const ignoredChannels = serverData.ignoredChannels?.messageDeleteBulk || [];
-        if (ignoredChannels.includes(message.channel.id)) return;
+        if (ignoredChannels.includes(channel.id)) return;
 	}
 
 	const embed = new MessageEmbed()
@@ -36,7 +37,12 @@ module.exports = async (messages, client) => {
 
 	if (!channelId) return;
 
+	
 	const logChannel = guild.channels.resolve(channelId);
-
-	logChannel.send(embed);
+	
+	await logChannel.send(embed);
+	
+	for(const message of messages.array()){
+		logMessageDelete(message, channelId, executor, guild)
+	}
 };
