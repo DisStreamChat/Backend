@@ -23,7 +23,6 @@ DiscordClient.login(process.env.BOT_TOKEN);
 // const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
 
 let serverLength = 0;
-let serverPresence = false;
 
 DiscordClient.on("ready", async () => {
 	console.log("bot ready");
@@ -80,9 +79,6 @@ const getCustomBots = async () => {
 					await botClient.user.setAvatar(bot.avatar);
 				}
 			} catch (err) {}
-			// if(bot.nickname){
-
-			// }
 		});
 		customBots.set(bot.id, botClient);
 	}
