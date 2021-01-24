@@ -1,8 +1,10 @@
 
 import { MessageEmbed } from "discord.js"
+import { admin } from "firebase-admin/lib/database";
 
 
 export const logMessageDelete = (message, channelId, executor, guild) => {
+	checkDeleteReactionMessage(guild.id, message)
 	const { channel, content, author, id } = message;
 	
 	const embed = new MessageEmbed()
@@ -23,4 +25,13 @@ export const logMessageDelete = (message, channelId, executor, guild) => {
 
 	logChannel.send(embed);
 
+}
+
+export const checkDeleteReactionMessage = async (guildId, message) => {
+	const reactionRoleMessages = await admin.firestore().collection("reactions").doc(guildId)
+	const reactionRoleMessagesRef = await reactionRoleMessages.get()
+	const reactionRoleMessagesData = reactionRoleMessagesRef.data()
+	if(reactionRoleMessagesData[message.id]){
+		reactionRoleMessages.update({[message.id]: admin.firestore.FieldValue.delete()})
+	}
 }
