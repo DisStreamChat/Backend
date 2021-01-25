@@ -1,5 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import admin from "firebase-admin";
+import { compare } from "../../../utils/functions";
 
 export const logMessageDelete = (message, channelId, executor, guild) => {
 	checkDeleteReactionMessage(guild.id, message);
@@ -31,4 +32,19 @@ export const checkDeleteReactionMessage = async (guildId, message) => {
 	if (reactionRoleMessagesData[message.id]) {
 		reactionRoleMessages.update({ [message.id]: admin.firestore.FieldValue.delete() });
 	}
+};
+
+export const logUpdate = async (newItem, oldItem, { keyMap = [], valueMap = [], ignoredDifferences = [], title, footer }) => {
+	const differences = compare(oldItem, newItem);
+	const differenceKeys = Object.keys(differences).filter(key => !differences[key] && !ignoredDifferences.includes(key));
+
+	const embed = new MessageEmbed().setTitle(title).setFooter(footer).setTimestamp(new Date()).setColor("#faa51b");
+
+	for (const change of differenceKeys) {
+		const newValue = valueMap[change]?.(newItem[change]) || newItem[change] || "None";
+		const oldValue = valueMap[change]?.(oldItem[change]) || oldItem[change] || "None";
+		embed.addField((keyMap[change] || change).capitalize(), `${oldValue} -> ${newValue}`);
+	}
+	
+	return embed
 };
