@@ -1,7 +1,7 @@
-import admin from "firebase-admin";
-import { MessageEmbed } from "discord.js";
-import messageManipulation from "../../utils/messageManipulation";
-const rdiff = require("recursive-diff");
+import { logUpdate } from "./utils";
+import setupLogging from "./utils/setupLogging";
+
+const colorString = (color, hash = true) => (hash ? "#" : "") + color.toString(16).padStart(6, "0");
 
 module.exports = async (oldRole, newRole, client) => {
 	await new Promise(res => setTimeout(res, 300));
@@ -11,65 +11,30 @@ module.exports = async (oldRole, newRole, client) => {
 
 	const deleteAction = await auditLog.entries.first();
 
+	if (deleteAction.action !== "ROLE_UPDATE") return;
+
 	let executor = deleteAction.executor;
 
-	let channelId = null;
-	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-	const serverData = serverRef.data();
-	if (serverData) {
-		channelId = serverData.server;
-		const activeLogging = serverData.activeEvents || {};
-		if (!activeLogging["roleUpdate"]) return;
-	}
+	const [channelId, active] = await setupLogging(guild, "emojiUpdate", client);
+	if (!active || !channelId) return;
 
-	if (!channelId) return;
-	let changed = [];
-	if (oldRole.name !== newRole.name) {
-		changed.push("name");
-	}
-	if (oldRole.color !== newRole.color) {
-		changed.push("color");
-	}
-	if (oldRole.hoist !== newRole.hoist) {
-		changed.push("hoist");
-	}
-	if (oldRole.mentionable !== newRole.mentionable) {
-		changed.push("mentionable");
-	}
-	if (!oldRole.permissions.equals(newRole.permissions.bitfield)) {
-		changed.push("permissions");
-	}
-	if (oldRole.rawPosition !== newRole.rawPosition) {
-		changed.push("position");
-	}
-	console.log(changed);
-	const changeEmbed = new MessageEmbed()
-		.setTitle("Role Updated")
-		.setAuthor(executor.tag, executor.displayAvatarURL())
-		.setColor("#faa51b")
-		.setDescription(`Changes have been made to the role: ${newRole} by ${executor}`);
-
-	for (const change of changed) {
-		switch (change) {
-			case "name":
-				changeEmbed.addField("Name Changed", `old: \`${oldRole.name}\` -> new: \`${newRole.name}\``);
-				break;
-			case "color":
-				changeEmbed.addField("Color Changed", `old: \`${oldRole.hexColor}\` -> new: \`${newRole.hexColor}\``);
-				break;
-			case "permissions":
-				// TODO: improve parsing
-				changeEmbed.addField(
-					"Permissions Changed",
-					`Changes: \`${JSON.stringify(rdiff.getDiff(oldRole.permissions.serialize(), newRole.permissions.serialize()))}\``
-				);
-				break;
-			// TODO: add mentionable, position, and hoist
-		}
-	}
+	const embed = (
+		await logUpdate(oldRole, newRole, {
+			title: `:pencil: Role updated: ${newRole.name}`,
+			footer: `Role ID: ${newRole.id}`,
+			ignoredDifferences: ["permissions"], // TODO: handle permission changes
+			valueMap: {
+				color: value => {
+					console.log(value);
+					return !value
+						? `[#000000](https://www.color-hex.com/color/000000)`
+						: `[${colorString(value)}](https://www.color-hex.com/color/${colorString(value, false)})`;
+				},
+			},
+		})
+	).setAuthor(executor.tag, executor.avatarURL());
 
 	const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(changeEmbed);
-	// console.log(oldRole, newRole)
+	logChannel.send(embed);
 };
