@@ -1,14 +1,6 @@
 const fetch = require("node-fetch");
 require("dotenv").config();
 
-const createDOMPurify = require("dompurify");
-
-const { JSDOM } = require("jsdom");
-
-const window = new JSDOM("").window;
-
-const DOMPurify = createDOMPurify(window);
-const TwitchApi = require("twitch-lib");
 const admin = require("firebase-admin");
 const { cleanRegex } = require("../utils/functions");
 const cache = require("memory-cache");
@@ -19,12 +11,6 @@ const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
 const linkifyUrls = require("linkify-urls");
-
-// intialize the twitch api class from the twitch-lib package
-const Api = new TwitchApi({
-	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
-});
 
 // unused, currently
 const replaceMentions = async msg => {

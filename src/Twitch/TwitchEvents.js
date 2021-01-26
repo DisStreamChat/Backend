@@ -1,5 +1,4 @@
 require("dotenv").config();
-const TwitchApi = require("twitchio-js");
 const sha1 = require("sha1");
 const uuidv1 = require("uuidv1");
 const TPS = require("twitchps");
@@ -13,20 +12,12 @@ const admin = require("firebase-admin");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
 const fetch = require("node-fetch");
-const fs = require("fs");
-const path = require("path");
-
-// intialize the twitch api class from the twitch-lib package
-
-const Api = new TwitchApi({
-	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
-});
 
 const CommandHandler = require("./CommandHandler");
 const { hoursToMillis } = require("../utils/functions");
+import {TwitchApiClient as Api} from "../utils/initClients"
 
-const DisTwitchChatProfile =
+const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
 const getBadges = async (channelName, tags) => {
@@ -105,7 +96,7 @@ module.exports = (TwitchClient, io, app) => {
 		const theMessage = `${username} has raided with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "raid",
@@ -127,7 +118,7 @@ module.exports = (TwitchClient, io, app) => {
 		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "raid",
@@ -311,7 +302,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "cheer",
@@ -338,7 +329,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "subscription",
@@ -369,7 +360,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "subscription",
@@ -414,7 +405,7 @@ module.exports = (TwitchClient, io, app) => {
 
 			const messageObject = {
 				displayName: "DisStreamChat",
-				avatar: DisTwitchChatProfile,
+				avatar: DisStreamChatProfile,
 				body: theMessage,
 				platform: "twitch",
 				messageId: "subscription",
@@ -466,7 +457,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "subscription",
@@ -502,7 +493,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "subscription",
@@ -536,7 +527,7 @@ module.exports = (TwitchClient, io, app) => {
 
 		const messageObject = {
 			displayName: "DisStreamChat",
-			avatar: DisTwitchChatProfile,
+			avatar: DisStreamChatProfile,
 			body: theMessage,
 			platform: "twitch",
 			messageId: "subscription",
@@ -593,7 +584,7 @@ module.exports = (TwitchClient, io, app) => {
 
 						const messageObject = {
 							displayName: "DisStreamChat",
-							avatar: DisTwitchChatProfile,
+							avatar: DisStreamChatProfile,
 							body: theMessage,
 							platform: "twitch",
 							messageId: "follow",
@@ -743,7 +734,7 @@ module.exports = (TwitchClient, io, app) => {
 								const id = uuidv1();
 								const messageObject = {
 									displayName: "DisStreamChat",
-									avatar: DisTwitchChatProfile,
+									avatar: DisStreamChatProfile,
 									body: message,
 									platform: "twitch",
 									messageId: "subscription",
@@ -768,7 +759,7 @@ module.exports = (TwitchClient, io, app) => {
 								const id = uuidv1();
 								const messageObject = {
 									displayName: "AutoMod",
-									avatar: DisTwitchChatProfile,
+									avatar: DisStreamChatProfile,
 									body: theMessage,
 									platform: "twitch",
 									messageId: "",
