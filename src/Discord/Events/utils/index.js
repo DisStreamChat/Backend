@@ -41,8 +41,8 @@ export const logUpdate = async (newItem, oldItem, { keyMap = [], valueMap = [], 
 	const embed = new MessageEmbed().setTitle(title).setFooter(footer).setTimestamp(new Date()).setColor("#faa51b");
 
 	for (const change of differenceKeys) {
-		const newValue = valueMap[change]?.(newItem[change]) || newItem[change] || "None";
-		const oldValue = valueMap[change]?.(oldItem[change]) || oldItem[change] || "None";
+		const newValue = valueMap[change]?.(newItem[change], true) || newItem[change] || "None";
+		const oldValue = valueMap[change]?.(oldItem[change], false) || oldItem[change] || "None";
 		embed.addField((keyMap[change] || change).capitalize(), `${oldValue} -> ${newValue}`);
 	}
 	
