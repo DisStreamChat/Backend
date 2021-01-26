@@ -4,7 +4,6 @@ import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
 import sha1 from "sha1";
 import fetch from "node-fetch";
-import TwitchApi from "twitch-lib";
 import admin from "firebase-admin";
 import {
 	TwitchClient,
