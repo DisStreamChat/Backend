@@ -118,7 +118,6 @@ export const initWebhooks = async () => {
 		const now = new Date().getTime();
 		const nextConnectionTime = lastConnection + sevenDays;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
-		console.log(new Date(new Date().getTime() + timeUntilNextConnection), timeUntilNextConnection);
 		const updateConnections = () => {
 			console.log(allConnections);
 			const value = new Date().getTime();
