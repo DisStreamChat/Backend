@@ -3,7 +3,7 @@ const discord = require("discord.js");
 const tmi = require("tmi.js");
 const { hoursToMillis } = require("./functions");
 const admin = require("firebase-admin");
-import TwitchApi from "twitch-lib";
+import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
 import {cycleBotStatus} from "../utils/functions"
 
