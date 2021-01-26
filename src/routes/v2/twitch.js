@@ -113,7 +113,6 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 				Authorization: `OAuth ${refreshData?.access_token}`,
 			},
 		});
-		console.log(response);
 		res.json({ message: "success" });
 	} catch (err) {
 		next(err);
@@ -197,7 +196,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			console.log("failed to join: ", err);
+			console.log("failed to join channel: ", err.message);
 			let isMod = TwitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
@@ -206,7 +205,6 @@ router.get("/checkmod", async (req, res, next) => {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			console.log(err, err.message);
 			TwitchClient.part(channelName);
 			return res.status(500).json(null);
 		}

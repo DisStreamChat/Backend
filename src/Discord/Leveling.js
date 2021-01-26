@@ -37,7 +37,6 @@ module.exports = {
 			const cooldownTime = 60000;
 			const expireTime = userLevelingData.cooldown + cooldownTime;
 			if (now > expireTime) {
-				console.log(`doing level for ${message.author.username}`);
 				userLevelingData.cooldown = now;
 				userLevelingData.xp += Random(10, 20) * finalScaling;
 				userLevelingData.xp = Math.floor(userLevelingData.xp);

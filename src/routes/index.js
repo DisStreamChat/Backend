@@ -68,7 +68,7 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		console.log(err);
+		console.log(`Error getting channels: ${err}`);
 		res.json([]);
 	}
 });
@@ -128,7 +128,6 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 router.get("/discord/token", async (req, res, next) => {
 	try {
 		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
-		console.log(redirect_uri + "/?discord=true");
 		const code = req.query.code;
 		if (!code) {
 			return res.status(401).json({
@@ -144,7 +143,6 @@ router.get("/discord/token", async (req, res, next) => {
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
-		console.log(body);
 		const tokenData = await DiscordOauthClient.tokenRequest(body);
 		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
@@ -279,7 +277,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			console.log("failed to join: ", err);
+			console.log(`failed to join channel: ${err.message}`);
 			let isMod = TwitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
@@ -288,7 +286,6 @@ router.get("/checkmod", async (req, res, next) => {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			console.log(err, err.message);
 			TwitchClient.part(channelName);
 			return res.status(500).json(null);
 		}
@@ -508,7 +505,7 @@ router.get("/chatters", async (req, res, next) => {
 			try {
 				TwitchClient.join(req.query.user);
 			} catch (err) {
-				console.log(err.message);
+				console.log(`Error getting channels: ${err}`);
 			}
 		}, 1000);
 		res.json({ message: err.message, status: 500 });
@@ -544,7 +541,7 @@ router.get("/stats/twitch", async (req, res, next) => {
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
-	console.log(req.query);
+	// console.log(req.query);
 	res.send(req.query["hub.challenge"]);
 });
 
@@ -559,7 +556,6 @@ router.get("/createauthtoken", async (req, res, next) => {
 });
 
 router.post("/setauthtoken", async (req, res, next) => {
-	console.log(req.query);
 	await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
 	res.json("success");
 });
@@ -694,7 +690,6 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 				Authorization: `OAuth ${refreshData?.access_token}`,
 			},
 		});
-		console.log(response);
 		res.json({ message: "success" });
 	} catch (err) {
 		next(err);
@@ -724,7 +719,6 @@ router.post("/discord/reactionmessage", validateRequest, async (req, res, next) 
 				if (reaction.length > 5) {
 					reaction = guild.emojis.cache.get(reaction);
 				}
-				console.log(reaction);
 				await sentMessage.react(reaction);
 			} catch (err) {
 				console.log(`error in reacting to message: ${err.message}`);

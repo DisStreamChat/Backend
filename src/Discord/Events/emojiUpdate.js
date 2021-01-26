@@ -20,5 +20,4 @@ module.exports = async (oldEmoji, newEmoji, client) => {
 	const logChannel = guild.channels.resolve(channelId);
 
 	logChannel.send(embed);
-    // console.log(oldEmoji, newEmoji)
 };

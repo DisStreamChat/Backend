@@ -1,20 +1,16 @@
 require("dotenv").config();
 import express from "express";
-import { validateRequest } from "../../middleware"
-import {getProfilePicture} from "../../utils/functions/users"
+import { validateRequest } from "../../middleware";
+import { getProfilePicture } from "../../utils/functions/users";
 const router = express.Router();
 
 import sha1 from "sha1";
 import fetch from "node-fetch";
 import admin from "firebase-admin";
 import { getUserInfo } from "../../utils/DiscordClasses";
-import {
-	DiscordClient,
-	DiscordOauthClient,
-} from "../../utils/initClients";
+import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
-
 
 // get invite link to our discord
 router.get("/", (req, res) => {
@@ -57,7 +53,8 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		console.log(err);
+		console.log(`Error getting channels: ${err}`);
+
 		res.json([]);
 	}
 });
@@ -105,7 +102,7 @@ router.get("/rankcard", async (req, res, next) => {
 	const member = await guildObj.members.fetch(user);
 	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
 	const customRankCardData = (await admin.firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
-	const rankcard = await generateRankCard({...userData, ...(customRankCardData || {})}, member);
+	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member);
 	res.setHeader("content-type", "image/png");
 	res.write(rankcard.toBuffer(), "binary");
 	res.end(null, "binary");
@@ -123,7 +120,6 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 				if (reaction.length > 5) {
 					reaction = guild.emojis.cache.get(reaction);
 				}
-				console.log(reaction);
 				await sentMessage.react(reaction);
 			} catch (err) {
 				console.log(`error in reacting to message: ${err.message}`);
@@ -154,7 +150,6 @@ router.get("/token", async (req, res, next) => {
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
-		console.log(body);
 		const tokenData = await DiscordOauthClient.tokenRequest(body);
 		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
@@ -226,7 +221,7 @@ router.get("/guildcount", async (req, res, next) => {
 router.get("/profilepicture", async (req, res, next) => {
 	try {
 		const user = req.query.user;
-		const profilePicture = await getProfilePicture("discord", user)
+		const profilePicture = await getProfilePicture("discord", user);
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);

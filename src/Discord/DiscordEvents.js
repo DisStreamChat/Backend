@@ -141,7 +141,7 @@ module.exports = async (client, io, app) => {
 
 				io.in(`channel-${message.channel.id}`).emit("chatmessage", messageObject);
 			} catch (err) {
-				console.log(err.message);
+				console.log(`Error in sending message to app: ${err.message}`);
 			}
 		} catch (err) {
 			console.log(`Error in discord message: ${err.message}`);
@@ -152,20 +152,20 @@ module.exports = async (client, io, app) => {
 		try {
 			io.in(`channel-${message.channel.id}`).emit("deletemessage", message.id);
 		} catch (err) {
-			console.log(err.message);
+			console.log(`Error deleting discord message: ${err.message}`);
 		}
 	});
-
+	
 	client.on("messageDeleteBulk", message => {
 		message.forEach(msg => {
 			try {
 				io.in(`guild-${msg.guild.id}`).emit("deletemessage", msg.id);
 			} catch (err) {
-				console.log(err.message);
+				console.log(`Error deleting discord message: ${err.message}`);
 			}
 		});
 	});
-
+	
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
 			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
@@ -175,7 +175,7 @@ module.exports = async (client, io, app) => {
 			};
 			io.in(`channel-${newMsg.channel.id}`).emit("updateMessage", updateMessage);
 		} catch (err) {
-			console.log(err.message);
+			console.log(`Error updating discord message: ${err.message}`);
 		}
 	});
 };

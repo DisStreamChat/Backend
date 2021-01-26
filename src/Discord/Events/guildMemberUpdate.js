@@ -31,5 +31,4 @@ module.exports = async (oldMember, newMember, client) => {
     }
 
 	console.log(changes);
-	// console.log(oldMember, newMember)
 };
