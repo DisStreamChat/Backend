@@ -88,7 +88,7 @@ const getCustomBots = async () => {
 
 const TwitchApiClient = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 });
 
 const DiscordOauthClient  = new DiscordOauth2({
@@ -99,9 +99,10 @@ const DiscordOauthClient  = new DiscordOauth2({
 
 const KrakenApiClient  = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
+	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 	kraken: true,
 });
+
 
 exports.customBots = getCustomBots();
 exports.DiscordClient = DiscordClient;
