@@ -1,21 +1,22 @@
-import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
+import setupLogging from "./utils/setupLogging";
 const deepEqual = require("deep-equal");
 
+const changeFuctions = {
+	nickname: (member, newName, oldName) => {
+		return new MessageEmbed()
+			.setAuthor(member.user.tag, member.user.displayAvatarURL())
+			.setDescription(`:pencil: ${member} **nickname edited**`)
+			.addField("Old nickname", `\`${oldName}\``, true)
+			.addField("New nickname", `\`${newName}\``, true)
+			.setTimestamp(new Date())
+			.setThumbnail(member.user.displayAvatarURL())
+			.setColor("#faa51b");
+	},
+};
 
 module.exports = async (oldMember, newMember, client) => {
 	const guild = newMember.guild;
-
-	let channelId = null;
-	const serverRef = await admin.firestore().collection("loggingChannel").doc(guild.id).get();
-	const serverData = serverRef.data();
-	if (serverData) {
-		channelId = serverData.server;
-		const activeLogging = serverData.activeEvents || {};
-		// if (!activeLogging["member update"]) return;
-	}
-
-	if (!channelId) return;
 
 	const changes = [];
 	if (oldMember.nickname !== newMember.nickname) {
@@ -28,7 +29,21 @@ module.exports = async (oldMember, newMember, client) => {
 		)
 	) {
 		changes.push("roles");
-    }
+	}
 
-	console.log(changes);
+	for (const change of changes) {
+		if (change === "nickname") {
+			const [channelId, active] = await setupLogging(guild, "NicknameChange", client);
+			if (!active || !channelId) continue;
+
+			const logChannel = guild.channels.resolve(channelId);
+			
+			const embed = changeFuctions[change](
+				newMember,
+				oldMember.nickname ?? oldMember.user.username,
+				newMember.nickname ?? newMember.user.username
+			);
+			logChannel.send(embed);
+		}
+	}
 };
