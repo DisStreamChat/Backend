@@ -613,7 +613,7 @@ module.exports = (TwitchClient, io, app) => {
 	});
 
 	// TODO: refactor so it doesn't fire on follow
-	if (process.env.BOT_DEV != "true" || true) {
+	if (process.env.BOT_DEV != "true") {
 		pubSub(io)
 	}
 };
