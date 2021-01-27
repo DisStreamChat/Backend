@@ -11,6 +11,7 @@ import {
 	KrakenApiClient as KrakenApi,
 } from "../../utils/initClients";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../../utils/functions/TwitchFunctions";
+import {refreshTwitchToken} from "../../utils/functions/auth"
 const router = express.Router();
 
 const followChannel = async (user, channel, method) => {
@@ -223,9 +224,7 @@ router.get("/profilepicture", async (req, res, next) => {
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
 	const refresh_token = req.query.token;
-	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
-	const response = await fetch(apiURL, { method: "POST" });
-	const json = await response.json();
+	const json = await refreshTwitchToken(refresh_token)
 	res.json(json);
 });
 
