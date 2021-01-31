@@ -143,7 +143,7 @@ module.exports = async (client, io, app) => {
 				console.log(`Error in sending message to app: ${err.message}`);
 			}
 		} catch (err) {
-			console.log(`Error in discord message: ${err.message}`);
+			log(`Error in discord message: ${err.message}`);
 		}
 	});
 
