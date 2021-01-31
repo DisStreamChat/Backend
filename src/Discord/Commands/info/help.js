@@ -130,7 +130,7 @@ module.exports = {
 			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({ message, client, commands: allCommandCategories, page: 1 });
 			const helpMsg = await message.channel.send(helpEmbed);
 			const pageCollector = helpMsg.createReactionCollector(
-				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user.bot
+				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
 			);
 			let currentPage = 1;
 			await helpMsg.react("⬅️");
@@ -197,7 +197,7 @@ module.exports = {
 						});
 						const helpMsg = await message.channel.send(customHelpEmbed);
 						const pageCollector = helpMsg.createReactionCollector(
-							(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user.bot
+							(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
 						);
 						let currentPage = 1;
 						await helpMsg.react("⬅️");

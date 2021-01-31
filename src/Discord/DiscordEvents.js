@@ -4,7 +4,7 @@ const CommandHandler = require("./CommandHandler");
 const ReactionRoles = require("./Reaction Manager");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
-import {log} from "../utils/functions/logging"
+import { log } from "../utils/functions/logging";
 
 const { handleLeveling } = require("./Leveling");
 const { getDiscordSettings, hasPermission } = require("../utils/functions");
@@ -23,10 +23,10 @@ module.exports = async (client, io, app) => {
 		if (event.endsWith(".js")) {
 			const eventHandler = require(path.join(eventPath, event));
 			client.on(event.slice(0, -3), (...params) => {
-				try{
+				try {
 					eventHandler(...params, client);
-				}catch(err){
-					log(`Event Error: ${err.message}`)
+				} catch (err) {
+					log(`Event Error: ${err.message}`);
 				}
 			});
 		}
@@ -60,7 +60,6 @@ module.exports = async (client, io, app) => {
 	client.on("message", async message => {
 		try {
 			if (!message.guild || !message.member) return;
-
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
 				await handleLeveling(message, client);
@@ -155,7 +154,7 @@ module.exports = async (client, io, app) => {
 			console.log(`Error deleting discord message: ${err.message}`);
 		}
 	});
-	
+
 	client.on("messageDeleteBulk", message => {
 		message.forEach(msg => {
 			try {
@@ -165,7 +164,7 @@ module.exports = async (client, io, app) => {
 			}
 		});
 	});
-	
+
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
 			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });

@@ -13,8 +13,8 @@ module.exports = {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
         }
-        let member = resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
-		if (!member.bannable) {
+        let member = await resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
+		if (!member?.bannable) {
 			return await message.channel.send(new MessageEmbed().setDescription(`:x: Unable to ban ${member}`));
 		}
 		const nickname = member.user.username;

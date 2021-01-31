@@ -15,7 +15,7 @@ module.exports = {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
 		}
-		let member = resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
+		let member = await resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
 		if (!member) {
 			return await message.channel.send(":x: Invalid User");
 		}

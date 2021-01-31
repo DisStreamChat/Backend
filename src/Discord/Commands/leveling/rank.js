@@ -16,7 +16,7 @@ module.exports = {
 	description: "Get someones experience and level on this server in a rankcard.",
 	usage: ["(user)"],
 	execute: async (message, args, client) => {
-		let user = resolveUser(message, args.join(" "));
+		let user = await resolveUser(message, args.join(" "));
 		let msg = "";
 		if (!user) {
 			if (args.length) {
@@ -24,13 +24,14 @@ module.exports = {
 			}
 			user = message.member;
 		}
-		if (user.user.bot) {
+		console.log(user)
+		if (user.user?.bot || user.bot) {
 			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
 		}
-		const userData = (
+		let userData = (
 			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()
 		).data();
-		const customRankCardData = (await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()).docs[0].data();
+		const customRankCardData = (await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()).docs[0]?.data?.();
 		if (!userData) userData = { xp: 0, level: 0 };
 
 		const sorted = (
