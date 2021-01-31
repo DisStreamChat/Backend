@@ -24,7 +24,6 @@ module.exports = {
 			}
 			user = message.member;
 		}
-		console.log(user)
 		if (user.user?.bot || user.bot) {
 			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
 		}
