@@ -36,8 +36,8 @@ app.use(
 );
 
 // add the routes stored in the 'routes' folder to the app
-app.use("/api/", require("./routes/index"));
-app.use("/api/v2", require("./routes/v2"))
-app.use("/api/public", express.static("public"));
-app.use("/api/images", express.static("images"));
+app.use("/", require("./routes/index"));
+app.use("/v2", require("./routes/v2"))
+app.use("/public", express.static("public"));
+app.use("/images", express.static("images"));
 
