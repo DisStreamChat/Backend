@@ -11,6 +11,7 @@ const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
 const linkifyUrls = require("linkify-urls");
+import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
 
 // unused, currently
 const replaceMentions = async msg => {
@@ -52,52 +53,8 @@ const checkForClash = message => {
 	return fullUrl;
 };
 
-async function getBttvEmotes(channelName) {
-	const bttvEmotes = {};
-	let bttvRegex;
-	const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
-	let { emotes } = await bttvResponse.json();
-	// replace with your channel url
-	const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
-	const { emotes: channelEmotes } = await bttvChannelResponse.json();
-	if (channelEmotes) {
-		emotes = emotes.concat(channelEmotes);
-	}
-	let regexStr = "";
-	emotes.forEach(({ code, id }, i) => {
-		bttvEmotes[code] = id;
-		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
-	});
-	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-
-	return { bttvEmotes, bttvRegex };
-}
-
-async function getFfzEmotes(channelName) {
-	const ffzEmotes = {};
-	let ffzRegex;
-
-	const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
-	// replace with your channel url
-	const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
-	const { sets } = await ffzResponse.json();
-	const { room, sets: channelSets } = await ffzChannelResponse.json();
-	let regexStr = "";
-	const appendEmotes = ({ name, urls }, i, emotes) => {
-		ffzEmotes[name] = `https:${Object.values(urls).pop()}`;
-		regexStr += name + (i === emotes.length - 1 ? "" : "|");
-	};
-	sets[3].emoticons.forEach(appendEmotes);
-	if (channelSets && room) {
-		const setnum = room.set;
-		channelSets[setnum].emoticons.forEach(appendEmotes);
-	}
-	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-	return { ffzEmotes, ffzRegex };
-}
-
 const getAllEmotes = async () => {
-	if (process.env.BOT_DEV == "true") return;
+	// if (process.env.BOT_DEV == "true") return;
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);

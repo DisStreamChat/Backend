@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import {TwitchApiClient as Api} from "../initClients"
+import fetch from "node-fetch"
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
