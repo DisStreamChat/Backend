@@ -1,17 +1,20 @@
 import admin from "firebase-admin";
-import {TwitchApiClient as Api} from "../initClients"
-import fetch from "node-fetch"
+import { TwitchApiClient as Api } from "../initClients";
+import fetch from "node-fetch";
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
 	let bttvRegex;
-	const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
-	let { emotes } = await bttvResponse.json();
+	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
+	let emotes = await bttvResponse.json();
 	// replace with your channel url
-	const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
-	const { emotes: channelEmotes } = await bttvChannelResponse.json();
+	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelName}`);
+	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
 	if (channelEmotes) {
 		emotes = emotes.concat(channelEmotes);
+	}
+	if (sharedEmotes) {
+		emotes = emotes.concat(sharedEmotes);
 	}
 	let regexStr = "";
 	emotes.forEach(({ code, id }, i) => {
