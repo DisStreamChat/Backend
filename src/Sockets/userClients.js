@@ -20,7 +20,7 @@ export const createUserClient = async (refreshToken, modName, twitchName) => {
 	if (!ArrayAny(scopes, requiredScopes)) {
 		throw new Error("bad scopes");
 	}
-	userClient = new tmi.Client({
+	const userClient = new tmi.Client({
 		options: { debug: false },
 		connection: {
 			secure: true,

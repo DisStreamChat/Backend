@@ -204,7 +204,8 @@ export const sockets = io => {
 			}
 			if (sender && message) {
 				try {
-					let UserClient = getUserClient(refreshToken, sender, TwitchName);
+					let UserClient = await getUserClient(refreshToken, sender, TwitchName);
+					console.log(UserClient)
 					try {
 						await UserClient.join(TwitchName);
 						await UserClient.say(TwitchName, message);
