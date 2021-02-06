@@ -57,8 +57,8 @@ module.exports = {
 									.setAuthor(client.user.username, client.user.displayAvatarURL())
 									.setTitle("🎉 Level up!")
 									.setDescription(levelupMessage)
-									.addField(":arrow_down: Previous Level", `**${userLevelingData.level - 1}**`, true)
-									.addField(":arrow_double_up: New Level", `**${userLevelingData.level}**`, true)
+									.addField(":arrow_down: Previous Level", `**${userLevelingData.level}**`, true)
+									.addField(":arrow_double_up: New Level", `**${userLevelingData.level+1}**`, true)
 									.addField(":1234: total xp", `**${userLevelingData.xp}**`, true);
 								levelingChannel.send(levelEmbed);
 							} else {
