@@ -1,4 +1,5 @@
 // the admin app has already been initialized in routes/index.js
+const { MessageEmbed } = require("discord.js");
 const admin = require("firebase-admin");
 
 const { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } = require("../utils/functions");
@@ -10,7 +11,7 @@ module.exports = {
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
 		const levelingDataRef = await levelingRef.get();
 		const levelingData = levelingDataRef.data();
-		const levelingSettings = getLevelSettings(client, message.guild.id);
+		const levelingSettings = await getLevelSettings(client, message.guild.id);
 		if (levelingData) {
 			const channel = message.channel;
 			const channelsToIgnore = levelingSettings?.bannedItems?.channels || [];
@@ -51,8 +52,20 @@ module.exports = {
 							.replace("{level}", userLevelingData.level + 1);
 						try {
 							const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
-							levelingChannel.send(levelupMessage);
+							if (levelingSettings?.general?.sendEmbed) {
+								const levelEmbed = new MessageEmbed()
+									.setAuthor(client.user.username, client.user.displayAvatarURL())
+									.setTitle("🎉 Level up!")
+									.setDescription(levelupMessage)
+									.addField(":arrow_down: Previous Level", `**${userLevelingData.level - 1}**`, true)
+									.addField(":arrow_double_up: New Level", `**${userLevelingData.level}**`, true)
+									.addField(":1234: total xp", `**${userLevelingData.xp}**`, true);
+								levelingChannel.send(levelEmbed);
+							} else {
+								levelingChannel.send(levelupMessage);
+							}
 						} catch (err) {
+							console.log(err.message)
 							// message.channel.send(levelupMessage);
 						}
 					}
