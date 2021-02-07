@@ -4,13 +4,21 @@ import { logUpdate } from "./utils";
 
 module.exports = async (oldUser, newUser, DiscordClient) => {
 	const serversToLog = await admin.firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
-	console.log(serversToLog.docs.length);
 	const serversData = serversToLog.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+	const guilds = await Promise.all(
+		serversData.map(async doc => await DiscordClient.guilds.fetch(doc.id)).map(promise => promise.catch(console.log))
+	);
 	const channelsInfo = (
 		await Promise.all(
 			serversData.map(async doc => ({ id: doc.id, info: await setupLogging({ id: doc.id }, "userUpdate", DiscordClient) }))
 		)
-	).filter(channel => channel.info[1]);
+	).filter(channel => {
+		const guild = guilds.find(guild => guild?.id === channel?.id);
+		if (guild?.member(oldUser.id)) {
+			return channel.info[1];
+		}
+		return false;
+	});
 
 	console.log(channelsInfo);
 
@@ -18,7 +26,7 @@ module.exports = async (oldUser, newUser, DiscordClient) => {
 		await logUpdate(newUser, oldUser, {
 			title: "",
 			footer: `ID: ${newUser.id}`,
-			ignoredDifferences: ["flags"],
+			ignoredDifferences: ["flags", "LastMessageID", "LastMessageChannelID"],
 			valueMap: {
 				avatar: (value, isNew) => (isNew ? `[new](${newUser.displayAvatarURL()})` : `[old](${oldUser.displayAvatarURL()})`),
 			},
