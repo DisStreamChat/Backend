@@ -109,6 +109,7 @@ router.get("/app", async (req, res) => {
 });
 
 router.get("/discord/token/refresh", validateRequest, async (req, res, next) => {
+	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI
 	try {
 		const token = req.query.token;
 		const tokenData = await DiscordOauthClient.tokenRequest({
@@ -117,7 +118,7 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 			grantType: "refresh_token",
 			clientId: process.env.DISCORD_CLIENT_ID,
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
-			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+			redirectUri: redirect_uri + "/?discord=true",
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
