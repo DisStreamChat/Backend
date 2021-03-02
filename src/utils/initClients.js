@@ -30,16 +30,16 @@ DiscordClient.on("ready", async () => {
 	cycleBotStatus(DiscordClient, [
 		{
 			status: "online",
-			activity: { type: "WATCHING", name: `🔴 Live Chat in ${serverLength} servers` },
+			activity: { type: "WATCHING", name: `🔴 Live Chat in ${DiscordClient.guilds.cache.array().length} servers` },
 		},
 		{
 			status: "online",
 			activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
 		}
 	], 30000)
-	setInterval(() => {
-		serverLength = DiscordClient.guilds.cache.array().length;
-	}, hoursToMillis(0.25));
+	// setInterval(() => {
+	// 	serverLength = DiscordClient.guilds.cache.array().length;
+	// }, hoursToMillis(0.25));
 });
 
 // initialize the twitch client
