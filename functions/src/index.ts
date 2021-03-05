@@ -9,6 +9,7 @@ const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REA
 
 const runBot = async (callback: (client: discord.Client) => Promise<void>) => {
 	DiscordClient.once("ready", async () => {
+		functions.logger.debug("bot ready")
 		await callback(DiscordClient);
 		DiscordClient.destroy();
 	});
@@ -22,6 +23,7 @@ export const helloWorld = functions.https.onRequest(async (_request, response) =
 	await runBot(async client => {
 		const guild = await client.guilds.fetch("809234741018361916");
 		const channel = guild.channels.resolve("809234742482305087") as discord.TextChannel;
+		functions.logger.debug(channel)
 		if (!channel) return;
 		await channel.send("hello world");
 	});
