@@ -8,7 +8,7 @@ export async function getBttvEmotes(channelName) {
 	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	let emotes = await bttvResponse.json();
 	const channelInfo = await Api.getUserInfo(channelName)
-	console.log(channelInfo)
+	// console.log(channelInfo)
 	// replace with your channel url
 	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
 	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();

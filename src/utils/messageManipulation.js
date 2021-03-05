@@ -54,25 +54,30 @@ const checkForClash = message => {
 };
 
 const getAllEmotes = async () => {
-	if (process.env.BOT_DEV == "true") return;
+	// if (process.env.BOT_DEV == "true") return;
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
 	for (const name of twitchNames) {
-		const cachedBTTVEmotes = cache.get("bttv " + name);
-		const cachedFFZEmotes = cache.get("ffz " + name);
-		if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
-			console.log("refreshing bttv, " + name);
-			cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
-		}
-		if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
-			console.log("refreshing ffz, " + name);
-			cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
+		try {
+			const cachedBTTVEmotes = cache.get("bttv " + name);
+			const cachedFFZEmotes = cache.get("ffz " + name);
+			if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
+				console.log("refreshing bttv, " + name);
+				cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
+			}
+			if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
+				console.log("refreshing ffz, " + name);
+				cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
+			}
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 };
 const emoteRefresh = 60000 * 10;
 setTimeout(() => {
+	console.log("starting emote fetch");
 	getAllEmotes()
 		.then(() => {
 			setInterval(getAllEmotes, emoteRefresh);
@@ -99,6 +104,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	const cachedBTTVEmotes = cache.get("bttv " + channelName);
 	const cachedFFZEmotes = cache.get("ffz " + channelName);
+	console.log(cachedBTTVEmotes, cachedFFZEmotes);
 	if (platform === "twitch" && channelName && cachedBTTVEmotes && cachedFFZEmotes) {
 		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes;
 		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;
