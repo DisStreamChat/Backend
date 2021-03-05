@@ -7,8 +7,10 @@ export async function getBttvEmotes(channelName) {
 	let bttvRegex;
 	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	let emotes = await bttvResponse.json();
+	const channelInfo = await Api.getUserInfo(channelName)
+	console.log(channelInfo)
 	// replace with your channel url
-	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelName}`);
+	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
 	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
 	if (channelEmotes) {
 		emotes = emotes.concat(channelEmotes);
