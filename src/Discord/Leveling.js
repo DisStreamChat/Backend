@@ -42,9 +42,14 @@ module.exports = {
 				return;
 			}
 			const generalScaling = levelingSettings?.scaling?.general;
+			
 			const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
+			
 			const finalScaling = roleScaling ?? generalScaling ?? 1;
-			const levelingChannelId = levelingData.type === 3 ? levelingData.notifications || message.channel.id : message.channel.id;
+			
+			if(levelingData.type !== 3 || !levelingData.notifications || !levelingData.message) return
+
+			const levelingChannelId = levelingData.notifications;
 			let userLevelingData = (await levelingRef.collection("users").doc(message.author.id).get()).data();
 			if (!userLevelingData) {
 				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
@@ -62,7 +67,7 @@ module.exports = {
 					if (levelingData.type !== 1) {
 						const view = generateView(message, userLevelingData);
 						const levelupMessage = unescapeHTML(
-							Mustache.render(levelingData.message || "Congrats {player}, you leveled up to level {level}", view)
+							Mustache.render(levelingData.message, view)
 						);
 
 						try {
