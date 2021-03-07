@@ -1,8 +1,23 @@
 // the admin app has already been initialized in routes/index.js
 const { MessageEmbed } = require("discord.js");
 const admin = require("firebase-admin");
+import Mustache from "mustache";
+import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation";
+
+Mustache.tags = ["{", "}"];
 
 const { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } = require("../utils/functions");
+
+const generateView = (message, levelingData) => {
+	return {
+		ping: message.author.toString(),
+		player: escapePings(message.member.displayName),
+		level: levelingData.level + 1,
+		xp: levelingData.xp,
+		user: message.author,
+		member: message.member,
+	};
+};
 
 module.exports = {
 	handleLeveling: async (message, client) => {
@@ -45,12 +60,11 @@ module.exports = {
 				if (userLevelingData.xp >= xpToNextLevel) {
 					userLevelingData.level++;
 					if (levelingData.type !== 1) {
-						// TODO: replace with mustache
-						const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
-							.replace("{ping}", message.author)
-							// escape @'s with a zero width joiner to prevent accidental pings
-							.replace("{player}", message.member.displayName.replace("@", "@‍"))
-							.replace("{level}", userLevelingData.level + 1);
+						const view = generateView(message, userLevelingData);
+						const levelupMessage = unescapeHTML(
+							Mustache.render(levelingData.message || "Congrats {player}, you leveled up to level {level}", view)
+						);
+
 						try {
 							const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
 							if (levelingSettings?.general?.sendEmbed) {
@@ -59,14 +73,14 @@ module.exports = {
 									.setTitle("🎉 Level up!")
 									.setDescription(levelupMessage)
 									.addField(":arrow_down: Previous Level", `**${userLevelingData.level}**`, true)
-									.addField(":arrow_double_up: New Level", `**${userLevelingData.level+1}**`, true)
+									.addField(":arrow_double_up: New Level", `**${userLevelingData.level + 1}**`, true)
 									.addField(":1234: total xp", `**${userLevelingData.xp}**`, true);
 								levelingChannel.send(levelEmbed);
 							} else {
 								levelingChannel.send(levelupMessage);
 							}
 						} catch (err) {
-							console.log(err.message)
+							console.log(err.message);
 							// message.channel.send(levelupMessage);
 						}
 					}
