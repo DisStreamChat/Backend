@@ -2,8 +2,11 @@
 import * as functions from "firebase-functions";
 import * as discord from "discord.js";
 import * as admin from "firebase-admin";
+export * from "./firestore"
 
 admin.initializeApp();
+
+
 
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 
