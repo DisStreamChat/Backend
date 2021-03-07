@@ -48,7 +48,8 @@ module.exports = {
 						// TODO: replace with mustache
 						const levelupMessage = (levelingData.message || "Congrats {player}, you leveled up to level {level}")
 							.replace("{ping}", message.author)
-							.replace("{player}", message.member.displayName)
+							// escape @'s with a zero width joiner to prevent accidental pings
+							.replace("{player}", message.member.displayName.replace("@", "@‍"))
 							.replace("{level}", userLevelingData.level + 1);
 						try {
 							const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
