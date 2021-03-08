@@ -27,12 +27,14 @@ module.exports = {
 		const levelingDataRef = await levelingRef.get();
 		const levelingData = levelingDataRef.data();
 		const levelingSettings = await getLevelSettings(client, message.guild.id);
+		console.log(levelingData, !!levelingData)
 		if (levelingData) {
 			const channel = message.channel;
 			const channelsToIgnore = levelingSettings?.bannedItems?.channels || [];
 			if (channelsToIgnore.includes(channel.id)) return;
 			const rolesToIgnore = levelingSettings?.bannedItems?.roles || [];
 			const member = message.member;
+			console.log({rolesToIgnore})
 			if (
 				ArrayAny(
 					rolesToIgnore,
@@ -46,10 +48,12 @@ module.exports = {
 			const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
 			
 			const finalScaling = roleScaling ?? generalScaling ?? 1;
-			
-			if(levelingData.type !== 3 || !levelingData.notifications || !levelingData.message) return
+						
+			const levelingChannelId = levelingSettings.general?.channel ?? levelingData.notifications;
+			const messageEnabled = levelingSettings.general?.announcement ?? levelingData.type === 3
+			const levelingMessage = levelingSettings.general?.message ?? levelingData.message
 
-			const levelingChannelId = levelingData.notifications;
+
 			let userLevelingData = (await levelingRef.collection("users").doc(message.author.id).get()).data();
 			if (!userLevelingData) {
 				userLevelingData = { xp: 0, level: 0, cooldown: 0 };
@@ -64,10 +68,12 @@ module.exports = {
 				let xpToNextLevel = getXp(userLevelingData.level + 1);
 				if (userLevelingData.xp >= xpToNextLevel) {
 					userLevelingData.level++;
-					if (levelingData.type !== 1) {
+					// send the level up message
+					if (levelingChannelId && messageEnabled && levelingMessage) {
 						const view = generateView(message, userLevelingData);
+	
 						const levelupMessage = unescapeHTML(
-							Mustache.render(levelingData.message, view)
+							Mustache.render(levelingMessage, view)
 						);
 
 						try {
@@ -85,6 +91,7 @@ module.exports = {
 								levelingChannel.send(levelupMessage);
 							}
 						} catch (err) {
+							console.log("Leveling Error")
 							console.log(err.message);
 							// message.channel.send(levelupMessage);
 						}
@@ -100,6 +107,7 @@ module.exports = {
 					.set({ ...userLevelingData, name: message.author.username, avatar: message.author.displayAvatarURL() });
 			}
 		} else {
+			console.log("no leveling")
 			try {
 				await admin.firestore().collection("Leveling").doc(message.guild.id).update({});
 			} catch (err) {
