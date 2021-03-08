@@ -67,9 +67,17 @@ router.get("/resolvechannel", async (req, res, next) => {
 });
 
 router.get("/resolveguild", async (req, res, next) => {
-	const {id} = req.query
+	const { id } = req.query;
 	const selectedGuild = await DiscordClient.guilds.resolve(id);
-	res.json(selectedGuild)
+	res.json(selectedGuild);
+});
+
+router.get("/resolveuser", async (req, res, next) => {
+	try {
+		res.json(await DiscordClient.users.fetch(req.query.user));
+	} catch (err) {
+		next(err);
+	}
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
