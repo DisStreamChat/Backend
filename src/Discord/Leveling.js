@@ -104,7 +104,7 @@ module.exports = {
 					.doc(message.guild.id)
 					.collection("users")
 					.doc(message.author.id)
-					.set({ ...userLevelingData, name: message.author.username, avatar: message.author.displayAvatarURL() });
+					.set({ ...userLevelingData, name: message.author.username, avatar: message.author.displayAvatarURL(), serverId: message.guild.id, userId: message.author.id });
 			}
 		} else {
 			console.log("no leveling")

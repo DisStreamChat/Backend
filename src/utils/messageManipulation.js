@@ -54,7 +54,6 @@ const checkForClash = message => {
 };
 
 const getAllEmotes = async () => {
-	return 
 	// if (process.env.BOT_DEV == "true") return;
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
