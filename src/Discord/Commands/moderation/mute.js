@@ -22,7 +22,7 @@ module.exports = {
 	execute: async (message, args, client) => {
 		// TODO: remove to make public
 		try {
-			if(message.guild.id !== "276096133695143936" || message.guild.id !== "711238743213998091") return
+			// if(message.guild.id !== "276096133695143936" || message.guild.id !== "711238743213998091") return
 			console.log(args, message.guild.id);
 			if (args.length === 0) {
 				return await message.channel.send(":x: Missing User");

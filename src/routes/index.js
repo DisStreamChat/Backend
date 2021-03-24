@@ -354,8 +354,11 @@ router.get("/token", async (req, res, next) => {
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
 			res.status(validationJson.status);
-			err = new Error(validationJson.message);
-			next(err);
+			const err = new Error(validationJson.message);
+			return res.json({
+				status: validationJson.status,
+				message: validationJson.message
+			})
 		} else {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
