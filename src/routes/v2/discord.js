@@ -242,4 +242,18 @@ router.get("/profilepicture", async (req, res, next) => {
 	}
 });
 
+router.get("/resolveemote", async (req, res, next) => {
+	try {
+		const {emote, guild} = req.query
+		const emoteObject = DiscordClient.emojis.resolve(emote)
+		res.json(emoteObject)
+	}catch(err){
+		next(err);
+	}
+})
+
+router.get("/emotes", async (req, res, next) => {
+	res.json(DiscordClient.emojis.cache.array())
+})
+
 module.exports = router;
