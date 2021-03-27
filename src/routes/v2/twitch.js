@@ -13,6 +13,7 @@ import {
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../../utils/functions/TwitchFunctions";
 import {refreshTwitchToken} from "../../utils/functions/auth"
 const router = express.Router();
+const sevenDays = 604800000;
 
 const followChannel = async (user, channel, method) => {
 	const userInfo = await Api.getUserInfo(user);
@@ -232,7 +233,7 @@ router.get("/token", async (req, res, next) => {
 	try {
 		// get the oauth code from the the request
 		const code = req.query.code;
-
+		console.log(code)
 		// get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
@@ -250,8 +251,11 @@ router.get("/token", async (req, res, next) => {
 		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
 			res.status(validationJson.status);
-			err = new Error(validationJson.message);
-			next(err);
+			const err = new Error(validationJson.message);
+			return res.json({
+				status: validationJson.status,
+				message: validationJson.message
+			})
 		} else {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);

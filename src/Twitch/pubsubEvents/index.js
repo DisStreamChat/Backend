@@ -6,6 +6,9 @@ const commandPath = __dirname;
 const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
 const admin = require("firebase-admin");
 const TPS = require("twitchps");
+const uuidv1 = require("uuidv1");
+const DisStreamChatProfile =
+	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 import {TwitchApiClient as Api} from "../../utils/initClients"
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import {customBots} from "../../utils/initClients"
@@ -111,6 +114,7 @@ export default async (io) => {
 
 				pubSub.on("channel-points", async data => {
 					try {
+						console.log(data)
 						const { redemption, channel_id } = data;
 						const user = await Api.getUserInfo(channel_id);
 						const channelName = user.login;

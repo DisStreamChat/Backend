@@ -18,6 +18,7 @@ import { MessageEmbed } from "discord.js";
 import { generateRankCard } from "../utils/functions";
 import { validateRequest } from "../middleware";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
+const sevenDays = 604800000;
 
 initWebhooks()
 
