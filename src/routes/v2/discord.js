@@ -21,7 +21,7 @@ router.get("/", (req, res) => {
 router.get("/invite", (req, res) => {
 	const guildId = req.query.guild;
 	const inviteURL =
-		"https://discord.com/api/oauth2/authorize?client_id=702929032601403482&permissions=8&redirect_uri=https%3A%2F%2Fwww.distwitchchat.com%2F%3Fdiscord%3Dtrue&scope=bot";
+		"https://discord.com/oauth2/authorize?client_id=702929032601403482&permissions=470035670&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2F%3Fdiscord%3Dtrue&scope=bot";
 	if (guildId) {
 		res.redirect(`${inviteURL}&guild_id=${guildId}`);
 	} else {
