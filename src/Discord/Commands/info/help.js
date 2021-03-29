@@ -70,7 +70,7 @@ const addTips = async (embed, msg, client) => {
 	// if (isAdmin(message.author)) {
 	// 	helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 	// }
-	embed.addField("Support Server", "If you have any questions or bug reports come tell us at http://discord.disstreamchat.com");
+	embed.addField("Support Server", "If you have any questions or bug reports come tell us at https://discord.disstreamchat.com");
 	embed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 	return embed;
 };
