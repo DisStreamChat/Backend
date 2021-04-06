@@ -3,6 +3,7 @@ import * as functions from "firebase-functions";
 import * as discord from "discord.js";
 import * as admin from "firebase-admin";
 export * from "./firestore"
+export * from "./servers"
 
 admin.initializeApp();
 
