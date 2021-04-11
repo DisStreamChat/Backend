@@ -31,8 +31,6 @@ const cleanRegex = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-
-
 const Random = (min, max) => {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
@@ -57,6 +55,42 @@ const convertDiscordRoleColor = color => (color === "#000000" ? "#FFFFFF" : colo
 
 const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
 
+const cycleBotStatus = (bot, statuses, timeout) => {
+	const setStatus = status => {
+		if (typeof status === "function") {
+			return bot.user.setPresence(status());
+		}
+		bot.user.setPresence(status);
+	};
+
+	let currentStatus = 0;
+	setStatus(statuses[currentStatus]);
+
+	setInterval(() => {
+		currentStatus += 1;
+		currentStatus = currentStatus % statuses.length;
+		setStatus(statuses[currentStatus]);
+	}, timeout);
+};
+
+const isObject = val => typeof val === "object" && val; // required for "null" comparison
+
+function compare(obj1 = {}, obj2 = {}, deep) {
+	const output = {},
+		merged = { ...obj1, ...obj2 }; // has properties of both
+
+	for (const key in merged) {
+		const value1 = obj1[key],
+			value2 = obj2[key];
+
+		if ((isObject(value1) || isObject(value2)) && deep) output[key] = compare(value1, value2);
+		// recursively call
+		else output[key] = value1 === value2;
+	}
+
+	return output;
+}
+
 module.exports = {
 	...canvasFunctions,
 	...settingsFunctions,
@@ -64,6 +98,8 @@ module.exports = {
 	...moderationFunctions,
 	...levelingFunctions,
 	...discordFunctions,
+	// get,
+	compare,
 	convertDiscordRoleColor,
 	formatFromNow,
 	isNumeric,
@@ -73,4 +109,5 @@ module.exports = {
 	hoursToMillis,
 	sleep,
 	setArray,
+	cycleBotStatus,
 };

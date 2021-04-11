@@ -4,6 +4,7 @@ const CommandHandler = require("./CommandHandler");
 const ReactionRoles = require("./Reaction Manager");
 // TODO: move to firebase db
 const ranks = require("../ranks.json");
+import { log } from "../utils/functions/logging";
 
 const { handleLeveling } = require("./Leveling");
 const { getDiscordSettings, hasPermission } = require("../utils/functions");
@@ -21,14 +22,20 @@ module.exports = async (client, io, app) => {
 	eventFiles.forEach(event => {
 		if (event.endsWith(".js")) {
 			const eventHandler = require(path.join(eventPath, event));
-			client.on(event.slice(0, -3), (...params) => eventHandler(...params, client));
+			client.on(event.slice(0, -3), (...params) => {
+				try {
+					eventHandler(...params, client);
+				} catch (err) {
+					log(`Event Error: ${err.message}`);
+				}
+			});
 		}
 	});
 
 	client.settings = {};
 	client.logging = {};
-	client.leveling = {}
-	client.listeners = {}
+	client.leveling = {};
+	client.listeners = {};
 
 	admin
 		.firestore()
@@ -53,7 +60,6 @@ module.exports = async (client, io, app) => {
 	client.on("message", async message => {
 		try {
 			if (!message.guild || !message.member) return;
-
 			// handle commands and leveling, if they are enabled for the server
 			if (!message.author.bot) {
 				await handleLeveling(message, client);
@@ -134,10 +140,10 @@ module.exports = async (client, io, app) => {
 
 				io.in(`channel-${message.channel.id}`).emit("chatmessage", messageObject);
 			} catch (err) {
-				console.log(err.message);
+				console.log(`Error in sending message to app: ${err.message}`);
 			}
 		} catch (err) {
-			console.log(`error is discord message: ${err.message}`);
+			log(`Error in discord message: ${err.message}`);
 		}
 	});
 
@@ -145,7 +151,7 @@ module.exports = async (client, io, app) => {
 		try {
 			io.in(`channel-${message.channel.id}`).emit("deletemessage", message.id);
 		} catch (err) {
-			console.log(err.message);
+			console.log(`Error deleting discord message: ${err.message}`);
 		}
 	});
 
@@ -154,7 +160,7 @@ module.exports = async (client, io, app) => {
 			try {
 				io.in(`guild-${msg.guild.id}`).emit("deletemessage", msg.id);
 			} catch (err) {
-				console.log(err.message);
+				console.log(`Error deleting discord message: ${err.message}`);
 			}
 		});
 	});
@@ -168,7 +174,7 @@ module.exports = async (client, io, app) => {
 			};
 			io.in(`channel-${newMsg.channel.id}`).emit("updateMessage", updateMessage);
 		} catch (err) {
-			console.log(err.message);
+			console.log(`Error updating discord message: ${err.message}`);
 		}
 	});
 };

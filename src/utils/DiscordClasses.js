@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const DiscordOauth2 = require("discord-oauth2");
 const fetch = require("node-fetch");
-
+import { DiscordClient } from "../utils/initClients";
 const oauth = new DiscordOauth2();
 
 class DiscordServer {
@@ -12,6 +12,17 @@ class DiscordServer {
 		this.icon = serverObject.icon;
 		this.owner = serverObject.owner;
 		this.permissions = new Discord.Permissions(serverObject.permissions).toArray();
+
+		try {
+			const guild = DiscordClient.guilds.resolve(this.id);
+			this.roles = guild.members
+				.resolve(this.member)
+				?.roles?.cache?.array()
+				?.map(role => role.id);
+		} catch (err) {
+			this.roles = [];
+		}
+		console.log(this.roles);
 	}
 }
 

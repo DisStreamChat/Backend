@@ -1,14 +1,6 @@
 const fetch = require("node-fetch");
 require("dotenv").config();
 
-const createDOMPurify = require("dompurify");
-
-const { JSDOM } = require("jsdom");
-
-const window = new JSDOM("").window;
-
-const DOMPurify = createDOMPurify(window);
-const TwitchApi = require("twitch-lib");
 const admin = require("firebase-admin");
 const { cleanRegex } = require("../utils/functions");
 const cache = require("memory-cache");
@@ -19,12 +11,7 @@ const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
 const linkifyUrls = require("linkify-urls");
-
-// intialize the twitch api class from the twitch-lib package
-const Api = new TwitchApi({
-	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationToken: process.env.TWITCH_ACCESS_TOKEN,
-});
+import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
 
 // unused, currently
 const replaceMentions = async msg => {
@@ -66,70 +53,31 @@ const checkForClash = message => {
 	return fullUrl;
 };
 
-async function getBttvEmotes(channelName) {
-	const bttvEmotes = {};
-	let bttvRegex;
-	const bttvResponse = await fetch("https://api.betterttv.net/2/emotes");
-	let { emotes } = await bttvResponse.json();
-	// replace with your channel url
-	const bttvChannelResponse = await fetch(`https://api.betterttv.net/2/channels/${channelName}`);
-	const { emotes: channelEmotes } = await bttvChannelResponse.json();
-	if (channelEmotes) {
-		emotes = emotes.concat(channelEmotes);
-	}
-	let regexStr = "";
-	emotes.forEach(({ code, id }, i) => {
-		bttvEmotes[code] = id;
-		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
-	});
-	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-
-	return { bttvEmotes, bttvRegex };
-}
-
-async function getFfzEmotes(channelName) {
-	const ffzEmotes = {};
-	let ffzRegex;
-
-	const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
-	// replace with your channel url
-	const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
-	const { sets } = await ffzResponse.json();
-	const { room, sets: channelSets } = await ffzChannelResponse.json();
-	let regexStr = "";
-	const appendEmotes = ({ name, urls }, i, emotes) => {
-		ffzEmotes[name] = `https:${Object.values(urls).pop()}`;
-		regexStr += name + (i === emotes.length - 1 ? "" : "|");
-	};
-	sets[3].emoticons.forEach(appendEmotes);
-	if (channelSets && room) {
-		const setnum = room.set;
-		channelSets[setnum].emoticons.forEach(appendEmotes);
-	}
-	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-	return { ffzEmotes, ffzRegex };
-}
-
 const getAllEmotes = async () => {
-	if (process.env.BOT_DEV == "true") return;
+	// if (process.env.BOT_DEV == "true") return;
 	const streamersRef = await admin.firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
 	for (const name of twitchNames) {
-		const cachedBTTVEmotes = cache.get("bttv " + name);
-		const cachedFFZEmotes = cache.get("ffz " + name);
-		if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
-			console.log("refreshing bttv, " + name);
-			cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
-		}
-		if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
-			console.log("refreshing ffz, " + name);
-			cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
+		try {
+			const cachedBTTVEmotes = cache.get("bttv " + name);
+			const cachedFFZEmotes = cache.get("ffz " + name);
+			if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
+				console.log("refreshing bttv, " + name);
+				cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
+			}
+			if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
+				console.log("refreshing ffz, " + name);
+				cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
+			}
+		} catch (err) {
+			console.log(err.message);
 		}
 	}
 };
 const emoteRefresh = 60000 * 10;
 setTimeout(() => {
+	console.log("starting emote fetch");
 	getAllEmotes()
 		.then(() => {
 			setInterval(getAllEmotes, emoteRefresh);
@@ -156,6 +104,7 @@ const formatMessage = async (message, platform, tags, { HTMLClean, channelName }
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	const cachedBTTVEmotes = cache.get("bttv " + channelName);
 	const cachedFFZEmotes = cache.get("ffz " + channelName);
+	console.log(cachedBTTVEmotes, cachedFFZEmotes);
 	if (platform === "twitch" && channelName && cachedBTTVEmotes && cachedFFZEmotes) {
 		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes;
 		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;

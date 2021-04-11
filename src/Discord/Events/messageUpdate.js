@@ -36,5 +36,4 @@ module.exports = async (oldMessage, newMessage, client) => {
 	} catch (err) {
 		console.log(err.message);
 	}
-	// console.log(oldEmoji, newEmoji)
 };
