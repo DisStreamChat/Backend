@@ -2,15 +2,15 @@
 	"name": "distwitchchat",
 	"version": "1.1.1",
 	"description": "a discord/twitch bot for integrating discord chat with twitch chat",
-	"main": "index.js",
+	"main": "src/index.js",
 	"scripts": {
 		"start": "npm run prod",
 		"build": "npm-run-all clean transpile",
-		"server": "node ./dist-server/index.js",
-		"dev": "nodemon --exec babel-node src",
+		"server": "node ./dist/index.js",
+		"dev": "nodemon --exec ts-node src/index.ts",
 		"prod": "npm-run-all build server",
-		"transpile": "babel ./src --out-dir dist-server --copy-files",
-		"clean": "rimraf dist-server",
+		"transpile": "tsc",
+		"clean": "rimraf dist",
 		"test": "jest"
 	},
 	"repository": {
@@ -90,10 +90,12 @@
 		"uuidv1": "^1.6.14"
 	},
 	"devDependencies": {
-		"@babel/node": "^7.12.6",
 		"@babel/cli": "^7.10.5",
 		"@babel/core": "^7.11.0",
+		"@babel/node": "^7.12.6",
 		"@babel/plugin-transform-runtime": "^7.11.0",
-		"babel-plugin-transform-runtime": "^6.23.0"
+		"babel-plugin-transform-runtime": "^6.23.0",
+		"ts-node": "^9.1.1",
+		"typescript": "^4.2.4"
 	}
 }
