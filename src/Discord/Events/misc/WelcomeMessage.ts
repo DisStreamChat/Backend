@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+;
 const { formatFromNow, getDiscordSettings } = require("../../../utils/functions");
 import { MessageEmbed } from "discord.js";
 import generateView from "../../Commands/CustomCommands/GenerateView";

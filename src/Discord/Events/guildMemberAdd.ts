@@ -1,4 +1,3 @@
-import admin from "firebase-admin";
 const { formatFromNow } = require("../../utils/functions");
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";

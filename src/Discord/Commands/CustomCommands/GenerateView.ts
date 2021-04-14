@@ -26,6 +26,7 @@ export default ({ message, args }) => {
 		msg: argObj,
 		args: argObj,
 	};
+	//@ts-ignore
 	view.time.value = () => new Date().toLocaleTimeString();
 	for (let i = 0; i < args.length; i++) {
 		view[`arg${i + 1}`] = {

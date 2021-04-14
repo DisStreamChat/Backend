@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const { ArrayAny } = require("../../../utils/functions");
 import Mustache from "mustache";
-import prettyMilliseconds from "pretty-ms";
+import * as prettyMilliseconds from "pretty-ms";
 import GenerateView from "./GenerateView";
 import handleRoleCommand from "./handleRoleCommand";
 
@@ -22,7 +22,7 @@ export default async ({ command, args, message, client }) => {
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 	const guildData = guildRef.data();
 	if (guildData) {
-		for (const [key, value] of Object.entries(guildData)) {
+		for (const [key, value] of Object.entries(guildData as { [key: string]: any })) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
 				// check if this command is still cooling down
 				if (value.allowedChannels?.length) {
@@ -43,15 +43,15 @@ export default async ({ command, args, message, client }) => {
 
 				// check if the user can use this command based on their roles
 				const roles = message.member.roles;
-                const roleIds = roles.cache.array().map(role => role.id);
+				const roleIds = roles.cache.array().map(role => role.id);
 				if (value.permittedRoles) {
 					if (!ArrayAny(value.permittedRoles, roleIds)) {
 						const res = await message.channel.send(":x: You don't have permission to use this command");
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-                        }, 2500);
-                        return
+						}, 2500);
+						return;
 					}
 				}
 				if (value.bannedRoles) {
@@ -60,8 +60,8 @@ export default async ({ command, args, message, client }) => {
 						setTimeout(() => {
 							res.delete();
 							message.delete();
-                        }, 2500);
-                        return
+						}, 2500);
+						return;
 					}
 				}
 

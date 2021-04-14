@@ -1,5 +1,3 @@
-import admin from "firebase-admin";
-import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
 

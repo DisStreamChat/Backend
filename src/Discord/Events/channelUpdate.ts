@@ -1,7 +1,4 @@
-import admin from "firebase-admin";
-import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
-import { compare } from "../../utils/functions";
 import { logUpdate } from "./utils";
 
 const ignoredDifferences = ["permissionOverwrites"];

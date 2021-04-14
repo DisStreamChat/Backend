@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-import Socket from "socketio-promises";
+const Socket = require("socketio-promises");
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
@@ -122,7 +122,7 @@ export const sockets = io => {
 					botDelete(id);
 				} else {
 					try {
-						let UserClient = getUserClient(refreshToken, modName, TwitchName);
+						let UserClient = await getUserClient(refreshToken, modName, TwitchName);
 						await UserClient.deletemessage(TwitchName, id);
 						UserClient = null;
 					} catch (err) {
@@ -158,7 +158,7 @@ export const sockets = io => {
 					botTimeout(user);
 				} else {
 					try {
-						let UserClient = getUserClient(refreshToken, modName, TwitchName);
+						let UserClient = await getUserClient(refreshToken, modName, TwitchName);
 						await UserClient.timeout(TwitchName, user, data.time ?? 300);
 						UserClient = null;
 					} catch (err) {
@@ -174,14 +174,25 @@ export const sockets = io => {
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 
-			const modName = data.modName;
-			const refreshToken = modPrivateData.refresh_token;
+			let user = data.user;
+			async function botBan(user) {
+				console.log(`Ban ${user} - Twitch`);
+				try {
+					//Possible to do: let default timeouts be assigned in dashboard
+					await TwitchClient.ban(TwitchName, user, data.time ?? 300);
+				} catch (err) {
+					console.log(err.message);
+				}
+			}
 
-			if (!modData) {
-				throw Error("no authentication");
+			const modName = data.modName;
+			const refreshToken = data.refresh_token;
+
+			if (!refreshToken) {
+				botBan(user);
 			} else {
 				try {
-					let UserClient = getUserClient(refreshToken, modName, TwitchName);
+					let UserClient = await getUserClient(refreshToken, modName, TwitchName);
 					await UserClient.ban(TwitchName, user);
 					UserClient = null;
 				} catch (err) {
@@ -205,7 +216,7 @@ export const sockets = io => {
 			if (sender && message) {
 				try {
 					let UserClient = await getUserClient(refreshToken, sender, TwitchName);
-					console.log(UserClient)
+					console.log(UserClient);
 					try {
 						await UserClient.join(TwitchName);
 						await UserClient.say(TwitchName, message);

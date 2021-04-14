@@ -4,7 +4,7 @@ const fetch = require("node-fetch");
 import { DiscordClient } from "../utils/initClients";
 const oauth = new DiscordOauth2();
 
-class DiscordServer {
+export class DiscordServer {
 	member: string
 	id: string
 	name:string
@@ -33,7 +33,7 @@ class DiscordServer {
 	}
 }
 
-class DiscordUser {
+export class DiscordUser {
 
 	refreshToken: string
 	name: string
@@ -55,7 +55,7 @@ class DiscordUser {
 	}
 }
 
-const getUserInfo = async tokenData => {
+export const getUserInfo = async tokenData => {
 	const accessToken = tokenData.access_token;
 	const refreshToken = tokenData.refresh_token;
 	const user = await oauth.getUser(accessToken);

@@ -6,7 +6,7 @@ const router = express.Router();
 
 import sha1 from "sha1";
 import fetch from "node-fetch";
-import admin from "firebase-admin";
+import { auth, firestore } from "firebase-admin";
 import { getUserInfo } from "../../utils/DiscordClasses";
 import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed } from "discord.js";
@@ -114,8 +114,8 @@ router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
 	const guildObj = DiscordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
-	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
-	const customRankCardData = (await admin.firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
+	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
+	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
 	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member);
 	res.setHeader("content-type", "image/png");
 	res.write(rankcard.toBuffer(), "binary");
@@ -129,7 +129,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 		const channelObj = guild.channels.resolve(channel);
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
-		for (const reaction of reactions) {
+		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
 					reaction = guild.emojis.cache.get(reaction);
@@ -164,21 +164,21 @@ router.get("/token", async (req, res, next) => {
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
+		//@ts-ignore
 		const tokenData = await DiscordOauthClient.tokenRequest(body);
 		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
 			const uid = sha1(discordInfo.id);
-			let token = await admin.auth().createCustomToken(uid);
+			let token = await auth().createCustomToken(uid);
 			try {
-				await admin.firestore().collection("Streamers").doc(uid).update({
+				await firestore().collection("Streamers").doc(uid).update({
 					displayName: discordInfo.name,
 					profilePicture: discordInfo.profilePicture,
 					name: discordInfo.name.toLowerCase(),
 					discordId: discordInfo.id,
 				});
 			} catch (err) {
-				await admin
-					.firestore()
+				await firestore()
 					.collection("Streamers")
 					.doc(uid)
 					.set({
@@ -244,16 +244,16 @@ router.get("/profilepicture", async (req, res, next) => {
 
 router.get("/resolveemote", async (req, res, next) => {
 	try {
-		const {emote, guild} = req.query
-		const emoteObject = DiscordClient.emojis.resolve(emote)
-		res.json(emoteObject)
-	}catch(err){
+		const { emote, guild } = req.query;
+		const emoteObject = DiscordClient.emojis.resolve(emote);
+		res.json(emoteObject);
+	} catch (err) {
 		next(err);
 	}
-})
+});
 
 router.get("/emotes", async (req, res, next) => {
-	res.json(DiscordClient.emojis.cache.array())
-})
+	res.json(DiscordClient.emojis.cache.array());
+});
 
 export default router;

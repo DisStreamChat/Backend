@@ -1,15 +1,15 @@
 require("dotenv").config();
 import express from "express";
-import http from "http";
-import socketio from "socket.io";
+import * as http from "http";
+import * as socketio from "socket.io";
 
 import cors from "cors";
 import bodyParser from "body-parser";
 import helmet from "helmet";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 export const app = express();
-export const server = http.Server(app);
+export const server = new http.Server(app);
 export const io = socketio(server);
 
 

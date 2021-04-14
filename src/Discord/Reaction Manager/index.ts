@@ -1,3 +1,4 @@
+//@ts-nocheck
 import ReactionAdd from "./ReactionAdd";
 import ReactionRemove from "./ReactionRemove";
 import MemberAdd from "./GuildMemberAdd";

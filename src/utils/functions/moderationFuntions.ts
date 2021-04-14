@@ -4,11 +4,11 @@ const { MessageEmbed, MessageAttachment, Permissions } = require("discord.js");
 import nodeFetch from "node-fetch";
 
 
-const warn = (member, guild, client, message) => {};
+export const warn = (member, guild, client, message) => {};
 
-const informMods = (message, guild, client) => {};
+export const informMods = (message, guild, client) => {};
 
-const checkDiscordInviteLink = async url => {
+export const checkDiscordInviteLink = async url => {
 	try {
 		const response = await nodeFetch(url);
 		const text = await response.text();
@@ -22,7 +22,7 @@ const checkDiscordInviteLink = async url => {
 	}
 };
 
-const hasDiscordInviteLink = async urls => {
+export const hasDiscordInviteLink = async urls => {
 	for (const url of urls) {
 		if (await checkDiscordInviteLink(url)) {
 			return true;
@@ -31,7 +31,7 @@ const hasDiscordInviteLink = async urls => {
 	return false;
 };
 
-const checkBannedDomain = (url, domains = []) => {
+export const checkBannedDomain = (url, domains = []) => {
 	const parsed = new URL(url);
 	for (const domain of domains) {
 		if (parsed?.host?.includes?.(domain)) return true;
@@ -39,7 +39,7 @@ const checkBannedDomain = (url, domains = []) => {
 	return false;
 };
 
-const hasBannedDomain = (urls, domains) => {
+export const hasBannedDomain = (urls, domains) => {
 	for (const url of urls) {
 		if (checkBannedDomain(url, domains)) return true;
 	}

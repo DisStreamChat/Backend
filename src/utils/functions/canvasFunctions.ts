@@ -21,7 +21,7 @@ const applyText = (canvas, text, defaultFontSize = 70, minFontSize = 0, font = "
 	return ctx.font;
 };
 
-const roundRect = function (ctx, x, y, w, h, r = 0) {
+export const roundRect = function (ctx, x, y, w, h, r = 0) {
 	if (w < 2 * r) r = w / 2;
 	if (h < 2 * r) r = h / 2;
 	ctx.beginPath();
@@ -34,7 +34,7 @@ const roundRect = function (ctx, x, y, w, h, r = 0) {
 	return ctx;
 };
 
-const roundCanvas = function (ctx, x, y, w, h, r = 0, cb) {
+export const roundCanvas = function (ctx, x, y, w, h, r = 0, cb) {
 	if (w < 2 * r) r = w / 2;
 	if (h < 2 * r) r = h / 2;
 	ctx.beginPath();
@@ -49,7 +49,7 @@ const roundCanvas = function (ctx, x, y, w, h, r = 0, cb) {
 	return ctx;
 };
 
-const generateRankCard = async (userData, user) => {
+export const generateRankCard = async (userData, user) => {
 	const primaryColor = userData.primaryColor || "#c31503";
 	const backgroundColor1 = "#1f2525a0";
 	const backgroundColor2 = `#090b0b${(userData.backgroundOpacity ?? 255).toString(16)}`;

@@ -2,7 +2,15 @@ import { MessageEmbed } from "discord.js";
 import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
 const admin = require("firebase-admin");
 
-const getStream = channel_name => {
+interface StreamModel {
+	user_name: string;
+	title: string;
+	game_name: string;
+	viewer_count: string | number;
+	thumbnail_url: string;
+}
+
+const getStream = (channel_name): Promise<StreamModel> => {
 	return new Promise((res, rej) => {
 		setTimeout(() => {
 			rej("Stream Took Too long");
@@ -31,9 +39,7 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 	const serversToNofiy = await serversToNotifyRef.get();
 	const serversToNofiyData = serversToNofiy.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
 
-
-
-	const stream = await getStream(data.channel_name);
+	const stream: StreamModel = await getStream(data.channel_name);
 
 	const embed = new MessageEmbed()
 		.setAuthor(stream.user_name, data.profile_image_url)
@@ -52,9 +58,9 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 
 			const guild = await notifyBot.guilds.fetch(server.docId);
 
-			const notifyChannel = guild.channels.resolve(notifyChannelId)
+			const notifyChannel = guild.channels.resolve(notifyChannelId);
 
-			notifyChannel.send(embed)
+			notifyChannel.send(embed);
 		} catch (err) {
 			console.log(err.message);
 		}

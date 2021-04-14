@@ -1,6 +1,5 @@
 const { MessageEmbed } = require("discord.js");
 const { resolveUser } = require("../../../utils/functions");
-import admin from "firebase-admin";
 import { getDiscordSettings } from "../../../utils/functions";
 
 const timeMap = {

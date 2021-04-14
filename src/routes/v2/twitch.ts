@@ -4,14 +4,13 @@ import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
 import sha1 from "sha1";
 import fetch from "node-fetch";
-import admin from "firebase-admin";
-import {
-	TwitchClient,
-	TwitchApiClient as Api,
-	KrakenApiClient as KrakenApi,
-} from "../../utils/initClients";
-import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../../utils/functions/TwitchFunctions";
-import {refreshTwitchToken} from "../../utils/functions/auth"
+import { firestore, auth } from "firebase-admin";
+const TwitchApi = require("twitchio-js");
+import tmi from "tmi.js";
+import { TwitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } from "../../utils/initClients";
+import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";
+import { refreshTwitchToken } from "../../utils/functions/auth";
+import { log } from "../../utils/functions/logging";
 const router = express.Router();
 const sevenDays = 604800000;
 
@@ -20,15 +19,13 @@ const followChannel = async (user, channel, method) => {
 	const channelInfo = await Api.getUserInfo(channel);
 	const firebaseId = sha1(userInfo.id);
 	try {
-		const userFirebaseData = (
-			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-		).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
 		const userApi = new TwitchApi({
 			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationToken: refreshData.access_token,
+			authorizationKey: refreshData.access_token,
 			kraken: true,
 		});
 		await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
@@ -98,9 +95,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	const action = req.params.action;
 	const firebaseId = req.query.id || " ";
 	try {
-		const userFirebaseData = (
-			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-		).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -139,7 +134,7 @@ router.get("/emotes", async (req, res, next) => {
 	const userInfo = await Api.getUserInfo(user);
 	const id = userInfo.id;
 	const firebaseId = sha1(id);
-	const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId);
+	const userDataRef = firestore().collection("Streamers").doc(firebaseId);
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData?.refresh_token;
@@ -152,7 +147,7 @@ router.get("/emotes", async (req, res, next) => {
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
 	const userApi = new TwitchApi({
 		clientId: process.env.TWITCH_CLIENT_ID,
-		authorizationToken: json.access_token,
+		authorizationKey: json.access_token,
 		kraken: true,
 	});
 	const emotes = await userApi.fetch(apiUrl, {
@@ -225,7 +220,7 @@ router.get("/profilepicture", async (req, res, next) => {
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
 	const refresh_token = req.query.token;
-	const json = await refreshTwitchToken(refresh_token)
+	const json = await refreshTwitchToken(refresh_token);
 	res.json(json);
 });
 
@@ -233,7 +228,7 @@ router.get("/token", async (req, res, next) => {
 	try {
 		// get the oauth code from the the request
 		const code = req.query.code;
-		console.log(code)
+		console.log(code);
 		// get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
@@ -254,8 +249,8 @@ router.get("/token", async (req, res, next) => {
 			const err = new Error(validationJson.message);
 			return res.json({
 				status: validationJson.status,
-				message: validationJson.message
-			})
+				message: validationJson.message,
+			});
 		} else {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
@@ -280,14 +275,14 @@ router.get("/token", async (req, res, next) => {
 			} catch (err) {}
 
 			const uid = sha1(user_id);
-			const token = await admin.auth().createCustomToken(uid);
+			const token = await auth().createCustomToken(uid);
 			const userInfo = await Api.getUserInfo(login);
 			const displayName = userInfo.display_name;
 			const profilePicture = userInfo.profile_image_url;
 
 			// set or modify the user data in firestore
 			try {
-				await admin.firestore().collection("Streamers").doc(uid).update({
+				await firestore().collection("Streamers").doc(uid).update({
 					displayName,
 					profilePicture,
 					TwitchName: displayName.toLowerCase(),
@@ -295,8 +290,7 @@ router.get("/token", async (req, res, next) => {
 					twitchId: user_id,
 				});
 			} catch (err) {
-				await admin
-					.firestore()
+				await firestore()
 					.collection("Streamers")
 					.doc(uid)
 					.set({
@@ -338,17 +332,17 @@ router.get("/token", async (req, res, next) => {
 					});
 			}
 
-			await admin.firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
+			await firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
 				user_id,
 				refresh_token: json.refresh_token,
 			});
 
 			// setup the follow webhook if there isn't already one
 			const hasConnection =
-				(await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
+				(await firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
-				admin.firestore().collection("webhookConnections").doc(uid).set({
+				firestore().collection("webhookConnections").doc(uid).set({
 					channelId: user_id,
 				});
 			}

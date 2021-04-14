@@ -4,7 +4,7 @@ const router = express.Router();
 import sha1 from "sha1";
 import fetch from "node-fetch";
 import TwitchApi from "twitch-lib";
-import admin from "firebase-admin";
+import { firestore, auth } from "firebase-admin";
 import { getUserInfo } from "../utils/DiscordClasses";
 import {
 	DiscordClient,
@@ -13,22 +13,24 @@ import {
 	KrakenApiClient as KrakenApi,
 	DiscordOauthClient,
 } from "../utils/initClients";
-import path from "path";
+import { join } from "path";
 import { MessageEmbed } from "discord.js";
 import { generateRankCard } from "../utils/functions";
 import { validateRequest } from "../middleware";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
+import tmi from "tmi.js";
+
 const sevenDays = 604800000;
 
-initWebhooks()
+initWebhooks();
 
 // render the index.html file in the public folder when the /oauth/twitch endpoint is requested
 router.get("/oauth/twitch", async (req, res, next) => {
-	res.sendFile(path.join(__dirname, "../../public/twitch.html"));
+	res.sendFile(join(__dirname, "../../public/twitch.html"));
 });
 
 router.get("/oauth/discord", async (req, res, next) => {
-	res.sendFile(path.join(__dirname, "../../public/discord.html"));
+	res.sendFile(join(__dirname, "../../public/discord.html"));
 });
 
 // default endpoint
@@ -110,7 +112,7 @@ router.get("/app", async (req, res) => {
 });
 
 router.get("/discord/token/refresh", validateRequest, async (req, res, next) => {
-	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI
+	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 	try {
 		const token = req.query.token;
 		const tokenData = await DiscordOauthClient.tokenRequest({
@@ -145,21 +147,21 @@ router.get("/discord/token", async (req, res, next) => {
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
+		//@ts-ignore
 		const tokenData = await DiscordOauthClient.tokenRequest(body);
 		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
 			const uid = sha1(discordInfo.id);
-			let token = await admin.auth().createCustomToken(uid);
+			let token = await auth().createCustomToken(uid);
 			try {
-				await admin.firestore().collection("Streamers").doc(uid).update({
+				await firestore().collection("Streamers").doc(uid).update({
 					displayName: discordInfo.name,
 					profilePicture: discordInfo.profilePicture,
 					name: discordInfo.name.toLowerCase(),
 					discordId: discordInfo.id,
 				});
 			} catch (err) {
-				await admin
-					.firestore()
+				await firestore()
 					.collection("Streamers")
 					.doc(uid)
 					.set({
@@ -221,7 +223,7 @@ router.get("/emotes", async (req, res, next) => {
 	const userInfo = await Api.getUserInfo(user);
 	const id = userInfo.id;
 	const firebaseId = sha1(id);
-	const userDataRef = admin.firestore().collection("Streamers").doc(firebaseId);
+	const userDataRef = firestore().collection("Streamers").doc(firebaseId);
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData?.refresh_token;
@@ -358,8 +360,8 @@ router.get("/token", async (req, res, next) => {
 			const err = new Error(validationJson.message);
 			return res.json({
 				status: validationJson.status,
-				message: validationJson.message
-			})
+				message: validationJson.message,
+			});
 		} else {
 			const { login, user_id } = validationJson;
 			const ModChannels = await Api.getUserModerationChannels(login);
@@ -384,14 +386,14 @@ router.get("/token", async (req, res, next) => {
 			} catch (err) {}
 
 			const uid = sha1(user_id);
-			const token = await admin.auth().createCustomToken(uid);
+			const token = await auth().createCustomToken(uid);
 			const userInfo = await Api.getUserInfo(login);
 			const displayName = userInfo.display_name;
 			const profilePicture = userInfo.profile_image_url;
 
 			// set or modify the user data in firestore
 			try {
-				await admin.firestore().collection("Streamers").doc(uid).update({
+				await firestore().collection("Streamers").doc(uid).update({
 					displayName,
 					profilePicture,
 					TwitchName: displayName.toLowerCase(),
@@ -399,8 +401,7 @@ router.get("/token", async (req, res, next) => {
 					twitchId: user_id,
 				});
 			} catch (err) {
-				await admin
-					.firestore()
+				await firestore()
 					.collection("Streamers")
 					.doc(uid)
 					.set({
@@ -442,17 +443,17 @@ router.get("/token", async (req, res, next) => {
 					});
 			}
 
-			await admin.firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
+			await firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
 				user_id,
 				refresh_token: json.refresh_token,
 			});
 
 			// setup the follow webhook if there isn't already one
 			const hasConnection =
-				(await admin.firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
+				(await firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
-				admin.firestore().collection("webhookConnections").doc(uid).set({
+				firestore().collection("webhookConnections").doc(uid).set({
 					channelId: user_id,
 				});
 			}
@@ -500,6 +501,7 @@ router.get("/chatters", async (req, res, next) => {
 		let onlineBots = [];
 		let count = 0;
 		for (let [key, value] of Object.entries(json.chatters || {})) {
+			//@ts-ignore
 			json.chatters[key] = value.filter(name => !onlineBots.includes(name));
 			count += json.chatters[key].length;
 		}
@@ -553,20 +555,20 @@ router.get("/webhooks/twitch", async (req, res, next) => {
 router.get("/createauthtoken", async (req, res, next) => {
 	const oneTimeCode = req.query.code;
 	const idToken = req.query.token;
-	const decodedToken = await admin.auth().verifyIdToken(idToken);
+	const decodedToken = await auth().verifyIdToken(idToken);
 	const uid = decodedToken.uid;
-	const authToken = await admin.auth().createCustomToken(uid);
-	await admin.firestore().collection("oneTimeCodes").doc(oneTimeCode).set({ authToken });
+	const authToken = await auth().createCustomToken(uid);
+	await firestore().collection("oneTimeCodes").doc(oneTimeCode).set({ authToken });
 	res.json({ authToken });
 });
 
 router.post("/setauthtoken", async (req, res, next) => {
-	await admin.firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
+	await firestore().collection("oneTimeCodes").doc(req.query.code).set({ authToken: req.query.token });
 	res.json("success");
 });
 
 router.get("/fonts", async (req, res, next) => {
-	res.sendFile(path.join(__dirname, "../../public/fonts.css"));
+	res.sendFile(join(__dirname, "../../public/fonts.css"));
 });
 
 router.get("/name", (req, res, next) => {
@@ -617,9 +619,7 @@ router.put("/twitch/follow", validateRequest, async (req, res, next) => {
 	const channelInfo = await Api.getUserInfo(channel);
 	const firebaseId = sha1(userInfo.id);
 	try {
-		const userFirebaseData = (
-			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-		).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -649,9 +649,7 @@ router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 	const channelInfo = await Api.getUserInfo(channel);
 	const firebaseId = sha1(userInfo.id);
 	try {
-		const userFirebaseData = (
-			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-		).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -679,9 +677,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	const action = req.params.action;
 	const firebaseId = req.query.id || " ";
 	try {
-		const userFirebaseData = (
-			await admin.firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()
-		).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -705,7 +701,7 @@ router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
 	const guildObj = DiscordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
-	const userData = (await admin.firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
+	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
 	const rankcard = await generateRankCard(userData, member);
 	res.setHeader("content-type", "image/png");
 	res.write(rankcard.toBuffer(), "binary");
@@ -719,7 +715,7 @@ router.post("/discord/reactionmessage", validateRequest, async (req, res, next) 
 		const channelObj = guild.channels.resolve(channel);
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
-		for (const reaction of reactions) {
+		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
 					reaction = guild.emojis.cache.get(reaction);

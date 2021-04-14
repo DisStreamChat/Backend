@@ -1,4 +1,3 @@
-import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
@@ -9,8 +8,8 @@ export default async (guild, user, client) => {
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "MemberUnBanned", client)
-    if(!active) return
+	const [channelId, active] = await setupLogging(guild, "MemberUnBanned", client);
+	if (!active) return;
 
 	const embed = new MessageEmbed()
 		.setAuthor(executor.tag, executor.avatarURL())

@@ -1,5 +1,5 @@
 const { MessageEmbed } = require("discord.js");
-import fetch from "fetchio-js";
+const fetch = require("fetchio-js");
 
 export default {
 	name: "define",

@@ -34,7 +34,7 @@ export const checkDeleteReactionMessage = async (guildId, message) => {
 	}
 };
 
-export const logUpdate = async (newItem, oldItem, { keyMap = [], valueMap = {}, ignoredDifferences = [], title, footer }) => {
+export const logUpdate = async (newItem, oldItem, { keyMap = {}, valueMap = {}, ignoredDifferences = [], title, footer }) => {
 	const differences = compare(oldItem, newItem);
 	const differenceKeys = Object.keys(differences).filter(key => !differences[key] && !ignoredDifferences.includes(key));
 

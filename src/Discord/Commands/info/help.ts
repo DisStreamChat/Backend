@@ -5,9 +5,17 @@ import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/func
 // the admin app has already been initialized in routes/index.js
 const admin = require("firebase-admin");
 
-const getCommands = async (message, client, plugins) => {
+interface CommandModel {
+	plugin: string;
+	adminOnly: boolean;
+	permissions: string[];
+}
+
+const getCommands = async (message, client, plugins = {}) => {
 	let availableCommands = [];
-	for (const [key, command] of Object.entries(client.commands)) {
+	//@ts-ignore
+	const commands: [string, any] = Object.entries(client.commands);
+	for (const [key, command] of commands) {
 		const commandObj = { displayName: key, ...command };
 		//check if command is enabled
 		const enabled = !!command.plugin ? plugins[command.plugin] : true;
@@ -41,7 +49,7 @@ const getHelpText = ({ message, client, selectedCommand }) =>
 				.setThumbnail(client.user.displayAvatarURL())
 		: null;
 
-const filterCustomCommands = (commands, { member, channel }) => {
+const filterCustomCommands = (commands: { [key: string]: any }, { member, channel }) => {
 	let availableCommands = [];
 	const RoleIds = getRoleIds(member);
 	for (const [key, command] of Object.entries(commands || {})) {
@@ -56,27 +64,18 @@ const filterCustomCommands = (commands, { member, channel }) => {
 	return availableCommands;
 };
 
-const addTips = async (embed, msg, client) => {
+const addTips = async embed => {
 	embed.addField(
 		"Tip",
 		"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
 	);
-	// if (await hasPermission(message.member, ["MANAGE_SERVER", "ADMINISTRATOR"])) {
-	// 	helpEmbed.addField(
-	// 		"Moderator Tip",
-	// 		"Type `help module` to get informations about the available module or `help module <module name>` for help on a specific module"
-	// 	);
-	// }
-	// if (isAdmin(message.author)) {
-	// 	helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
-	// }
 	embed.addField("Support Server", "If you have any questions or bug reports come tell us at https://discord.disstreamchat.com");
 	embed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 	return embed;
 };
 
 const maxCommands = 2;
-const generateHelpEmbed = async ({ message, client, commands, custom, page = 1 }) => {
+const generateHelpEmbed = async ({ message, client, commands, custom = false, page = 1 }) => {
 	const pages = custom ? Math.ceil(commands.length / (maxCommands * 4)) : Math.ceil(Object.keys(commands || {}).length / maxCommands);
 	const index = (page - 1) * maxCommands;
 	const helpEmbed = new MessageEmbed()
@@ -92,12 +91,12 @@ const generateHelpEmbed = async ({ message, client, commands, custom, page = 1 }
 			"Available Commands",
 			custom
 				? commands
-						.slice(index, index + maxCommands*4)
+						.slice(index, index + maxCommands * 4)
 						.map(command => (command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``))
 						.join(", ")
 				: Object.entries(commands)
 						.slice(index, index + maxCommands)
-						.map(([key, value]) => {
+						.map(([key, value]: [string, any]) => {
 							return `**${key}**\n${value.map(command => `\`${command.displayName}\``).join(", ")}\n`;
 						})
 		)

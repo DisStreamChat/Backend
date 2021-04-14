@@ -10,6 +10,7 @@ export * from "./levelingFunctions";
 export * from "./permissionFunctions";
 export * from "./DiscordFunctions";
 
+//@ts-ignore
 String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
@@ -31,7 +32,7 @@ export const cleanRegex = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-export const Random = (min, max) => {
+export const Random = (min, max?: number) => {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
 	}

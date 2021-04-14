@@ -1,8 +1,7 @@
 require("dotenv").config();
 import { MessageEmbed } from "discord.js";
-import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
+import { firestore } from "firebase-admin";
+import { writeFile } from "fs";
 
 export default {
 	name: "stats",
@@ -12,7 +11,7 @@ export default {
 	description: "Get DisStreamChat Stats",
 	adminOnly: true,
 	execute: async (message, args, client) => {
-		const users = await admin.firestore().collection("Streamers").get();
+		const users = await firestore().collection("Streamers").get();
 		const guilds = client.guilds.cache.array();
 		const serverCount = guilds.length;
 
@@ -27,7 +26,7 @@ export default {
 			}))
 		);
 
-		fs.writeFile("public/guilds.json", guildJson, () => {});
+		writeFile("public/guilds.json", guildJson, () => {});
 
 		const embed = new MessageEmbed()
 			.setTitle("DisStreamChat Stats")

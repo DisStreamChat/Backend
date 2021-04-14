@@ -1,18 +1,21 @@
-import { sleep, hasDiscordInviteLink } from "../../../utils/functions";
+import {
+	sleep,
+	hasDiscordInviteLink
+} from "../../../utils/functions";
 const getUrls = require("get-urls");
 
 const fetchAmountfromId = async (message, id) => {
-	let after
-	let messageToDelete
-	let messages = []
-	for(const i = 0; i < 10; i++){
-		const options = { limit: 100 };
+	let after;
+	let messageToDelete;
+	let messages = [];
+	for (let i = 0; i < 10; i++) {
+		const options = { limit: 100, after: null };
 		if (after) options.after = after;
-		const allMessages = (await message.channel.messages.fetch(options));
-		messageToDelete = allMessages.get(id)
-		messages = [...messages, ...allMessages.array()]
-		if(messageToDelete) break
-		after = allMessages.last()
+		const allMessages = await message.channel.messages.fetch(options);
+		messageToDelete = allMessages.get(id);
+		messages = [...messages, ...allMessages.array()];
+		if (messageToDelete) break;
+		after = allMessages.last();
 	}
 	let amount;
 	if (messageToDelete) {
@@ -37,11 +40,11 @@ const checkAmountLimits = (message, amount) => {
 	}
 };
 
-const fetchMessages = async (message, amount, filter) => {
+const fetchMessages = async (message, amount, filter = "") => {
 	let messages = [];
 	let after = message.id;
 	while (messages.length < amount) {
-		const options = { limit: 100 };
+		const options = { limit: 100, after: null };
 		if (after) options.after = after;
 		const allMessages = (await message.channel.messages.fetch(options)).array();
 		const filteredMessages = await filterMessages(message, allMessages, filter);
@@ -104,7 +107,7 @@ const getMessages = async (message, amount, filter) => {
 };
 
 const hasOldMessage = async messages => {
-	const now = new Date();
+	const now = new Date().getTime();
 	const fourteenDaysAgo = new Date(now - 1.21e9);
 	for (const message of messages) {
 		if (message.createdAt < fourteenDaysAgo) {
