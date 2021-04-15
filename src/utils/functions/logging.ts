@@ -1,5 +1,5 @@
-import * as fs from "fs"
-import promises from "fs/promises"
+import  fs from "fs"
+import {promises} from "fs"
 import {join} from "path"
 
 const loggingPath = join(__dirname, "../../", "logging");

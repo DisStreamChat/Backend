@@ -7,7 +7,6 @@ import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";
 
 import { handleLeveling } from "./Leveling";
-const { getDiscordSettings, hasPermission } = require("../utils/functions");
 
 import path from "path";
 import fs from "fs";

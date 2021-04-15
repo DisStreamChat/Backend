@@ -4,7 +4,7 @@ import { getDiscordSettings,
 	// warn, 
 	// hasDiscordInviteLink 
 } from "../../../utils/functions";
-import getUrls from "get-urls";
+import getUrls from "extract-urls";
 
 export default async (message, client) => {
 	const settings = await getDiscordSettings({ client, guild: message.guild.id });

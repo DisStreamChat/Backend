@@ -1,4 +1,4 @@
-;
+
 import fs from "fs";
 import { formatMessage } from "../../utils/messageManipulation";
 
@@ -6,6 +6,7 @@ import { walkSync } from "../../utils/functions";
 const commandPath = __dirname;
 const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
 import admin from "firebase-admin";
+//@ts-ignore
 import TPS from "twitchps";
 import uuidv1 from "uuidv1";
 const DisStreamChatProfile =

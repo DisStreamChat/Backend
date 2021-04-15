@@ -1,16 +1,12 @@
-import fetch from "node-fetch";
-;
-
-import admin from "firebase-admin";
+import {firestore} from "firebase-admin";
 import { cleanRegex } from "../utils/functions";
 import cache from "memory-cache";
 
-import urlRegex from "url-regex"();
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
-import linkifyUrls from "linkify-urls";
+import  linkifyUrls from "linkify-urls";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
 
 // unused, currently
@@ -43,19 +39,19 @@ export const replaceChannelMentions = async msg => {
 };
 
 // unused, currently
-export const checkForClash = message => {
-	const urlCheck = [...message.matchAll(urlRegex)][0];
-	const hasUrl = urlCheck != undefined;
-	if (!hasUrl) return;
-	const fullUrl = urlCheck[0];
-	const codingGameMatch = [...fullUrl.matchAll(/codingame.com\/clashofcode\/clash/g)][0];
-	if (codingGameMatch == undefined) return;
-	return fullUrl;
-};
+// export const checkForClash = message => {
+// 	const urlCheck = [...message.matchAll(urlRegex)][0];
+// 	const hasUrl = urlCheck != undefined;
+// 	if (!hasUrl) return;
+// 	const fullUrl = urlCheck[0];
+// 	const codingGameMatch = [...fullUrl.matchAll(/codingame.com\/clashofcode\/clash/g)][0];
+// 	if (codingGameMatch == undefined) return;
+// 	return fullUrl;
+// };
 
 export const getAllEmotes = async () => {
 	// if (process.env.BOT_DEV == "true") return;
-	const streamersRef = await admin.firestore().collection("Streamers").get();
+	const streamersRef = await firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
 	for (const name of twitchNames) {
@@ -168,10 +164,8 @@ export const replaceTwitchEmotes = (message, original, emotes) => {
 export default {
 	replaceMentions,
 	replaceChannelMentions,
-	checkForClash,
 	formatMessage,
 	replaceTwitchEmotes,
-	urlRegex,
 	customEmojiRegex,
 	channelMentionRegex,
 	mentionRegex,

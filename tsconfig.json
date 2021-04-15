@@ -10,7 +10,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"outDir": "dist",
 		"resolveJsonModule": true,
-		"declaration": true
+		"declaration": true,
+		"esModuleInterop": true
 	},
 	"allowSyntheticDefaultImports": true,
 	"esModuleInterop": true,

@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 import { auth, firestore } from "firebase-admin";
 import { getUserInfo } from "../../utils/DiscordClasses";
 import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, TextChannel } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
 
 // get invite link to our discord
@@ -101,7 +101,7 @@ router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server } = req.body;
 		const guild = await DiscordClient.guilds.cache.get(server);
-		const channelObj = guild.channels.resolve(channel);
+		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const messageToDelete = await channelObj.messages.fetch(message);
 		await messageToDelete.delete();
 		res.json({ code: 200, message: "success" });
@@ -126,7 +126,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, reactions, server } = req.body;
 		const guild = await DiscordClient.guilds.cache.get(server);
-		const channelObj = guild.channels.resolve(channel);
+		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {

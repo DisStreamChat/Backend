@@ -53,7 +53,7 @@ export const sockets = io => {
 			const refreshToken = data.refresh_token;
 
 			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
-			const modData = await modRef.get();
+			const modData:any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
 			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
@@ -86,7 +86,7 @@ export const sockets = io => {
 			const refreshToken = data.refresh_token;
 
 			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
-			const modData = await modRef.get();
+			const modData:any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
 			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");

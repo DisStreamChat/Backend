@@ -1,12 +1,12 @@
 ;
 import express from "express";
-import * as http from "http";
-import * as socketio from "socket.io";
+import  http from "http";
+import  socketio from "socket.io";
 
 import cors from "cors";
 import bodyParser from "body-parser";
 import helmet from "helmet";
-import * as crypto from "crypto";
+import  crypto from "crypto";
 
 export const app = express();
 export const server = new http.Server(app);

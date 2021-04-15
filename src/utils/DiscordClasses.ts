@@ -10,7 +10,7 @@ export class DiscordServer {
 	name:string
 	icon: string
 	owner: string
-	permissions: string
+	permissions: string[]
 	roles: any[]
 	constructor(serverObject, user) {
 		this.member = user.id;

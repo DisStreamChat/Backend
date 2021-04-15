@@ -7,11 +7,11 @@
 	"scripts": {
 		"start": "npm run prod",
 		"build": "npm-run-all clean transpile",
-		"server": "node ./dist/index.js",
+		"serve": "node ./dist/index.js",
 		"dev": "concurrently npm:dev-*",
 		"dev-build": "tsc -w",
 		"dev-run": "nodemon dist",
-		"prod": "npm-run-all build server",
+		"prod": "npm-run-all build serve",
 		"transpile": "tsc",
 		"clean": "rimraf dist",
 		"test": "jest"

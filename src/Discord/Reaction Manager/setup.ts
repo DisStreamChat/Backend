@@ -1,10 +1,10 @@
-import admin from "firebase-admin";
+import {firestore} from "firebase-admin";
 import { resolveUser } from "../../utils/functions";
 
 export default async (reaction, user, onJoin=false) => {
 	const message = reaction.message;
 	const guild = message.guild;
-	const guildRef = admin.firestore().collection("reactions").doc(guild.id);
+	const guildRef = firestore().collection("reactions").doc(guild.id);
 	const guildDB = await guildRef.get();
 	const guildData = guildDB.data();
 	if (!guildData) {

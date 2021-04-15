@@ -2,7 +2,7 @@ import {
 	sleep,
 	hasDiscordInviteLink
 } from "../../../utils/functions";
-import getUrls from "get-urls";
+import getUrls from "extract-urls";
 
 const fetchAmountfromId = async (message, id) => {
 	let after;

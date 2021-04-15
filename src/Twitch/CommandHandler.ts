@@ -15,8 +15,7 @@ commandFiles.forEach(command => {
 });
 
 
-// the admin app has already been initialized in routes/index.js
-import admin from "firebase-admin";
+
 
 const prefix = "!";
 

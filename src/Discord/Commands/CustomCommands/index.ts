@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import { ArrayAny } from "../../../utils/functions";
 import Mustache from "mustache";
-import * as prettyMilliseconds from "pretty-ms";
+import  prettyMilliseconds from "pretty-ms";
 import GenerateView from "./GenerateView";
 import handleRoleCommand from "./handleRoleCommand";
 

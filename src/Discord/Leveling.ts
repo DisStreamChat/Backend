@@ -19,8 +19,7 @@ const generateView = (message, levelingData) => {
 	};
 };
 
-export default {
-	handleLeveling: async (message, client) => {
+export const handleLeveling = async (message, client) => {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		if (!settings?.activePlugins?.leveling) return;
 		const levelingRef = admin.firestore().collection("Leveling").doc(message.guild.id);
@@ -114,5 +113,5 @@ export default {
 				await admin.firestore().collection("Leveling").doc(message.guild.id).set({});
 			}
 		}
-	},
-};
+	}
+

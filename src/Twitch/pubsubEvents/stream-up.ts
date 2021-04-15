@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
-
+import {firestore} from "firebase-admin"
 interface StreamModel {
 	user_name: string;
 	title: string;
@@ -34,7 +34,7 @@ const handleAppNotifications = async (data, io) => {
 };
 
 const handleDiscordNotifications = async (data, channel, bots) => {
-	const serversToNotifyRef = admin.firestore().collection("DiscordSettings").where("live-notification", "array-contains", data.id);
+	const serversToNotifyRef = firestore().collection("DiscordSettings").where("live-notification", "array-contains", data.id);
 	const serversToNofiy = await serversToNotifyRef.get();
 	const serversToNofiyData = serversToNofiy.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
 

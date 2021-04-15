@@ -1,4 +1,4 @@
-import * as dotenv from "dotenv"
+import  dotenv from "dotenv"
 dotenv.config()
 import TwitchEvents from "./Twitch/TwitchEvents";
 import DiscordEvents from "./Discord/DiscordEvents";
@@ -6,7 +6,7 @@ import { log } from "./utils/functions/logging";
 import {sockets} from "./Sockets"
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient, customBots } = require("./utils/initClients");
-import admin from "firebase-admin";
+import {initializeApp, credential} from "firebase-admin";
 import {io, server, app} from "./app"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,8 +18,8 @@ try {
 	const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
 	// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
-	admin.initializeApp({
-		credential: admin.credential.cert(serviceAccount),
+	initializeApp({
+		credential: credential.cert(serviceAccount),
 	});
 } catch (err) {}
 

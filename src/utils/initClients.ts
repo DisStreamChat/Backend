@@ -1,24 +1,23 @@
-;
-import discord from "discord.js";
+
+import {Client} from "discord.js";
 import tmi from "tmi.js";
-import { hoursToMillis } from "./functions";
-import admin from "firebase-admin";
+import {initializeApp, credential, firestore} from "firebase-admin";
 //@ts-ignore
-import * as TwitchApi from "twitchio-js";
+import  TwitchApi from "twitchio-js";
 //@ts-ignore
-import * as DiscordOauth2 from "discord-oauth2";
+import  DiscordOauth2 from "discord-oauth2";
 import {cycleBotStatus} from "../utils/functions"
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
 // initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
+initializeApp({
+	credential: credential.cert(serviceAccount),
 });
 
 // initialize the discord client
-export const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+export const DiscordClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
 // const DBL = require("dblapi.js");
@@ -62,12 +61,12 @@ TwitchClient.connect();
 
 export const getCustomBots = async () => {
 	if(process.env.BOT_DEV == "true") return new Map()
-	const botQuery = admin.firestore().collection("customBot");
+	const botQuery = firestore().collection("customBot");
 	const botRef = await botQuery.get();
-	const bots = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+	const bots : any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const customBots = new Map();
 	for (const bot of bots) {
-		const botClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+		const botClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 		await botClient.login(bot.token);
 		botClient.once("ready", async () => {
 			if (bot.status) {
