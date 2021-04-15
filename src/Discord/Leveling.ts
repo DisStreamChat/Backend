@@ -6,7 +6,7 @@ import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation
 
 Mustache.tags = ["{", "}"];
 
-const { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } = require("../utils/functions");
+import { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } from "../utils/functions"
 
 const generateView = (message, levelingData) => {
 	return {

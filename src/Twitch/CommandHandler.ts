@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-const { adminWare, modWare } = require("../utils/functions");
+import { adminWare, modWare }from "../utils/functions";
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = fs.readdirSync(commandPath);
 const commands = {};

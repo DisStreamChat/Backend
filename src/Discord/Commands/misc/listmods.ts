@@ -1,9 +1,7 @@
-const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../../utils/functions");
 import { MessageEmbed } from "discord.js";
 import { getDiscordSettings } from "../../../utils/functions";
 
 // the admin app has already been initialized in routes/index.js
-import admin from "firebase-admin";
 
 export default {
 	name: "listmods",

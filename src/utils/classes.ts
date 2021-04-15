@@ -1,4 +1,4 @@
-const { adminWare, modWare, setArray } = require("./functions");
+import { adminWare, modWare, setArray } from "./functions";
 
 export class Command {
 	name: string;

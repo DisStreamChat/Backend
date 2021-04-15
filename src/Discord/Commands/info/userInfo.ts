@@ -1,4 +1,4 @@
-const { resolveUser, formatFromNow } = require("../../../utils/functions");
+import { resolveUser, formatFromNow } from "../../../utils/functions";
 import { MessageEmbed, Collection } from "discord.js";
 
 export default {
@@ -22,11 +22,9 @@ export default {
 
 		const game = member.presence.game ? member.presence.game.name : "Not playing a game";
 
-		const createdAt = formatFromNow(member.user.createdAt, {
-			addSuffix: true,
-		});
+		const createdAt = formatFromNow(member.user.createdAt);
 
-		const joinedAt = formatFromNow(member.joinedAt, { addSuffix: true });
+		const joinedAt = formatFromNow(member.joinedAt);
 		let roles: string | Collection<string, any> = "This user has no roles";
 		let size = 0;
 

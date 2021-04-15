@@ -20,7 +20,7 @@ initializeApp({
 export const DiscordClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
-// const DBL = require("dblapi.js");
+// import DBL "dblapi.js";
 // const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
 
 let serverLength = 0;

@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-const { resolveUser, formatFromNow } = require("../../../utils/functions");
+import { resolveUser, formatFromNow } from "../../../utils/functions";
 
 export default {
 	name: "ban",

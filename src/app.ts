@@ -8,9 +8,13 @@ import bodyParser from "body-parser";
 import helmet from "helmet";
 import  crypto from "crypto";
 
+import root from "./routes/index" 
+import v2 from "./routes/v2"
+
 export const app = express();
 export const server = new http.Server(app);
 export const io = socketio(server);
+
 
 
 // add the basic middleware to the express app
@@ -36,8 +40,9 @@ app.use(
 );
 
 // add the routes stored in the 'routes' folder to the app
-app.use("/", require("./routes/index"));
-app.use("/v2", require("./routes/v2"))
+
+app.use("/", root);
+app.use("/v2", v2)
 app.use("/public", express.static("public"));
 app.use("/images", express.static("images"));
 

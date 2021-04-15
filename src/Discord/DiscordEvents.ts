@@ -1,7 +1,7 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
 import CommandHandler from "./CommandHandler";
-const ReactionRoles = require("./Reaction Manager");
+import ReactionRoles from "./Reaction Manager"
 // TODO: move to firebase db
 import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";

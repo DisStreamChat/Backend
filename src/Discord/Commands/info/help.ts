@@ -1,4 +1,4 @@
-const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../../utils/functions");
+import { isAdmin, hasPermission, ArrayAny, getRoleIds } from "../../../utils/functions";
 import { MessageEmbed } from "discord.js";
 import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/functions";
 

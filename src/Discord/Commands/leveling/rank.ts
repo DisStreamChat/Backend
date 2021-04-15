@@ -1,8 +1,7 @@
-const { resolveUser, generateRankCard } = require("../../../utils/functions");
+import { resolveUser, generateRankCard }from "../../../utils/functions";
 import { MessageAttachment } from "discord.js";
 import path from "path";
 import fs from "fs";
-import sha1 from "sha1"
 
 // the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";

@@ -1,4 +1,3 @@
-const { resolveUser, formatFromNow } = require("../../../utils/functions");
 import { MessageEmbed } from "discord.js";
 
 export default {

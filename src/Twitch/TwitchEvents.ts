@@ -542,7 +542,6 @@ export default (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
-	// const notifiedStreams = require("../notifiedStreams.json");
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res, next) => {
 		try {

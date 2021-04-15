@@ -5,7 +5,7 @@ import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
 // get the initialized clients from another file
-const { DiscordClient, TwitchClient } = require("../utils/initClients");
+import { DiscordClient, TwitchClient }from "../utils/initClients";
 import admin from "firebase-admin";
 
 export const sockets = io => {

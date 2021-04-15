@@ -47,7 +47,7 @@ export const hoursToMillis = hrs => hrs * 3600000;
 
 export const sleep = async millis => new Promise(resolve => setTimeout(resolve, millis));
 
-const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
+export const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
 
 export const isNumeric = value => {
 	return /^-?\d+[.\,]?\d*$/.test(value);
