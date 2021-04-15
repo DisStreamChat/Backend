@@ -1,8 +1,8 @@
-require("dotenv").config();
+;
 
 import fetch from "node-fetch";
 import tmi from "tmi.js";
-const { ArrayAny } = require("../utils/functions");
+import { ArrayAny } from "../utils/functions";
 
 const userClients = {}
 

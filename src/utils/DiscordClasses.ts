@@ -1,6 +1,6 @@
-const Discord = require("discord.js");
-const DiscordOauth2 = require("discord-oauth2");
-const fetch = require("node-fetch");
+import Discord from "discord.js";
+import DiscordOauth2 from "discord-oauth2";
+import fetch from "node-fetch";
 import { DiscordClient } from "../utils/initClients";
 const oauth = new DiscordOauth2();
 

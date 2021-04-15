@@ -1,16 +1,16 @@
-const fetch = require("node-fetch");
-require("dotenv").config();
+import fetch from "node-fetch";
+;
 
-const admin = require("firebase-admin");
-const { cleanRegex } = require("../utils/functions");
-const cache = require("memory-cache");
+import admin from "firebase-admin";
+import { cleanRegex } from "../utils/functions";
+import cache from "memory-cache";
 
-const urlRegex = require("url-regex")();
+import urlRegex from "url-regex"();
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
-const linkifyUrls = require("linkify-urls");
+import linkifyUrls from "linkify-urls";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
 
 // unused, currently

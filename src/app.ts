@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 import express from "express";
 import * as http from "http";
 import * as socketio from "socket.io";

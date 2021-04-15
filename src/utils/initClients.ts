@@ -1,8 +1,8 @@
-require("dotenv").config();
-const discord = require("discord.js");
-const tmi = require("tmi.js");
-const { hoursToMillis } = require("./functions");
-const admin = require("firebase-admin");
+;
+import discord from "discord.js";
+import tmi from "tmi.js";
+import { hoursToMillis } from "./functions";
+import admin from "firebase-admin";
 //@ts-ignore
 import * as TwitchApi from "twitchio-js";
 //@ts-ignore

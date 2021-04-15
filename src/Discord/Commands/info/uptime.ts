@@ -1,4 +1,4 @@
-const prettyMs = require("pretty-ms");
+import prettyMs from "pretty-ms";
 
 export default {
 	name: "uptime",

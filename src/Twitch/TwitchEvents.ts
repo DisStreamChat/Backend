@@ -1,18 +1,18 @@
-require("dotenv").config();
-const sha1 = require("sha1");
-const uuidv1 = require("uuidv1");
+;
+import sha1 from "sha1";
+import uuidv1 from "uuidv1";
 
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { formatMessage } = require("../utils/messageManipulation");
+import { formatMessage } from "../utils/messageManipulation";
 
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 // TODO: move to firebase db
-const ranks = require("../ranks.json");
+import ranks from "../ranks.json";
 
-const CommandHandler = require("./CommandHandler");
-const { hoursToMillis } = require("../utils/functions");
+import CommandHandler from "./CommandHandler";
+import { hoursToMillis } from "../utils/functions";
 
 import { TwitchApiClient as Api } from "../utils/initClients";
 import pubSub from "./pubsubEvents";

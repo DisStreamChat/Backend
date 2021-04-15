@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 import express from "express";
 const router = express.Router();
 import sha1 from "sha1";

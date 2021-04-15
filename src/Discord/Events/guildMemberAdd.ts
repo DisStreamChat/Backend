@@ -1,4 +1,4 @@
-const { formatFromNow } = require("../../utils/functions");
+import { formatFromNow } from "../../utils/functions";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import welcomeMessage from "./misc/WelcomeMessage";

@@ -1,12 +1,12 @@
-require("dotenv").config();
-const path = require("path");
-const fs = require("fs");
+;
+import path from "path";
+import fs from "fs";
 const { getDiscordSettings, walkSync } = require("../utils/functions");
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
-const customCommandHandler = require("./Commands/CustomCommands");
-const { Command } = require("../utils/classes");
+import customCommandHandler from "./Commands/CustomCommands";
+import { Command } from "../utils/classes";
 
 commandFiles.forEach(command => {
 	if (command.name.endsWith(".js")) {

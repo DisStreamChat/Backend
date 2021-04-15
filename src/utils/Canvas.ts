@@ -1,7 +1,7 @@
 //@ts-nocheck
-const path = require("path");
+import path from "path";
 
-const Canvas = require("canvas");
+import Canvas from "canvas";
 
 Canvas.registerFont(path.join(__dirname, "../../public/Poppins/Poppins-Regular.ttf"), { family: "Poppins" });
 Canvas.registerFont("./assets/fonts/OpenMoji-Black.ttf", { family: "OpenMoji", weight: "normal", style: "normal" });

@@ -1,5 +1,5 @@
-const prettyMs = require("pretty-ms");
-const fetch = require("node-fetch");
+import prettyMs from "pretty-ms";
+import fetch from "node-fetch";
 
 export default {
 	name: "uptime",

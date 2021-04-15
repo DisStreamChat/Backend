@@ -1,4 +1,4 @@
-const { MessageEmbed } = require("discord.js");
+import { MessageEmbed } from "discord.js";
 const { resolveUser, formatFromNow } = require("../../../utils/functions");
 
 export default {

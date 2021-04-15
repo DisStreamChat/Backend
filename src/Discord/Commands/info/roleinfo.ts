@@ -1,5 +1,5 @@
 import { resolveRole, convertDiscordRoleColor, formatFromNow, getDiscordSettings } from "../../../utils/functions";
-const { MessageEmbed } = require("discord.js");
+import { MessageEmbed } from "discord.js";
 
 export default {
 	name: "roleinfo",

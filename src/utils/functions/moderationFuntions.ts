@@ -1,8 +1,7 @@
-const { JSDOM } = require("jsdom");
-const URL = require("url-parse");
-const { MessageEmbed, MessageAttachment, Permissions } = require("discord.js");
+import { JSDOM } from "jsdom";
+import URL from "url-parse";
+import { MessageEmbed, MessageAttachment, Permissions } from "discord.js";
 import nodeFetch from "node-fetch";
-
 
 export const warn = (member, guild, client, message) => {};
 

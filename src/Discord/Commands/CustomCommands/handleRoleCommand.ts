@@ -1,7 +1,7 @@
-const { MessageEmbed } = require("discord.js");
-const { ArrayAny } = require("../../../utils/functions");
+import { MessageEmbed } from "discord.js";
+import { ArrayAny } from "../../../utils/functions";
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 export default async (command, message, client) => {
 	const member = message.member;

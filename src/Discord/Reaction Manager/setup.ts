@@ -1,4 +1,4 @@
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 import { resolveUser } from "../../utils/functions";
 
 export default async (reaction, user, onJoin=false) => {

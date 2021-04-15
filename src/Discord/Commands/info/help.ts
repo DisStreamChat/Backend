@@ -1,9 +1,9 @@
 const { isAdmin, hasPermission, ArrayAny, getRoleIds } = require("../../../utils/functions");
-const { MessageEmbed } = require("discord.js");
+import { MessageEmbed } from "discord.js";
 import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/functions";
 
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 interface CommandModel {
 	plugin: string;

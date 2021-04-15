@@ -1,5 +1,5 @@
 import * as fs from "fs"
-const promises = require("fs/promises")
+import promises from "fs/promises"
 import {join} from "path"
 
 const loggingPath = join(__dirname, "../../", "logging");

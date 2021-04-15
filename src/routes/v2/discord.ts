@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 import express from "express";
 import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";

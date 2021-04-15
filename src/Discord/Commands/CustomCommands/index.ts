@@ -1,8 +1,8 @@
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
-const path = require("path");
-const fs = require("fs");
-const { ArrayAny } = require("../../../utils/functions");
+import admin from "firebase-admin";
+import path from "path";
+import fs from "fs";
+import { ArrayAny } from "../../../utils/functions";
 import Mustache from "mustache";
 import * as prettyMilliseconds from "pretty-ms";
 import GenerateView from "./GenerateView";

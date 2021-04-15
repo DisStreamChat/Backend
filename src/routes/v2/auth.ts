@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 import express from "express";
 import { join } from "path";
 const router = express.Router();

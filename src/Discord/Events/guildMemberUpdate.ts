@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
-const deepEqual = require("deep-equal");
+import deepEqual from "deep-equal";
 
 const changeFuctions = {
 	nickname: (member, newName, oldName) => {

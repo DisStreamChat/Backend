@@ -1,3 +1,4 @@
+//@ts-ignore
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 
 import { statSync, readdirSync } from "fs";

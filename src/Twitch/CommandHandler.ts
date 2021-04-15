@@ -1,5 +1,5 @@
-const path = require("path");
-const fs = require("fs");
+import path from "path";
+import fs from "fs";
 const { adminWare, modWare } = require("../utils/functions");
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = fs.readdirSync(commandPath);
@@ -16,7 +16,7 @@ commandFiles.forEach(command => {
 
 
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 const prefix = "!";
 

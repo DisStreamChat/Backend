@@ -1,9 +1,9 @@
 const { resolveUser, generateRankCard } = require("../../../utils/functions");
-const { MessageAttachment } = require("discord.js");
-const path = require("path");
-const fs = require("fs");
+import { MessageAttachment } from "discord.js";
+import path from "path";
+import fs from "fs";
 // the admin app has already been initialized in routes/index.js
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 export default {
 	name: "dashboard",

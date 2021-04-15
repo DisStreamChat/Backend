@@ -1,5 +1,5 @@
-const { MessageEmbed } = require("discord.js");
-const { resolveUser } = require("../../../utils/functions");
+import { MessageEmbed } from "discord.js";
+import { resolveUser } from "../../../utils/functions";
 import { getDiscordSettings } from "../../../utils/functions";
 
 const timeMap = {

@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 import { writeFile } from "fs";

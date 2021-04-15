@@ -1,11 +1,11 @@
-require("dotenv").config();
+;
 import express from "express";
 import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
 import sha1 from "sha1";
 import fetch from "node-fetch";
 import { firestore, auth } from "firebase-admin";
-const TwitchApi = require("twitchio-js");
+import TwitchApi from "twitchio-js";
 import tmi from "tmi.js";
 import { TwitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } from "../../utils/initClients";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";

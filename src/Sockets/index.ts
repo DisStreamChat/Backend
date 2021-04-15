@@ -1,12 +1,12 @@
-require("dotenv").config();
+;
 
-const Socket = require("socketio-promises");
+import Socket from "socketio-promises";
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient } = require("../utils/initClients");
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 
 export const sockets = io => {
 	io.on("connection", socket => {

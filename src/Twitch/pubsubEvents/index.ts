@@ -1,14 +1,13 @@
-require("dotenv").config();
-const path = require("path");
-const fs = require("fs");
+;
+import fs from "fs";
 import { formatMessage } from "../../utils/messageManipulation";
 
 import { walkSync } from "../../utils/functions";
 const commandPath = __dirname;
 const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
-const admin = require("firebase-admin");
-const TPS = require("twitchps");
-const uuidv1 = require("uuidv1");
+import admin from "firebase-admin";
+import TPS from "twitchps";
+import uuidv1 from "uuidv1";
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 import { TwitchApiClient as Api } from "../../utils/initClients";

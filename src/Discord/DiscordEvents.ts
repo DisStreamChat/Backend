@@ -1,17 +1,17 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
-const { formatMessage } = require("../utils/messageManipulation");
-const CommandHandler = require("./CommandHandler");
+import { formatMessage } from "../utils/messageManipulation";
+import CommandHandler from "./CommandHandler";
 const ReactionRoles = require("./Reaction Manager");
 // TODO: move to firebase db
-const ranks = require("../ranks.json");
+import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";
 
-const { handleLeveling } = require("./Leveling");
+import { handleLeveling } from "./Leveling";
 const { getDiscordSettings, hasPermission } = require("../utils/functions");
 
-const path = require("path");
-const fs = require("fs");
-const admin = require("firebase-admin");
+import path from "path";
+import fs from "fs";
+import admin from "firebase-admin";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 const events = {};

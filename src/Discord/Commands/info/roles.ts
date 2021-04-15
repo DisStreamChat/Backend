@@ -1,5 +1,5 @@
 const { resolveUser, formatFromNow } = require("../../../utils/functions");
-const { MessageEmbed } = require("discord.js");
+import { MessageEmbed } from "discord.js";
 
 export default {
 	name: "roles",

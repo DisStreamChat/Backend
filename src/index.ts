@@ -1,11 +1,12 @@
-require("dotenv").config();
+import * as dotenv from "dotenv"
+dotenv.config()
 import TwitchEvents from "./Twitch/TwitchEvents";
 import DiscordEvents from "./Discord/DiscordEvents";
 import { log } from "./utils/functions/logging";
 import {sockets} from "./Sockets"
 // get the initialized clients from another file
 const { DiscordClient, TwitchClient, customBots } = require("./utils/initClients");
-const admin = require("firebase-admin");
+import admin from "firebase-admin";
 import {io, server, app} from "./app"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

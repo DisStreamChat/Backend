@@ -1,6 +1,5 @@
 import { MessageEmbed } from "discord.js";
 import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
-const admin = require("firebase-admin");
 
 interface StreamModel {
 	user_name: string;

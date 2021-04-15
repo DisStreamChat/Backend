@@ -1,4 +1,4 @@
-require("dotenv").config();
+;
 
 import { DiscordClient, TwitchApiClient } from "../initClients";
 

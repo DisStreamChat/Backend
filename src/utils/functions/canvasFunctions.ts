@@ -1,6 +1,6 @@
-const Canvas = require("canvas");
+import Canvas from "canvas";
 // import { Canvas } from "canvas";
-const adminIds = require("../../ranks.json");
+import adminIds from "../../ranks.json";
 import { getXp } from "./levelingFunctions";
 
 const applyText = (canvas, text, defaultFontSize = 70, minFontSize = 0, font = "sans-serif", widthTest = null) => {

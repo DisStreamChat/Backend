@@ -1,6 +1,6 @@
 // the admin app has already been initialized in routes/index.js
-const { MessageEmbed } = require("discord.js");
-const admin = require("firebase-admin");
+import { MessageEmbed } from "discord.js";
+import admin from "firebase-admin";
 import Mustache from "mustache";
 import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation";
 
