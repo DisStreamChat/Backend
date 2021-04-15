@@ -1,5 +1,5 @@
 import { sleep, hasDiscordInviteLink } from "../../../utils/functions";
-const getUrls = require("get-urls");
+const getUrls = require("extract-urls");;
 
 const fetchAmountfromId = async (message, id) => {
 	let after

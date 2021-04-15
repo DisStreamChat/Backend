@@ -46,8 +46,7 @@
 		"bad-words": "^3.0.3",
 		"base65536": "^3.0.3",
 		"body-parser": "^1.19.0",
-		"canvas": "^2.6.1",
-		"chatbits": "^1.2.10-hotfix5",
+		"canvas": "^2.7.0",
 		"cors": "^2.8.5",
 		"crypto": "^1.0.1",
 		"date-fns": "^2.14.0",
@@ -60,9 +59,9 @@
 		"dompurify": "^2.0.17",
 		"dotenv": "^8.2.0",
 		"express": "^4.17.1",
+		"extract-urls": "^1.3.2",
 		"fetchio-js": "^1.1.1",
-		"firebase-admin": "^8.12.1",
-		"get-urls": "^10.0.0",
+		"firebase-admin": "^9.6.0",
 		"helmet": "^3.22.0",
 		"jest": "^26.6.3",
 		"jsdom": "^16.4.0",
@@ -86,13 +85,12 @@
 		"twitchio-js": "^1.0.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
 		"url-parse": "^1.4.7",
-		"url-regex": "^5.0.0",
 		"uuidv1": "^1.6.14"
 	},
 	"devDependencies": {
-		"@babel/node": "^7.12.6",
 		"@babel/cli": "^7.10.5",
 		"@babel/core": "^7.11.0",
+		"@babel/node": "^7.12.6",
 		"@babel/plugin-transform-runtime": "^7.11.0",
 		"babel-plugin-transform-runtime": "^6.23.0"
 	}

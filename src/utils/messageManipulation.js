@@ -5,7 +5,6 @@ const admin = require("firebase-admin");
 const { cleanRegex } = require("../utils/functions");
 const cache = require("memory-cache");
 
-const urlRegex = require("url-regex")();
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
@@ -171,7 +170,6 @@ module.exports = {
 	checkForClash,
 	formatMessage,
 	replaceTwitchEmotes,
-	urlRegex,
 	customEmojiRegex,
 	channelMentionRegex,
 	mentionRegex,

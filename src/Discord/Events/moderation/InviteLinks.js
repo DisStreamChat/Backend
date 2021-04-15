@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 import { getDiscordSettings, informMods, warn, hasDiscordInviteLink } from "../../../utils/functions";
-const getUrls = require("get-urls");
+const getUrls = require("extract-urls");;
 
 module.exports = async (message, client) => {
 	const settings = await getDiscordSettings({ client, guild: message.guild.id });
