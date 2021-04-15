@@ -63,7 +63,7 @@ export const sockets = io => {
 
 			for (const channelId of liveChatId) {
 				try {
-					const liveChatChannel = guildChannels.resolve(channelId);
+					const liveChatChannel:any = guildChannels.resolve(channelId);
 					const messageManager = liveChatChannel.messages;
 
 					const messageToDelete = await messageManager.fetch(id);

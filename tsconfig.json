@@ -1,17 +1,16 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "esnext",
+		"target": "es6",
+		"module": "commonjs",
 		"moduleResolution": "node",
 		"noImplicitAny": false,
 		"removeComments": true,
 		"preserveConstEnums": true,
-		"sourceMap": true,
 		"forceConsistentCasingInFileNames": true,
 		"outDir": "dist",
 		"resolveJsonModule": true,
-		"declaration": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"downlevelIteration": true,
 	},
 	"allowSyntheticDefaultImports": true,
 	"esModuleInterop": true,

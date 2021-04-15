@@ -8,7 +8,7 @@ const commands = {};
 commandFiles.forEach(command => {
 	if (command.endsWith(".js")) {
 		const commandObj = require(path.join(commandPath, command));
-		const _ = [commandObj.name, ...commandObj.aliases].map(name => {
+		const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
 			commands[name] = commandObj;
 		});
 	}

@@ -3,12 +3,11 @@
 	"version": "1.1.1",
 	"description": "a discord/twitch bot for integrating discord chat with twitch chat",
 	"main": "src/index.js",
-	"type": "module",
 	"scripts": {
 		"start": "npm run prod",
 		"build": "npm-run-all clean transpile",
 		"serve": "node ./dist/index.js",
-		"dev": "concurrently npm:dev-*",
+		"dev": "ts-node src",
 		"dev-build": "tsc -w",
 		"dev-run": "nodemon dist",
 		"prod": "npm-run-all build serve",
@@ -49,6 +48,7 @@
 		"bad-words": "^3.0.3",
 		"base65536": "^3.0.3",
 		"body-parser": "^1.19.0",
+		"call-bind": "^1.0.2",
 		"canvas": "^2.7.0",
 		"chatbits": "^1.2.10-hotfix5",
 		"cors": "^2.8.5",
@@ -66,6 +66,7 @@
 		"extract-urls": "^1.3.2",
 		"fetchio-js": "^1.1.1",
 		"firebase-admin": "^8.12.1",
+		"get-intrinsic": "^1.1.1",
 		"helmet": "^3.22.0",
 		"jest": "^26.6.3",
 		"jsdom": "^16.4.0",
@@ -76,7 +77,6 @@
 		"mustache-async": "^0.1.3",
 		"node-fetch": "^2.6.1",
 		"nodemon": "^2.0.3",
-		"npm-run-all": "^4.1.5",
 		"pretty-ms": "^7.0.0",
 		"recursive-diff": "^1.0.8",
 		"rimraf": "^3.0.2",
@@ -90,6 +90,7 @@
 		"twitchps": "github:DisStreamChat/twitchPS",
 		"url-parse": "^1.4.7",
 		"url-regex": "^5.0.0",
+		"uuid": "^3.4.0",
 		"uuidv1": "^1.6.14"
 	},
 	"devDependencies": {
@@ -99,6 +100,7 @@
 		"@babel/plugin-transform-runtime": "^7.11.0",
 		"@types/node": "^12.0.2",
 		"babel-plugin-transform-runtime": "^6.23.0",
+		"npm-run-all": "^4.1.5",
 		"ts-node": "^9.1.1",
 		"typescript": "^4.2.4"
 	}

@@ -23,7 +23,7 @@ const commands = commandFiles.reduce(
 	{}
 );
 
-export default async io => {
+const runIo = async io => {
 	let pubsubbedChannels = [];
 
 	const bots = await customBots;
@@ -220,3 +220,5 @@ export default async io => {
 			});
 		});
 };
+
+export default runIo
