@@ -32,7 +32,7 @@ module.exports = async (reaction, user, onJoin) => {
 		member = reaction.message.guild.members.cache.get(user.id);
 	}
 	if (!member) {
-		member = resolveUser(reaction.message, user.id || user.username);
+		member = await resolveUser(reaction.message, user.id || user.username);
 	}
 	return { rolesToGive, member, ...action };
 };

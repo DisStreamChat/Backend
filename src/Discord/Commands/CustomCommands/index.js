@@ -44,10 +44,8 @@ module.exports = async ({ command, args, message, client }) => {
 				// check if the user can use this command based on their roles
 				const roles = message.member.roles;
                 const roleIds = roles.cache.array().map(role => role.id);
-                // console.log(value.permittedRoles, roleIds)
 				if (value.permittedRoles) {
 					if (!ArrayAny(value.permittedRoles, roleIds)) {
-                        console.log("allowed")
 						const res = await message.channel.send(":x: You don't have permission to use this command");
 						setTimeout(() => {
 							res.delete();

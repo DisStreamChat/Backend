@@ -1,4 +1,5 @@
-const resolveUser = (msg, username) => {
+const resolveUser = async (msg, username) => {
+	if(!username?.length) return null
 	const memberCache = msg.guild.members.cache;
 	if (/<@!?\d+>/g.test(username)) {
 		return memberCache.get(msg.mentions.users.first().id);
@@ -15,8 +16,9 @@ const resolveUser = (msg, username) => {
 	if (memberCache.find(member => member.user.username === username)) {
 		return memberCache.find(member => member.user.username === username);
 	}
-	if (memberCache.find(member => member.id === username)) {
-		return memberCache.find(member => member.id === username);
+	const userFromId = await msg.guild.members.fetch(username)
+	if (userFromId) {
+		return userFromId
 	}
 	return null;
 };

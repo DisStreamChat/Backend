@@ -9,7 +9,7 @@ module.exports = {
 	description: "Get a users info.",
 	usage: ["(username | nickname | ping | id)"],
 	execute: async (msg, args, bot) => {
-		let member = resolveUser(msg, args.join(" "));
+		let member = await resolveUser(msg, args.join(" "));
 		if (args.length === 0) ({ member } = msg);
 		if (!member) return await msg.channel.send("This user can't be found.");
 

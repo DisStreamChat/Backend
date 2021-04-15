@@ -1,14 +1,38 @@
 import admin from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
+import { compare } from "../../utils/functions";
+import { logUpdate } from "./utils";
 
-module.exports = async (oldEmoji, newEmoji, client) => {
-    const guild = newEmoji.guild;
+const ignoredDifferences = ["permissionOverwrites"];
 
-    const [channelId, active] = setupLogging(guild, "channelUpdate", client)
-    if(!active) return
+const keyMap = {
+	rateLimitPerUser: "slowmode",
+	slowmode: "rateLimitPerUser",
+};
 
-    if (!channelId) return;
+const valueMap = {
+	rateLimitPerUser: value => (!value ? "Off" : `${value} Seconds`),
+	topic: value => (!value ? "No Topic" : value),
+};
 
-    // console.log(oldEmoji, newEmoji)
+module.exports = async (oldChannel, newChannel, client) => {
+	const guild = newChannel.guild;
+
+	const [channelId, active] = await setupLogging(guild, "channelUpdate", client);
+	if (!active) return;
+
+	const embed = await logUpdate(newChannel, oldChannel, {
+		keyMap,
+		valueMap,
+		title: `:pencil: Text Channel updated: ${oldChannel.name}`,
+		footer: `Channel ID: ${oldChannel.id}`,
+		ignoredDifferences
+	});
+
+
+	if (!channelId) return;
+	const logChannel = guild.channels.resolve(channelId);
+
+	logChannel.send(embed);
 };

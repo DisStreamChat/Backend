@@ -13,7 +13,6 @@ setTimeout(() => {
 				if (data) {
 				}
 				defaultLogging = data;
-				// console.log(defaultLogging);
 			});
 	})();
 }, 1000);

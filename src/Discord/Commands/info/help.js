@@ -70,7 +70,7 @@ const addTips = async (embed, msg, client) => {
 	// if (isAdmin(message.author)) {
 	// 	helpEmbed.addField("DisStreamChat Admin Tip", "Type `help admin` for links to DisStreamChat admin tools");
 	// }
-	embed.addField("Support Server", "If you have any questions or bug reports come tell us at http://discord.disstreamchat.com");
+	embed.addField("Support Server", "If you have any questions or bug reports come tell us at https://discord.disstreamchat.com");
 	embed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 	return embed;
 };
@@ -130,7 +130,7 @@ module.exports = {
 			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({ message, client, commands: allCommandCategories, page: 1 });
 			const helpMsg = await message.channel.send(helpEmbed);
 			const pageCollector = helpMsg.createReactionCollector(
-				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user.bot
+				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
 			);
 			let currentPage = 1;
 			await helpMsg.react("⬅️");
@@ -197,7 +197,7 @@ module.exports = {
 						});
 						const helpMsg = await message.channel.send(customHelpEmbed);
 						const pageCollector = helpMsg.createReactionCollector(
-							(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user.bot
+							(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
 						);
 						let currentPage = 1;
 						await helpMsg.react("⬅️");

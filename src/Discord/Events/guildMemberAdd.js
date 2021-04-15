@@ -6,7 +6,6 @@ import welcomeMessage from "./misc/WelcomeMessage";
 
 module.exports = async (member, client) => {
     const guild = member.guild;
-    // console.log(guild)
 	welcomeMessage(guild, member, client);
 	const [channelId, active] = await setupLogging(guild, "MemberAdd", client);
 	if (!active) return;
