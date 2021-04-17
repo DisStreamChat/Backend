@@ -1,19 +1,18 @@
-;
 import { MessageEmbed } from "discord.js";
-import {sleep} from "../../utils/functions"
+import { sleep } from "../../utils/functions";
 import setupLogging from "./utils/setupLogging";
 
 export default async (guild, user, client) => {
-    await sleep(1000)
+	await sleep(1000);
 	const auditLog = await guild.fetchAuditLogs();
 
 	const deleteAction = await auditLog.entries.first();
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "MemberBanned", client)
-    if(!active) return
-    
+	const [channelIds, active] = await setupLogging(guild, "MemberBanned", client);
+	if (!active) return;
+
 	const embed = new MessageEmbed()
 		.setAuthor(executor.tag, executor.avatarURL())
 		.setThumbnail(user.displayAvatarURL())
@@ -23,8 +22,10 @@ export default async (guild, user, client) => {
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

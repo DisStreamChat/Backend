@@ -1,12 +1,11 @@
-;
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
 export default async (member, client) => {
 	const guild = member.guild;
 
-    const [channelId, active] = await setupLogging(guild, "MemberRemove", client)
-    if(!active) return
+	const [channelIds, active] = await setupLogging(guild, "MemberRemove", client);
+	if (!active) return;
 
 	const embed = new MessageEmbed()
 		.setAuthor(member.user.tag, member.user.displayAvatarURL())
@@ -16,8 +15,10 @@ export default async (member, client) => {
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

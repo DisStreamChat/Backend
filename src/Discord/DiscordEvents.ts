@@ -1,7 +1,7 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
 import CommandHandler from "./CommandHandler";
-import ReactionRoles from "./Reaction Manager"
+import ReactionRoles from "./Reaction Manager";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";
@@ -13,17 +13,17 @@ import fs from "fs";
 import admin from "firebase-admin";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
-const events = {};
 
 export default async (client, io, app) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
 		if (event.endsWith(".js")) {
-			const eventHandler = require(path.join(eventPath, event));
-			client.on(event.slice(0, -3), (...params) => {
+			const {default: eventHandler} = require(path.join(eventPath, event));
+			client.on(event.slice(0, -3), async (...params) => {
 				try {
-					eventHandler(...params, client);
+					console.log(event.slice(0, -3));
+					await eventHandler(...params, client);
 				} catch (err) {
 					log(`Event Error: ${err.message}`);
 				}
@@ -38,7 +38,7 @@ export default async (client, io, app) => {
 
 	admin
 		.firestore()
-		.collection("loggingChannel")
+		.collection("logging")
 		.onSnapshot(snapshot => {
 			const changes = snapshot.docChanges();
 			changes.map(change => {

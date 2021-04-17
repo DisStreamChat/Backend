@@ -15,7 +15,7 @@ export default async (oldRole, newRole, client) => {
 
 	let executor = deleteAction.executor;
 
-	const [channelId, active] = await setupLogging(guild, "emojiUpdate", client);
+	const [channelId, active] = await setupLogging(guild, "roleUpdate", client);
 	if (!active || !channelId) return;
 
 	const embed = (

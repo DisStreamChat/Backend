@@ -2,11 +2,11 @@ import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
 export default async (invite, client) => {
-    const guild = invite.guild;
-    if(!guild) return
+	const guild = invite.guild;
+	if (!guild) return;
 
-    const [channelId, active] = await setupLogging(guild, "InviteDelete", client)
-    if(!active) return
+	const [channelIds, active] = await setupLogging(guild, "InviteDelete", client);
+	if (!active) return;
 
 	const embed = new MessageEmbed()
 		.setAuthor("DisStreamBot")
@@ -14,10 +14,12 @@ export default async (invite, client) => {
 		.setFooter(`Code: ${invite.code}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
-		
-	if (!channelId) return;
 
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
 
-	logChannel.send(embed);
+		const logChannel = guild.channels.resolve(channelId);
+
+		logChannel.send(embed);
+	}
 };

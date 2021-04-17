@@ -21,7 +21,7 @@ export default async (message, DiscordClient) => {
 	// 	executor = DiscordClient.deleter;
 	// }
 
-	const [channelId, active] = await setupLogging(guild, "messageDelete", DiscordClient);
+	const [channelIds, active] = await setupLogging(guild, "messageDelete", DiscordClient);
 
 	const serverRef = await firestore().collection("loggingChannel").doc(guild.id).get();
 	const serverData = serverRef.data();
@@ -32,5 +32,5 @@ export default async (message, DiscordClient) => {
 
 	if (!active) return;
 
-	logMessageDelete(message, channelId, executor, guild);
+	logMessageDelete(message, channelIds, executor, guild);
 };

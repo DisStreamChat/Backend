@@ -24,6 +24,8 @@ const commands = commandFiles.reduce(
 );
 
 const runIo = async io => {
+	if (process.env.BOT_DEV == "true") return;
+
 	let pubsubbedChannels = [];
 
 	const bots = await customBots;

@@ -4,9 +4,9 @@ import setupLogging from "./utils/setupLogging";
 import welcomeMessage from "./misc/WelcomeMessage";
 
 export default async (member, client) => {
-    const guild = member.guild;
+	const guild = member.guild;
 	welcomeMessage(guild, member, client);
-	const [channelId, active] = await setupLogging(guild, "MemberAdd", client);
+	const [channelIds, active] = await setupLogging(guild, "MemberAdd", client);
 	if (!active) return;
 
 	const embed = new MessageEmbed()
@@ -18,8 +18,10 @@ export default async (member, client) => {
 		.setTimestamp(new Date())
 		.setColor("#11ee11");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

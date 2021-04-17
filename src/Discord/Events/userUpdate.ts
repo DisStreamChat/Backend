@@ -20,8 +20,6 @@ export default async (oldUser, newUser, DiscordClient) => {
 		return false;
 	});
 
-	console.log(channelsInfo);
-
 	const changeEmbed = (
 		await logUpdate(newUser, oldUser, {
 			title: "",
@@ -38,11 +36,13 @@ export default async (oldUser, newUser, DiscordClient) => {
 		.setThumbnail(newUser.displayAvatarURL());
 	for (const channel of channelsInfo) {
 		try {
-			const channelId = channel.info[0]?.split("=")?.[0];
+			const channelIds = channel.info[0];
 			const guild = await DiscordClient.guilds.fetch(channel.id);
-			const logChannel = guild.channels.resolve(channelId);
+			for (const channelId of channelIds) {
+				const logChannel = guild.channels.resolve(channelId);
 
-			await logChannel.send(changeEmbed);
+				await logChannel.send(changeEmbed);
+			}
 		} catch (err) {
 			console.log(err.message);
 		}

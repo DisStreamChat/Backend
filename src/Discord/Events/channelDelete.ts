@@ -1,16 +1,15 @@
-;
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
 export default async (channel, client) => {
 	const guild = channel.guild;
 
-    const [channelId, active] = await setupLogging(guild, "channelDelete", client)
-    if(!active) return
+	const [channelIds, active] = await setupLogging(guild, "channelDelete", client);
+	if (!active) return;
 
-	let parentCheck = '';
+	let parentCheck = "";
 	if (channel.parentID) {
-		parentCheck = `(Parent ID: ${channel.parentID})`
+		parentCheck = `(Parent ID: ${channel.parentID})`;
 	}
 
 	const embed = new MessageEmbed()
@@ -21,8 +20,10 @@ export default async (channel, client) => {
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

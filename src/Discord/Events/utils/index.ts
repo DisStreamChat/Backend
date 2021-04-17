@@ -2,7 +2,7 @@ import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 import { compare } from "../../../utils/functions";
 
-export const logMessageDelete = (message, channelId, executor, guild) => {
+export const logMessageDelete = (message, channelIds, executor, guild) => {
 	checkDeleteReactionMessage(guild.id, message);
 	const { channel, content, author, id } = message;
 
@@ -18,11 +18,13 @@ export const logMessageDelete = (message, channelId, executor, guild) => {
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
+	for (const channelId of channelIds) {
+		if (!channelId) return;
 
-	const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };
 
 export const checkDeleteReactionMessage = async (guildId, message) => {

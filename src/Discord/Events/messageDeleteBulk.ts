@@ -14,7 +14,7 @@ export default async (messages, client) => {
 
 	const executor = deleteAction.executor;
 
-    const [channelId, active] = await setupLogging(guild, "messageDeleteBulk", client)
+    const [channelIds, active] = await setupLogging(guild, "messageDeleteBulk", client)
     if(!active) return
 
 	const serverRef = await firestore().collection("loggingChannel").doc(guild.id).get();
@@ -35,14 +35,14 @@ export default async (messages, client) => {
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
+	if (!channelIds) return;
 
 	
-	const logChannel = guild.channels.resolve(channelId);
+	const logChannel = guild.channels.resolve(channelIds);
 	
 	await logChannel.send(embed);
 	
 	for(const message of messages.array()){
-		logMessageDelete(message, channelId, executor, guild)
+		logMessageDelete(message, channelIds, executor, guild)
 	}
 };

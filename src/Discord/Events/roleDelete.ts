@@ -2,21 +2,21 @@ import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
 export default async (role, client) => {
-    const guild = role.guild;
-    if(!guild) return
+	const guild = role.guild;
+	if (!guild) return;
 
-    const [channelId, active] = await setupLogging(guild, "roleDelete", client)
-    if(!active) return
-    
+	const [channelIds, active] = await setupLogging(guild, "roleDelete", client);
+	if (!active) return;
+
 	const embed = new MessageEmbed()
 		.setDescription(`:inbox_tray: The role: ${role.name} **was deleted**`)
 		.setFooter(`ID: ${role.id}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
-	if (!channelId) return;
+	for (const channelId of channelIds) {
+		const logChannel = guild.channels.resolve(channelId);
 
-	const logChannel = guild.channels.resolve(channelId);
-
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

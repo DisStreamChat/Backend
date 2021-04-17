@@ -1,4 +1,4 @@
-import {firestore} from "firebase-admin";
+import { firestore } from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 
@@ -7,13 +7,13 @@ export default async (oldMessage, newMessage, client) => {
 	try {
 		await oldMessage.fetch(true);
 		await newMessage.fetch(true);
-		if(newMessage?.author?.bot) return
-		if(oldMessage.content === newMessage.content) return
+		if (newMessage?.author?.bot) return;
+		if (oldMessage.content === newMessage.content) return;
 
-		const [channelId, active] = await setupLogging(guild, "messageUpdate", client);
+		const [channelIds, active] = await setupLogging(guild, "messageUpdate", client);
 
 		if (!active) return;
-		if (!channelId) return;
+		if (!channelIds) return;
 
 		const serverRef = await firestore().collection("loggingChannel").doc(guild.id).get();
 		const serverData = serverRef.data();
@@ -30,9 +30,11 @@ export default async (oldMessage, newMessage, client) => {
 			.setFooter(`User ID: ${newMessage.author.id}`)
 			.setTimestamp(new Date());
 
-		const logChannel = guild.channels.resolve(channelId);
+		for (const channelId of channelIds) {
+			const logChannel = guild.channels.resolve(channelId);
 
-		logChannel.send(embed);
+			logChannel.send(embed);
+		}
 	} catch (err) {
 		console.log(err.message);
 	}

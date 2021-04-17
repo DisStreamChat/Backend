@@ -16,7 +16,7 @@ const valueMap = {
 export default async (oldChannel, newChannel, client) => {
 	const guild = newChannel.guild;
 
-	const [channelId, active] = await setupLogging(guild, "channelUpdate", client);
+	const [channelIds, active] = await setupLogging(guild, "channelUpdate", client);
 	if (!active) return;
 
 	const embed = await logUpdate(newChannel, oldChannel, {
@@ -24,12 +24,13 @@ export default async (oldChannel, newChannel, client) => {
 		valueMap,
 		title: `:pencil: Text Channel updated: ${oldChannel.name}`,
 		footer: `Channel ID: ${oldChannel.id}`,
-		ignoredDifferences
+		ignoredDifferences,
 	});
 
+	if (!channelIds) return;
+	for (const channelId of channelIds) {
+		const logChannel = guild.channels.resolve(channelId);
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
-
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

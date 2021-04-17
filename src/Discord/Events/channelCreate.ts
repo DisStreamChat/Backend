@@ -4,7 +4,7 @@ import setupLogging from "./utils/setupLogging";
 export default async (channel, client) => {
 	const guild = channel.guild;
 
-	const [channelId, active] = await setupLogging(guild, "channelCreate", client);
+	const [channelIds, active] = await setupLogging(guild, "channelCreate", client);
 	if (!active) return;
 
 	let parentCheck = "";
@@ -20,8 +20,10 @@ export default async (channel, client) => {
 		.setTimestamp(new Date())
 		.setColor("#11ee11");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

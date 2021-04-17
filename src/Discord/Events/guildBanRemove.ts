@@ -8,7 +8,7 @@ export default async (guild, user, client) => {
 
 	const executor = deleteAction.executor;
 
-	const [channelId, active] = await setupLogging(guild, "MemberUnBanned", client);
+	const [channelIds, active] = await setupLogging(guild, "MemberUnBanned", client);
 	if (!active) return;
 
 	const embed = new MessageEmbed()
@@ -20,8 +20,10 @@ export default async (guild, user, client) => {
 		.setTimestamp(new Date())
 		.setColor("#11ee11");
 
-	if (!channelId) return;
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		if (!channelId) return;
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

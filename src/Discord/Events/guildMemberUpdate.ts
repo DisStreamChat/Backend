@@ -33,17 +33,19 @@ export default async (oldMember, newMember, client) => {
 
 	for (const change of changes) {
 		if (change === "nickname") {
-			const [channelId, active] = await setupLogging(guild, "NicknameChange", client);
-			if (!active || !channelId) continue;
+			const [channelIds, active] = await setupLogging(guild, "NicknameChange", client);
+			if (!active || !channelIds) continue;
 
-			const logChannel = guild.channels.resolve(channelId);
-			
-			const embed = changeFuctions[change](
-				newMember,
-				oldMember.nickname ?? oldMember.user.username,
-				newMember.nickname ?? newMember.user.username
-			);
-			logChannel.send(embed);
+			for (const channelId of channelIds) {
+				const logChannel = guild.channels.resolve(channelId);
+
+				const embed = changeFuctions[change](
+					newMember,
+					oldMember.nickname ?? oldMember.user.username,
+					newMember.nickname ?? newMember.user.username
+				);
+				logChannel.send(embed);
+			}
 		}
 	}
 };
