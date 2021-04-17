@@ -22,7 +22,6 @@ export default async (client, io, app) => {
 			const {default: eventHandler} = require(path.join(eventPath, event));
 			client.on(event.slice(0, -3), async (...params) => {
 				try {
-					console.log(event.slice(0, -3));
 					await eventHandler(...params, client);
 				} catch (err) {
 					log(`Event Error: ${err.message}`);

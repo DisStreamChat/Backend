@@ -18,7 +18,6 @@ export const getDiscordSettings = async ({ guild, client }) => {
 };
 
 export const getLoggingSettings = async ({ guild, client }) => {
-	console.log(client?.logging)
 	if (client?.logging?.[guild]) return client.logging[guild];
 	console.log("getting logging settings from the database for " + guild + " the client exists: " + !!client);
 	let logging = (await firestore().collection("logging").doc(guild).get()).data();
@@ -27,7 +26,7 @@ export const getLoggingSettings = async ({ guild, client }) => {
 		try {
 			await firestore().collection("logging").doc(guild).update({});
 		} catch (err) {
-			await firestore().collection("logging").doc(guild).set({});
+			await firestore().collection("logging").doc(guild).set({}, { merge: true });
 		}
 	}
 	if (!client) return logging;

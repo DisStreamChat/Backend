@@ -9,8 +9,7 @@ setTimeout(() => {
 			.doc("loggingEvents")
 			.onSnapshot(snapshot => {
 				const data = snapshot.data();
-				if (data) {
-				}
+				
 				defaultLogging = data;
 			});
 	})();
@@ -23,7 +22,7 @@ export default async (guild, id, client): Promise<[any[], boolean]> => {
 	const serverData = await getLoggingSettings({ guild: guild.id, client });
 	if (serverData) {
 		channelIds = Object.values(serverData)
-			.filter((action: any) => action.action?.toLowerCase() === id?.toLowerCase())
+			.filter((action: any) => action.action?.id?.toLowerCase() === id?.toLowerCase())
 			.map((action: any) => action.channel.id);
 
 		if (serverSettingsData) {
