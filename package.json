@@ -81,7 +81,7 @@
 		"recursive-diff": "^1.0.8",
 		"rimraf": "^3.0.2",
 		"sha1": "^1.1.1",
-		"socket.io": "^2.4.0",
+		"socket.io": "^4.0.1",
 		"socketio-promises": "^1.0.1",
 		"tmi.js": "^1.5.0",
 		"twitch-helper": "^1.1.7",

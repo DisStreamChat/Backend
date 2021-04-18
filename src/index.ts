@@ -49,7 +49,6 @@ if (process.env.BOT_DEV != "true") {
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 log(`Bot Dev: ${process.env.BOT_DEV}`, {writeToConsole: true})
-
 sockets(io)
 
 app.use((req, res) => {

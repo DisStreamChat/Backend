@@ -1,21 +1,18 @@
-;
 import express from "express";
-import  http from "http";
-import  socketio from "socket.io";
+import http from "http";
+import { Server } from "socket.io";
 
 import cors from "cors";
 import bodyParser from "body-parser";
 import helmet from "helmet";
-import  crypto from "crypto";
+import crypto from "crypto";
 
-import root from "./routes/index" 
-import v2 from "./routes/v2"
+import root from "./routes/index";
+import v2 from "./routes/v2";
 
 export const app = express();
 export const server = new http.Server(app);
-export const io = socketio(server);
-
-
+export const io = new Server(server);
 
 // add the basic middleware to the express app
 app.use(helmet());
@@ -42,7 +39,6 @@ app.use(
 // add the routes stored in the 'routes' folder to the app
 
 app.use("/", root);
-app.use("/v2", v2)
+app.use("/v2", v2);
 app.use("/public", express.static("public"));
 app.use("/images", express.static("images"));
-

@@ -1,17 +1,16 @@
-;
-
 import Socket from "socketio-promises";
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
 // get the initialized clients from another file
-import { DiscordClient, TwitchClient }from "../utils/initClients";
+import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 
 export const sockets = io => {
+	console.log("setting up sockets");
 	io.on("connection", socket => {
-		const socketWrapper = new Socket(socket);
 		log("a user connected", { writeToConsole: true });
+		const socketWrapper = new Socket(socket);
 		socket.emit("imConnected");
 
 		// the addme event is sent from the frontend on load with the data from the database
@@ -53,7 +52,7 @@ export const sockets = io => {
 			const refreshToken = data.refresh_token;
 
 			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
-			const modData:any = await modRef.get();
+			const modData: any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
 			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
@@ -63,7 +62,7 @@ export const sockets = io => {
 
 			for (const channelId of liveChatId) {
 				try {
-					const liveChatChannel:any = guildChannels.resolve(channelId);
+					const liveChatChannel: any = guildChannels.resolve(channelId);
 					const messageManager = liveChatChannel.messages;
 
 					const messageToDelete = await messageManager.fetch(id);
@@ -86,7 +85,7 @@ export const sockets = io => {
 			const refreshToken = data.refresh_token;
 
 			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
-			const modData:any = await modRef.get();
+			const modData: any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
 			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
@@ -202,12 +201,14 @@ export const sockets = io => {
 			}
 		});
 
+		console.log("setting up send chat");
 		socket.on("sendchat", async data => {
 			console.log(`send chat: `, data);
 			const sender = data.sender;
 			const refreshToken = data.refreshToken;
 			const message = data.message;
-			const TwitchName = Object.keys(socket.rooms)
+			console.log(socket.rooms);
+			const TwitchName = [...socket.rooms]
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 			if (!refreshToken) {
@@ -215,8 +216,8 @@ export const sockets = io => {
 			}
 			if (sender && message) {
 				try {
+					console.log(sender, message, TwitchName);
 					let UserClient = await getUserClient(refreshToken, sender, TwitchName);
-					console.log(UserClient);
 					try {
 						await UserClient.join(TwitchName);
 						await UserClient.say(TwitchName, message);
