@@ -39,8 +39,8 @@ export default {
 		if (rank === 0) rank = sorted.length + 1;
 		userData.rank = rank;
 		const rankCard = await generateRankCard({...userData, ...(customRankCardData || {})}, user);
-		const attachment = new MessageAttachment(rankCard.toBuffer(), "card.png");
+		const attachment = new MessageAttachment(rankCard, "card.png");
 		message.channel.send(msg, attachment);
-		fs.writeFileSync(path.join(__dirname, `../../../../images/${user.user.username}.png`), rankCard.toBuffer());
+		// fs.writeFileSync(path.join(__dirname, `../../../../images/${user.user.username}.png`), rankCard);
 	},
 };

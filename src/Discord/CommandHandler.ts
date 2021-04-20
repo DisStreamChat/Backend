@@ -1,7 +1,6 @@
-;
 import path from "path";
 import fs from "fs";
-import { getDiscordSettings, walkSync } from "../utils/functions"
+import { getDiscordSettings, walkSync } from "../utils/functions";
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
@@ -10,9 +9,9 @@ import { Command } from "../utils/classes";
 
 commandFiles.forEach(async command => {
 	if (command.name.endsWith(".js")) {
-		let commandObj = await import(command.path);
+		let { default: commandObj } = require(command.path);
 		if (commandObj.id) {
-			commandObj = new Command(commandObj)
+			commandObj = new Command(commandObj);
 			const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
 				commands[name] = commandObj;
 			});

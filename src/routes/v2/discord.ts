@@ -116,10 +116,9 @@ router.get("/rankcard", async (req, res, next) => {
 	const member = await guildObj.members.fetch(user);
 	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
 	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
-	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member);
-	res.setHeader("content-type", "image/png");
-	res.write(rankcard.toBuffer(), "binary");
-	res.end(null, "binary");
+	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member, false);
+	res.setHeader("content-type", "text/html");
+	res.send(rankcard)
 });
 
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {

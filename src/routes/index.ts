@@ -704,7 +704,7 @@ router.get("/rankcard", async (req, res, next) => {
 	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
 	const rankcard = await generateRankCard(userData, member);
 	res.setHeader("content-type", "image/png");
-	res.write(rankcard.toBuffer(), "binary");
+	res.write(rankcard, "binary");
 	res.end(null, "binary");
 });
 
