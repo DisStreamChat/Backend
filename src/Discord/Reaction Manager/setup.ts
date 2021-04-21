@@ -4,29 +4,29 @@ import { resolveUser } from "../../utils/functions";
 export default async (reaction, user, onJoin=false) => {
 	const message = reaction.message;
 	const guild = message.guild;
-	const guildRef = firestore().collection("reactions").doc(guild.id);
+	const guildRef = firestore().collection("roleManagement").doc(guild.id);
 	const guildDB = await guildRef.get();
 	const guildData = guildDB.data();
 	if (!guildData) {
 		try {
 			guildRef.update({});
 		} catch (err) {
-			guildRef.set({});
+			guildRef.set({}, {merge: true});
 		}
 		return {};
 	}
-	const reactionRoleMessage = guildData[message.id];
+	const reactionRoleMessage = guildData.reactions.messages[message.id];
 	if (!reactionRoleMessage) return {};
 	let action;
 	if (onJoin) {
-		action = reactionRoleMessage.actions["user-join"];
+		action = reactionRoleMessage.reactions["user-join"];
 	} else {
-		action = reactionRoleMessage.actions[reaction?.emoji?.id || reaction?.emoji?.name];
-		if (!action) action = reactionRoleMessage.actions["catch-all"];
+		action = reactionRoleMessage.reactions[reaction?.emoji?.id || reaction?.emoji?.name];
+		if (!action) action = reactionRoleMessage.reactions["catch-all"];
 	}
 	if (!action) return {};
-	let rolesToGiveId = Array.isArray(action.role) ? action.role : [action.role];
-	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGiveId =>  guild.roles.fetch(roleToGiveId)));
+	let rolesToGiveId = Array.isArray(action.roles) ? action.roles : [action.roles];
+	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive =>  guild.roles.fetch(roleToGive.id)));
 	let member = await reaction.message.guild.members.resolve(user);
 	if (!member) {
 		member = reaction.message.guild.members.cache.get(user.id);

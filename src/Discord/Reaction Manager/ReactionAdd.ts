@@ -3,7 +3,7 @@ import { addRole, removeRole } from "./misc";
 
 export default async (reaction, user, DiscordClient) => {
 	try {
-		let { member, type, role: roles, DMuser, rolesToGive } = await setup(reaction, user);
+		let { member, type, roles, DMuser, rolesToGive } = await setup(reaction, user);
 		if (!Array.isArray(roles)) roles = [roles];
 		for (const roleToGive of rolesToGive) {
 			const role = roleToGive.id;

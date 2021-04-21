@@ -131,8 +131,9 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
-					reaction = guild.emojis.cache.get(reaction);
+					reaction = DiscordClient.emojis.cache.get(reaction);
 				}
+				console.log(reaction)
 				await sentMessage.react(reaction);
 			} catch (err) {
 				console.log(`error in reacting to message: ${err.message}`);
