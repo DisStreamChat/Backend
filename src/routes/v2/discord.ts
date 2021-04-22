@@ -1,4 +1,3 @@
-;
 import express from "express";
 import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
@@ -118,7 +117,7 @@ router.get("/rankcard", async (req, res, next) => {
 	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
 	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member, false);
 	res.setHeader("content-type", "text/html");
-	res.send(rankcard)
+	res.send(rankcard);
 });
 
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
@@ -133,7 +132,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 				if (reaction.length > 5) {
 					reaction = DiscordClient.emojis.cache.get(reaction);
 				}
-				console.log(reaction)
+				console.log(reaction);
 				await sentMessage.react(reaction);
 			} catch (err) {
 				console.log(`error in reacting to message: ${err.message}`);
@@ -254,6 +253,18 @@ router.get("/resolveemote", async (req, res, next) => {
 
 router.get("/emotes", async (req, res, next) => {
 	res.json(DiscordClient.emojis.cache.array());
+});
+
+router.get("/position", async (req, res, next) => {
+	try {
+		const { server } = req.query;
+		const guild = await DiscordClient.guilds.fetch(server);
+		const member = guild.member(DiscordClient.user);
+		const highestRole = member.roles.highest;
+		res.json({ position: highestRole.position, rawPosition: highestRole.rawPosition });
+	} catch (err) {
+		res.status(401).json({ message: err.message });
+	}
 });
 
 export default router;
