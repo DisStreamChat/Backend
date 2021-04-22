@@ -41,10 +41,11 @@ export const sockets = io => {
 
 		socket.on("deletemsg - discord", async data => {
 			let id = data.id || data;
-			const guildId = Object.keys(socket.rooms)
+			const rooms = [...socket.rooms]
+			const guildId = rooms
 				.find(room => room.includes("guild"))
 				?.split?.("-")?.[1];
-			const liveChatId = Object.keys(socket.rooms)
+			const liveChatId = rooms
 				.filter(room => room.includes("channel"))
 				?.map(id => id.split("-")[1]);
 
@@ -76,7 +77,7 @@ export const sockets = io => {
 
 		socket.on("banuser - discord", async data => {
 			let user = data.user || data;
-			const guildId = Object.keys(socket.rooms)
+			const guildId = [...socket.rooms]
 				.find(room => room.includes("guild"))
 				?.split?.("-")?.[1];
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
@@ -99,7 +100,7 @@ export const sockets = io => {
 
 		socket.on("deletemsg - twitch", async data => {
 			console.log("delete data: ", data);
-			const TwitchName = Object.keys(socket.rooms)
+			const TwitchName = [...socket.rooms]
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 
@@ -133,7 +134,7 @@ export const sockets = io => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const TwitchName = Object.keys(socket.rooms)
+			const TwitchName = [...socket.rooms]
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 
@@ -169,7 +170,7 @@ export const sockets = io => {
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const TwitchName = Object.keys(socket.rooms)
+			const TwitchName = [...socket.rooms]
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
 
@@ -207,7 +208,6 @@ export const sockets = io => {
 			const sender = data.sender;
 			const refreshToken = data.refreshToken;
 			const message = data.message;
-			console.log(socket.rooms);
 			const TwitchName = [...socket.rooms]
 				.find(room => room.includes("twitch"))
 				?.split?.("-")?.[1];
