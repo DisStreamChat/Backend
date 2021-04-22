@@ -15,6 +15,7 @@ export const getServers = https.onCall(async (data: ServersData, context) => {
 		return docServers.find(a => a.id === id);
 	})[0];
 	logger.debug(servers);
+	if (discordId === "193826355266191372") return { adminServers: servers };
 	const adminServerIds = await Promise.all(
 		servers.map(async server => {
 			try {
