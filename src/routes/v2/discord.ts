@@ -144,6 +144,21 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	}
 });
 
+router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
+	try {
+		const { channel, message,  server, messageId } = req.body;
+		const guild = await DiscordClient.guilds.cache.get(server);
+		const channelObj = guild.channels.resolve(channel) as TextChannel;
+		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		const messageToEdit = await channelObj.messages.fetch(messageId)
+		const edited = await messageToEdit.edit(embed)
+		console.log(edited)
+		res.json({ code: 200, message: "success", messageId: edited.id });
+	} catch (err) {
+		res.json({ code: 500, message: err.message });
+	}
+});
+
 router.get("/token", async (req, res, next) => {
 	try {
 		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;

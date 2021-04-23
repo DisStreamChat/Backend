@@ -20,9 +20,13 @@ const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, of
 export default async ({ command, args, message, client }) => {
 	const view = GenerateView({ message, args });
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
+	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(message.guild.id).get()
 	const guildData = guildRef.data();
+	const roleData = roleGuildRef.data()
+	const roleCommands = roleData?.commands?.commands || {}
+	console.log({roleCommands})
 	if (guildData) {
-		for (const [key, value] of Object.entries(guildData as { [key: string]: any })) {
+		for (const [key, value] of Object.entries(({...guildData, ...roleCommands}) as { [key: string]: any })) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
 				// check if this command is still cooling down
 				if (value.allowedChannels?.length) {
