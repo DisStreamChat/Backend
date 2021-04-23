@@ -1,17 +1,24 @@
-import {firestore} from "firebase-admin";
+import { firestore } from "firebase-admin";
 import { resolveUser } from "../../utils/functions";
 
-export default async (reaction, user, onJoin=false) => {
+export default async (reaction, user, onJoin = false) => {
 	const message = reaction.message;
 	const guild = message.guild;
 	const guildRef = firestore().collection("roleManagement").doc(guild.id);
+	const legacyGuildRef = firestore().collection("reactions").doc(guild.id);
+	const legacyGuildDB = await legacyGuildRef.get();
+	const legacyGuildData = legacyGuildDB.data();
+	for(const message of Object.entries(legacyGuildData || {})){
+		const [key, value] = message
+		value.reactions = value.actions
+	}
 	const guildDB = await guildRef.get();
-	const guildData = guildDB.data();
+	const guildData = {...legacyGuildData, ...(guildDB.data() || {})};
 	if (!guildData) {
 		try {
 			guildRef.update({});
 		} catch (err) {
-			guildRef.set({}, {merge: true});
+			guildRef.set({}, { merge: true });
 		}
 		return {};
 	}
@@ -26,7 +33,7 @@ export default async (reaction, user, onJoin=false) => {
 	}
 	if (!action) return {};
 	let rolesToGiveId = Array.isArray(action.roles) ? action.roles : [action.roles];
-	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive =>  guild.roles.fetch(roleToGive.id)));
+	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive => guild.roles.fetch(roleToGive.id)));
 	let member = await reaction.message.guild.members.resolve(user);
 	if (!member) {
 		member = reaction.message.guild.members.cache.get(user.id);
