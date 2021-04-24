@@ -6,22 +6,23 @@ export default async (reaction, user, DiscordClient) => {
 		let { member, type, roles, DMuser, rolesToGive } = await setup(reaction, user);
 		if (!Array.isArray(roles)) roles = [roles];
 		for (const roleToGive of rolesToGive) {
-			const role = roleToGive.id;
+			const role = roleToGive.id ?? roleToGive;
+			console.log({role})
 			switch (type) {
 				case "REMOVE_ON_ADD":
 					if (member.roles.cache.has(role)) {
-						await removeRole({ role: roleToGive, member, DMuser, DiscordClient });
+						await removeRole({ role, member, DMuser, DiscordClient });
 					}
 					break;
 				case "TOGGLE_REVERSED":
 					if (member.roles.cache.has(role)) {
-						await removeRole({ role: roleToGive, member, DMuser, DiscordClient });
+						await removeRole({ role, member, DMuser, DiscordClient });
 					}
 					break;
 				case "ADD_ON_ADD":
 				case "TOGGLE":
 					if (!member.roles.cache.has(role)) {
-						await addRole({ role: roleToGive, member, DMuser, DiscordClient });
+						await addRole({ role, member, DMuser, DiscordClient });
 					}
 					break;
 			}

@@ -14,6 +14,7 @@ export default async (reaction, user, onJoin = false) => {
 	}
 	const guildDB = await guildRef.get();
 	const guildData = {...legacyGuildData, ...(guildDB.data() || {})};
+	const reactionMessages ={...legacyGuildData, ...(guildDB.data()?.messages || {})}
 	if (!guildData) {
 		try {
 			guildRef.update({});
@@ -22,7 +23,8 @@ export default async (reaction, user, onJoin = false) => {
 		}
 		return {};
 	}
-	const reactionRoleMessage = guildData.reactions.messages[message.id];
+	const reactionRoleMessage = reactionMessages[message.id];
+	console.log({reactionRoleMessage})
 	if (!reactionRoleMessage) return {};
 	let action;
 	if (onJoin) {
@@ -32,8 +34,10 @@ export default async (reaction, user, onJoin = false) => {
 		if (!action) action = reactionRoleMessage.reactions["catch-all"];
 	}
 	if (!action) return {};
-	let rolesToGiveId = Array.isArray(action.roles) ? action.roles : [action.roles];
-	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive => guild.roles.fetch(roleToGive.id)));
+	const roles = action.roles ?? action.role
+	console.log({roles})
+	let rolesToGiveId = Array.isArray(roles) ? roles : [roles];
+	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive => guild.roles.fetch(roleToGive.id ?? roleToGive)));
 	let member = await reaction.message.guild.members.resolve(user);
 	if (!member) {
 		member = reaction.message.guild.members.cache.get(user.id);
