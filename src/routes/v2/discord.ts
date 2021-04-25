@@ -5,7 +5,7 @@ const router = express.Router();
 
 import sha1 from "sha1";
 import fetch from "node-fetch";
-import { auth, firestore } from "firebase-admin";
+import admin, { auth, firestore } from "firebase-admin";
 import { getUserInfo } from "../../utils/DiscordClasses";
 import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed, TextChannel } from "discord.js";
@@ -80,6 +80,7 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
+	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 	try {
 		const token = req.query.token;
 		const tokenData = await DiscordOauthClient.tokenRequest({
@@ -88,7 +89,7 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 			grantType: "refresh_token",
 			clientId: process.env.DISCORD_CLIENT_ID,
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
-			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+			redirectUri: redirect_uri + "/?discord=true",
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
@@ -146,13 +147,13 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message,  server, messageId } = req.body;
+		const { channel, message, server, messageId } = req.body;
 		const guild = await DiscordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
-		const messageToEdit = await channelObj.messages.fetch(messageId)
-		const edited = await messageToEdit.edit(embed)
-		console.log(edited)
+		const messageToEdit = await channelObj.messages.fetch(messageId);
+		const edited = await messageToEdit.edit(embed);
+		console.log(edited);
 		res.json({ code: 200, message: "success", messageId: edited.id });
 	} catch (err) {
 		res.json({ code: 500, message: err.message });
@@ -280,6 +281,14 @@ router.get("/position", async (req, res, next) => {
 	} catch (err) {
 		res.status(401).json({ message: err.message });
 	}
+});
+
+router.post("/details", async (req, res, next) => {
+	
+	const { id } = req.query;
+	console.log(id, req.body)
+	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, {merge: true});
+	res.end()
 });
 
 export default router;

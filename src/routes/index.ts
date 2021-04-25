@@ -125,6 +125,7 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
+		console.log(err)
 		next(err);
 	}
 });
