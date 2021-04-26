@@ -38,9 +38,6 @@ DiscordClient.on("ready", async () => {
 			activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
 		}
 	], 30000)
-	// setInterval(() => {
-	// 	serverLength = DiscordClient.guilds.cache.array().length;
-	// }, hoursToMillis(0.25));
 });
 
 // initialize the twitch client

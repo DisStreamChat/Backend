@@ -1,7 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import fetch from "node-fetch"
-import {createObjectURL} from "blob-util"
+import fetch from "node-fetch";
 
 const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
 
@@ -41,29 +40,35 @@ export const aggregateServers = functions.firestore.document("Streamers/{docId}/
 });
 
 export const aggregateRankCards = functions.firestore.document("Leveling/{serverId}/users/{userId}").onWrite(async (change, context) => {
-	const {serverId, userId} = context.params
-	log(context.params, change)
-	log(serverId, userId)
-	const apiUrl = `https://api.disstreamchat.com/v2/discord/rankcard?guild=${serverId}&user=${userId}`
-	log(apiUrl)
+	const { serverId, userId } = context.params;
+	log(context.params, change);
+	log(serverId, userId);
+	const apiUrl = `https://api.disstreamchat.com/v2/discord/rankcard?guild=${serverId}&user=${userId}`;
+	log(apiUrl);
 
+	const fileName = `${userId}.png`;
+	const response = await fetch(apiUrl);
 
-	const fileName = `${userId}.png`
-	const response = await fetch(apiUrl)
-
-	log(response.headers)
-	const buffer = await response.buffer()
+	log(response.headers);
+	const buffer = await response.buffer();
 	// const blob = await response.blob()
 
 	const bucket = admin.storage().bucket();
-	
-	const imageBucket = "rankcard/"
-	
-    const destination = `${imageBucket}${serverId}/${fileName}`;
-	
-	const file = bucket.file(destination)
 
-	log(buffer.byteLength)
-	await file.save(buffer, {contentType: "image/png"})
-	return true
-})
+	const imageBucket = "rankcard/";
+
+	const destination = `${imageBucket}${serverId}/${fileName}`;
+
+	const file = bucket.file(destination);
+
+	log(buffer.byteLength);
+	await file.save(buffer, { contentType: "image/png" });
+	return true;
+});
+
+export const aggregateDiscordId = functions.firestore.document("Streamers/{userId}/discord/data").onWrite(async (change, context) => {
+	const { userId } = context.params;
+	const data = change.after.data();
+	const docRef = admin.firestore().collection("Streamers").doc(userId);
+	return await docRef.set({ discordId: data.id }, { merge: true });
+});

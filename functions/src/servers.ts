@@ -19,24 +19,33 @@ export const getServers = https.onCall(async (data: ServersData, context) => {
 	const adminServerIds = await Promise.all(
 		servers.map(async server => {
 			try {
-				const serverId = server.id;
-				const serverSettingsRef = firestore().collection("DiscordSettings").doc(serverId);
-				const serverSettingsData = (await serverSettingsRef.get()).data();
-				if (!serverSettingsData) return null;
-				const adminRoles = (serverSettingsData.adminRoles || []).map(role => role.id);
+				if (server.owner) return server.id;
+				if (server?.permissions?.includes?.("ADMINISTRATOR")) return server.id;
+				if (server?.permissions?.includes?.("MANAGE_GUILD")) return server.id;
 
-				if (
-					ArrayAny(adminRoles, server.roles) ||
-					server.permissions.includes("MANAGE_GUILD") ||
-					server.owner ||
-					server.permissions.includes("ADMINISTRATOR")
-				)
-					return server.id;
+				let hasAdminRole = false;
+				try {
+					const serverId = server.id;
+					const serverSettingsRef = firestore().collection("DiscordSettings").doc(serverId);
+					const serverSettingsData = (await serverSettingsRef.get()).data();
+					const adminRoles = (serverSettingsData?.adminRoles || []).map(role => role.id);
+					hasAdminRole = ArrayAny(adminRoles, server.roles);
+				} catch (err) {
+					logger.debug({ error: err.message });
+				}
+
+				const isAdmin = hasAdminRole;
+
+				logger.debug({ isAdmin, name: server.name, owner: server.owner });
+
+				if (isAdmin) return server.id;
 			} catch (err) {
+				logger.debug({ error: err.message });
 				return null;
 			}
 		})
 	);
+	logger.debug({ serverLength: servers.length, adminLength: adminServerIds.length });
 	const adminServers = adminServerIds.map(id => servers.find(server => server.id === id)).filter(Boolean);
 
 	return { adminServers };
