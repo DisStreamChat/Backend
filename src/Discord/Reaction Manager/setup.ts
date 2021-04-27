@@ -24,7 +24,6 @@ export default async (reaction, user, onJoin = false) => {
 		return {};
 	}
 	const reactionRoleMessage = reactionMessages[message.id];
-	console.log({reactionRoleMessage})
 	if (!reactionRoleMessage) return {};
 	let action;
 	if (onJoin) {
