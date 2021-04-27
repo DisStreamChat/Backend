@@ -1,4 +1,3 @@
-;
 import express from "express";
 import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
@@ -157,6 +156,16 @@ router.get("/emotes", async (req, res, next) => {
 		},
 	});
 	res.json(emotes);
+});
+
+router.get("/exists", async (req, res, next) => {
+	const { channel } = req.query;
+	if (!channel) {
+		return res.status(400).json({ message: "missing channel name", code: 400 });
+	}
+
+	const userData = await Api.getUserInfo(channel);
+	res.json({ exists: !!userData, data: userData });
 });
 
 router.get("/checkmod", async (req, res, next) => {
