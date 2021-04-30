@@ -5,7 +5,6 @@ import fetch from "node-fetch";
 const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
 
 const log = (...args) => functions.logger.debug(...args);
-// admin.initializeApp();
 
 export const aggregateServers = functions.firestore.document("Streamers/{docId}/discord/data").onWrite(async (change, context) => {
 	const id = context.params.docId;
@@ -51,7 +50,6 @@ export const aggregateRankCards = functions.firestore.document("Leveling/{server
 
 	log(response.headers);
 	const buffer = await response.buffer();
-	// const blob = await response.blob()
 
 	const bucket = admin.storage().bucket();
 

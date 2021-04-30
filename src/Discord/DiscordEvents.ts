@@ -5,9 +5,7 @@ import ReactionRoles from "./Reaction Manager";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";
-
 import { handleLeveling } from "./Leveling";
-
 import path from "path";
 import fs from "fs";
 import admin from "firebase-admin";

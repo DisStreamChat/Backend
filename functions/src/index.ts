@@ -20,8 +20,6 @@ const runBot = async (callback: (client: discord.Client) => Promise<void>) => {
 	
 	await DiscordClient.login(functions.config().discord.token);
 };
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
 //@ts-ignore
 export const helloWorld = functions.https.onRequest(async (_request, response) => {
 	await runBot(async client => {
