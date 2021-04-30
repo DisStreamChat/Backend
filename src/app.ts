@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import Server from "socket.io";
+import { Server } from "socket.io";
 
 import cors from "cors";
 import bodyParser from "body-parser";

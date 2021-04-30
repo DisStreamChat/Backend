@@ -36,11 +36,11 @@ TwitchEvents(TwitchClient, io, app);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./DiscordEvents.js
-DiscordEvents(DiscordClient, io, app);
+DiscordEvents(DiscordClient, io);
 if (process.env.BOT_DEV != "true") {
 	customBots.then(bots => {
 		for (const bot of bots.values()) {
-			DiscordEvents(bot, io, app);
+			DiscordEvents(bot, io);
 		}
 	});
 }

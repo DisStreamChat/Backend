@@ -1,4 +1,3 @@
-;
 import sha1 from "sha1";
 import uuidv1 from "uuidv1";
 
@@ -16,16 +15,15 @@ import { hoursToMillis } from "../utils/functions";
 
 import { TwitchApiClient as Api } from "../utils/initClients";
 import pubSub from "./pubsubEvents";
+import { TwitchMessageModel } from "../models/message.model";
+import { sendMessage } from "../utils/sendMessage";
 
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
 const getBadges = async (channelName, tags) => {
-	// get custom badges from twitch api
-
 	const badges = {};
 	if (tags.badges) {
-		const userInfo = await Api.getUserInfo(channelName, true);
 		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
 		const globalBadges = await Api.getGlobalBadges();
 
@@ -71,22 +69,16 @@ export default (TwitchClient, io, app) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
 
-		// don't waste time with all the next stuff if there isn't a socket connection to that channel
-		// // if (!io.hasOwnProperty(channelName)) return;
-
-		// send a message to all connected io for this channel to delete that message
 		io.in(`twitch-${channelName}`).emit("deletemessage", tags["target-msg-id"]);
 	});
 
 	TwitchClient.on("ban", (channel, username, reason, userstate) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// // if (!io.hasOwnProperty(channelName)) return;
 		io.in(`twitch-${channelName}`).emit("purgeuser", username);
 	});
 
 	TwitchClient.on("timeout", (channel, username, reason, duration, userstate) => {
 		const channelName = channel.slice(1).toLowerCase();
-		// // if (!io.hasOwnProperty(channelName)) return;
 		io.in(`twitch-${channelName}`).emit("purgeuser", username);
 	});
 
@@ -143,10 +135,6 @@ export default (TwitchClient, io, app) => {
 			CommandHandler(message, TwitchClient, channelName);
 		}
 
-		// don't waste time with all the next stuff if there isn't a socket connection to that channel
-		// // if (!io.hasOwnProperty(channelName)) return;
-		// console.log(io?.io?.clients?.(`twitch-${channelName}`))
-
 		// get all possible versions of the message with all variations of the message filters
 		// const plainMessage = await formatMessage(message, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
@@ -170,17 +158,12 @@ export default (TwitchClient, io, app) => {
 		// ping the twitch api for user data, currently only used for profile picture
 		const userData = await Api.getUserInfo(tags.username);
 
-		// this is all the data that gets sent to the frontend
-		const messageObject = {
+		const messageObject: TwitchMessageModel = {
 			displayName: tags["display-name"],
 			avatar: userData.profile_image_url, // long term TODO: look into caching profile picture
 			body: HTMLCleanMessage,
-			// HTMLCleanMessage,
-			// censoredMessage,
-			// HTMLCensoredMessage,
 			platform: "twitch",
 			messageId: messageId,
-			uuid: tags.id, // TODO: remove
 			id: tags.id,
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
@@ -194,14 +177,7 @@ export default (TwitchClient, io, app) => {
 
 		if (messageObject.body.length <= 0) return;
 
-		// send the message object to all io connected to this channel
-		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
-		try {
-			await admin.firestore().collection("messages").doc(channelName).set({ messages: true });
-			await admin.firestore().collection("messages").doc(channelName).collection("messages").doc(tags.id).set(messageObject);
-		} catch (err) {
-			console.log(err.message);
-		}
+		await sendMessage(messageObject, { channel: channelName, platform: "twitch" });
 	});
 
 	let globalCheerMotes = [];

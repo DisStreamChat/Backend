@@ -1,6 +1,5 @@
 import { JSDOM } from "jsdom";
 import URL from "url-parse";
-import { MessageEmbed, MessageAttachment, Permissions } from "discord.js";
 import nodeFetch from "node-fetch";
 
 export const warn = (member, guild, client, message) => {};

@@ -11,10 +11,11 @@ import { handleLeveling } from "./Leveling";
 import path from "path";
 import fs from "fs";
 import admin from "firebase-admin";
+import { DiscordMessageModel } from "../models/message.model";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
-export default async (client, io, app) => {
+export default async (client, io) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
@@ -118,7 +119,7 @@ export default async (client, io, app) => {
 				const CleanMessage = message.cleanContent;
 				const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
 
-				const messageObject = {
+				const messageObject: DiscordMessageModel = {
 					displayName: senderName,
 					username: message.author.username,
 					userId: message.author.id,
@@ -127,7 +128,6 @@ export default async (client, io, app) => {
 					platform: "discord",
 					messageId: "",
 					messageType: "chat",
-					uuid: message.id,
 					id: message.id,
 					badges,
 					sentAt: message.createdAt.getTime(),
