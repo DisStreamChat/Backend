@@ -2,6 +2,7 @@ import { GenericMessageType, MessageMap } from "../models/message.model";
 import { io } from "../app";
 import cache from "memory-cache";
 import { firestore } from "firebase-admin";
+import { log } from "./functions/logging";
 
 interface SendMessageOptions {
 	channel: string;
@@ -11,7 +12,6 @@ interface SendMessageOptions {
 const cacheInstance = new cache.Cache<string, MessageMap>();
 
 const handleMessageTimeout = async (key: string, value: MessageMap) => {
-	console.log(`clearing messages from ${key}`);
 	const db = firestore();
 	const batch = db.batch();
 
@@ -37,8 +37,12 @@ const handleMessageTimeout = async (key: string, value: MessageMap) => {
 };
 
 export const sendMessage = async (message: GenericMessageType, options: SendMessageOptions): Promise<void> => {
-	io.in(`${options.platform}-${options.channel}`).emit("chatmessage", message);
-	const messages: MessageMap = cacheInstance.get(options.channel) ?? new Map();
-	messages.set(message.id, message);
-	cacheInstance.put(options.channel, messages, 500, handleMessageTimeout);
+	try {
+		io.in(`${options.platform}-${options.channel}`).emit("chatmessage", message);
+		const messages: MessageMap = cacheInstance.get(options.channel) ?? new Map();
+		messages.set(message.id, message);
+		cacheInstance.put(options.channel, messages, 500, handleMessageTimeout);
+	} catch (err) {
+		log(`Error in sending message to app: ${err.message}`);
+	}
 };

@@ -24,7 +24,6 @@ export default async (message, client, streamerName) => {
     const args = message.split(" ");
     const command = args.shift().slice(1);
     const commandObj = commands[command];
-    console.log(commandObj)
     if(!commandObj){
 
     }else{

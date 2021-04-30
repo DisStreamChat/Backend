@@ -8,7 +8,6 @@ export default async (command, message, client) => {
 	const rolesToGive = (Array.isArray(commandRoles) ? commandRoles : [commandRoles]).map(role => role.id || role);
 	const roleIds = roles.cache.array().map(role => role.id);
 	for (const roleToGive of rolesToGive) {
-		console.log(roleToGive)
 		const memberHasRole = roles.cache.get(roleToGive);
 		const roleObj = await message.guild.roles.fetch(roleToGive);
 		let action;

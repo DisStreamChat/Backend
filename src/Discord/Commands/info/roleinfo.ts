@@ -17,7 +17,6 @@ export default {
 		const roleGuildRef = await admin.firestore().collection("roleManagement").doc(msg.guild.id).get()
 		const roleData = roleGuildRef.data()
 		const descriptions = roleData?.descriptions?.roles
-		console.log(descriptions)
 		const description = descriptions?.[`${role.id}=${JSON.stringify(role)}`] || "This Role has no description";
 
 		const createdAt = formatFromNow(role.createdAt);

@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
+import { log } from "../../utils/functions/logging";
 
 export default async (oldMessage, newMessage, client) => {
 	const guild = newMessage.guild;
@@ -36,6 +37,6 @@ export default async (oldMessage, newMessage, client) => {
 			logChannel.send(embed);
 		}
 	} catch (err) {
-		console.log(err.message);
+		log(err.message, { error: true });
 	}
 };

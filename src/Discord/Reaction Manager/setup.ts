@@ -34,7 +34,6 @@ export default async (reaction, user, onJoin = false) => {
 	}
 	if (!action) return {};
 	const roles = action.roles ?? action.role
-	console.log({roles})
 	let rolesToGiveId = Array.isArray(roles) ? roles : [roles];
 	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive => guild.roles.fetch(roleToGive.id ?? roleToGive)));
 	let member = await reaction.message.guild.members.resolve(user);

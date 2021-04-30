@@ -7,7 +7,6 @@ export default async (reaction, user, DiscordClient) => {
 		if (!Array.isArray(roles)) roles = [roles];
 		for (const roleToGive of rolesToGive) {
 			const role = roleToGive.id ?? roleToGive;
-			console.log({role})
 			switch (type) {
 				case "REMOVE_ON_ADD":
 					if (member.roles.cache.has(role)) {

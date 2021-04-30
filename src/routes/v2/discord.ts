@@ -10,6 +10,7 @@ import { getUserInfo } from "../../utils/DiscordClasses";
 import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed, TextChannel } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
+import { log } from "../../utils/functions/logging";
 
 // get invite link to our discord
 router.get("/", (req, res) => {
@@ -52,7 +53,7 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		console.log(`Error getting channels: ${err}`);
+		log(`Error getting channels: ${err.message}`);
 
 		res.json([]);
 	}
@@ -133,10 +134,9 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 				if (reaction.length > 5) {
 					reaction = DiscordClient.emojis.cache.get(reaction);
 				}
-				console.log(reaction);
 				await sentMessage.react(reaction);
 			} catch (err) {
-				console.log(`error in reacting to message: ${err.message}`);
+				log(`error in reacting to message: ${err.message}`);
 			}
 		}
 		res.json({ code: 200, message: "success", messageId: sentMessage.id });
@@ -153,7 +153,6 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const messageToEdit = await channelObj.messages.fetch(messageId);
 		const edited = await messageToEdit.edit(embed);
-		console.log(edited);
 		res.json({ code: 200, message: "success", messageId: edited.id });
 	} catch (err) {
 		res.json({ code: 500, message: err.message });
@@ -163,7 +162,7 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 router.get("/token", async (req, res, next) => {
 	try {
 		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
-		console.log(redirect_uri + "/?discord=true");
+		log(`redirect uri: ${redirect_uri}/?discord=true`);
 		const code = req.query.code;
 		if (!code) {
 			return res.status(401).json({
@@ -284,11 +283,9 @@ router.get("/position", async (req, res, next) => {
 });
 
 router.post("/details", async (req, res, next) => {
-	
 	const { id } = req.query;
-	console.log(id, req.body)
-	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, {merge: true});
-	res.end()
+	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, { merge: true });
+	res.end();
 });
 
 export default router;

@@ -1,13 +1,13 @@
-import  dotenv from "dotenv"
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 import TwitchEvents from "./Twitch/TwitchEvents";
 import DiscordEvents from "./Discord/DiscordEvents";
 import { log } from "./utils/functions/logging";
-import {sockets} from "./Sockets"
+import { sockets } from "./Sockets";
 // get the initialized clients from another file
 import { DiscordClient, TwitchClient, customBots } from "./utils/initClients";
-import {initializeApp, credential} from "firebase-admin";
-import {io, server, app} from "./app"
+import { initializeApp, credential } from "firebase-admin";
+import { io, server, app } from "./app";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -22,7 +22,6 @@ try {
 		credential: credential.cert(serviceAccount),
 	});
 } catch (err) {}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TWITCH
@@ -48,8 +47,8 @@ if (process.env.BOT_DEV != "true") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-log(`Bot Dev: ${process.env.BOT_DEV}`, {writeToConsole: true})
-sockets(io)
+log(`Bot Dev: ${process.env.BOT_DEV}`, { writeToConsole: true });
+sockets(io);
 
 app.use((req, res) => {
 	res.status(404).json({
@@ -61,5 +60,5 @@ app.use((req, res) => {
 const port = process.env.PORT || 3200;
 
 server.listen(port, () => {
-	console.log(`listening on port ${port}`);
+	log(`listening on port ${port}`, { writeToConsole: true });
 });

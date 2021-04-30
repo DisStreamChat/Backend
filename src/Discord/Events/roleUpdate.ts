@@ -25,7 +25,6 @@ export default async (oldRole, newRole, client) => {
 			ignoredDifferences: ["permissions"], // TODO: handle permission changes
 			valueMap: {
 				color: value => {
-					console.log(value);
 					return !value
 						? `[#000000](https://www.color-hex.com/color/000000)`
 						: `[${colorString(value)}](https://www.color-hex.com/color/${colorString(value, false)})`;

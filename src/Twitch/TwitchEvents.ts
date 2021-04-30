@@ -17,6 +17,7 @@ import { TwitchApiClient as Api } from "../utils/initClients";
 import pubSub from "./pubsubEvents";
 import { TwitchMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
+import { log } from "../utils/functions/logging";
 
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
@@ -204,7 +205,7 @@ export default (TwitchClient, io, app) => {
 					}
 				}
 			} catch (err) {
-				console.log(err.message);
+				log(err.message, { error: true });
 			}
 		}
 	};
@@ -213,7 +214,6 @@ export default (TwitchClient, io, app) => {
 		customCheerMoteID: any = 0;
 
 	const getAllCheerMotes = async () => {
-		// console.log("getting cheerMotes");
 		await getGlobalCheerMotes();
 		await getCustomCheerMotes();
 		clearInterval(customCheerMoteID);
@@ -534,7 +534,7 @@ export default (TwitchClient, io, app) => {
 						const followerId = body.from_id;
 						const followedAt = body.followed_at;
 
-						console.log(`${follower} followed ${streamer}`);
+						log(`${follower} followed ${streamer}`);
 
 						// long term TODO: add follower count/goal overlay
 
@@ -546,7 +546,6 @@ export default (TwitchClient, io, app) => {
 						const previouslyNotified = streamerData.previouslyNotified || [];
 
 						if (new Set(previouslyNotified).has(followerId)) return res.status(200).json("already notified");
-						console.log("notifying");
 						previouslyNotified.push(followerId);
 						await db.collection("Streamers").doc(streamerDatabaseId).update({
 							previouslyNotified,
@@ -582,7 +581,7 @@ export default (TwitchClient, io, app) => {
 				res.status("401").json({ message: "Looks like You aren't twitch" });
 			}
 		} catch (err) {
-			console.log(err.messages);
+			log(err.messages, { error: true });
 			res.json({ message: "an error occured" });
 		}
 	});

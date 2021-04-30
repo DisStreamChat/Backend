@@ -24,7 +24,6 @@ export default async ({ command, args, message, client }) => {
 	const guildData = guildRef.data();
 	const roleData = roleGuildRef.data()
 	const roleCommands = roleData?.commands?.commands || {}
-	console.log({roleCommands})
 	if (guildData) {
 		for (const [key, value] of Object.entries(({...guildData, ...roleCommands}) as { [key: string]: any })) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {

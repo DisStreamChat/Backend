@@ -7,6 +7,7 @@ import  TwitchApi from "twitchio-js";
 //@ts-ignore
 import  DiscordOauth2 from "discord-oauth2";
 import {cycleBotStatus} from "../utils/functions"
+import { log } from "./functions/logging";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -26,7 +27,7 @@ DiscordClient.login(process.env.BOT_TOKEN);
 let serverLength = 0;
 
 DiscordClient.on("ready", async () => {
-	console.log("bot ready");
+	log("bot ready");
 	serverLength = DiscordClient.guilds.cache.array().length;
 	cycleBotStatus(DiscordClient, [
 		{

@@ -1,4 +1,3 @@
-
 import fs from "fs";
 import { formatMessage } from "../../utils/messageManipulation";
 
@@ -14,6 +13,7 @@ const DisStreamChatProfile =
 import { TwitchApiClient as Api } from "../../utils/initClients";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { customBots } from "../../utils/initClients";
+import { log } from "../../utils/functions/logging";
 
 const commands = commandFiles.reduce(
 	(acc, cur) => ({
@@ -40,8 +40,6 @@ const runIo = async io => {
 					(await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))).reduce((acc, cur) => [...acc, ...cur])
 				),
 			].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
-
-			console.log(allNotifyingChannels.length);
 
 			for (const channel of allNotifyingChannels) {
 				const streamerData = await Api.getUserInfo(channel as string);
@@ -87,7 +85,7 @@ const runIo = async io => {
 				.filter(s => s)
 				.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id && subChannel.isUser));
 
-			console.log("Authorized Streamers: ", authorizedStreamers.length);
+			log(`Authorized Streamers: ${authorizedStreamers.length}`);
 
 			authorizedStreamers.forEach(async streamer => {
 				if (!streamer.user_id) return;
@@ -121,7 +119,6 @@ const runIo = async io => {
 
 				pubSub.on("channel-points", async data => {
 					try {
-						console.log(data);
 						const { redemption, channel_id } = data;
 						const user = await Api.getUserInfo(channel_id);
 						const channelName = user.login;
@@ -172,7 +169,7 @@ const runIo = async io => {
 						};
 						io.in(`twitch-${channelName}`).emit("auto-mod", messageObject);
 					} catch (error) {
-						console.log("error sending automod message", data, error.message);
+						log(error.message, { error: true });
 					}
 				});
 
@@ -223,4 +220,4 @@ const runIo = async io => {
 		});
 };
 
-export default runIo
+export default runIo;

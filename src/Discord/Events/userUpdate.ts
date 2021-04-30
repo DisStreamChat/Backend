@@ -1,12 +1,13 @@
 import { firestore } from "firebase-admin";
 import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
+import { log } from "../../utils/functions/logging";
 
 export default async (oldUser, newUser, DiscordClient) => {
 	const serversToLog = await firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
 	const serversData = serversToLog.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const guilds = await Promise.all(
-		serversData.map(async doc => await DiscordClient.guilds.fetch(doc.id)).map(promise => promise.catch(console.log))
+		serversData.map(async doc => await DiscordClient.guilds.fetch(doc.id)).map(promise => promise.catch(log))
 	);
 	const channelsInfo = (
 		await Promise.all(
@@ -44,7 +45,7 @@ export default async (oldUser, newUser, DiscordClient) => {
 				await logChannel.send(changeEmbed);
 			}
 		} catch (err) {
-			console.log(err.message);
+			log(err.message, { error: true });
 		}
 	}
 };

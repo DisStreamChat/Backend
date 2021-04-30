@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
-import {firestore} from "firebase-admin"
+import { firestore } from "firebase-admin";
+import { log } from "../../utils/functions/logging";
 interface StreamModel {
 	user_name: string;
 	title: string;
@@ -15,7 +16,7 @@ const getStream = (channel_name): Promise<StreamModel> => {
 			rej("Stream Took Too long");
 		}, 30000 * 5);
 		const intervalId = setInterval(async () => {
-			console.log("fetching stream");
+			log("fetching stream");
 			const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${channel_name}`;
 			const streamDataResponse = await Api.fetch(apiUrl);
 			const streamData = streamDataResponse.data;
@@ -61,7 +62,7 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 
 			notifyChannel.send(embed);
 		} catch (err) {
-			console.log(err.message);
+			log(err.message, { error: true });
 		}
 	}
 };

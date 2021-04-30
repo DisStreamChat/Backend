@@ -201,7 +201,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			console.log("failed to join channel: ", err.message);
+			log(`failed to join channel: ${err.message}`);
 			let isMod = TwitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
@@ -237,7 +237,6 @@ router.get("/token", async (req, res, next) => {
 	try {
 		// get the oauth code from the the request
 		const code = req.query.code;
-		console.log(code);
 		// get the access token and refresh token from the from the twitch oauth2 endpoint
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {

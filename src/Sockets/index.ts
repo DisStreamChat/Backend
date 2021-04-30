@@ -7,7 +7,7 @@ import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 
 export const sockets = io => {
-	console.log("setting up sockets");
+	log("setting up sockets", { writeToConsole: true });
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
 		const socketWrapper = new Socket(socket);
@@ -41,13 +41,9 @@ export const sockets = io => {
 
 		socket.on("deletemsg - discord", async data => {
 			let id = data.id || data;
-			const rooms = [...socket.rooms]
-			const guildId = rooms
-				.find(room => room.includes("guild"))
-				?.split?.("-")?.[1];
-			const liveChatId = rooms
-				.filter(room => room.includes("channel"))
-				?.map(id => id.split("-")[1]);
+			const rooms = [...socket.rooms];
+			const guildId = rooms.find(room => room.includes("guild"))?.split?.("-")?.[1];
+			const liveChatId = rooms.filter(room => room.includes("channel"))?.map(id => id.split("-")[1]);
 
 			const modId = data.mod_id;
 			const refreshToken = data.refresh_token;
@@ -70,16 +66,14 @@ export const sockets = io => {
 
 					messageToDelete.delete();
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 				}
 			}
 		});
 
 		socket.on("banuser - discord", async data => {
 			let user = data.user || data;
-			const guildId = [...socket.rooms]
-				.find(room => room.includes("guild"))
-				?.split?.("-")?.[1];
+			const guildId = [...socket.rooms].find(room => room.includes("guild"))?.split?.("-")?.[1];
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
 
 			const modId = data.mod_id;
@@ -94,21 +88,18 @@ export const sockets = io => {
 			try {
 				connectGuild.members.ban(user, { days: 1 });
 			} catch (err) {
-				console.log(err.message);
+				log(err.message, { error: true });
 			}
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			console.log("delete data: ", data);
-			const TwitchName = [...socket.rooms]
-				.find(room => room.includes("twitch"))
-				?.split?.("-")?.[1];
+			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			function botDelete(id) {
 				try {
 					TwitchClient.deletemessage(TwitchName, id);
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 				}
 			}
 			let id = data.id;
@@ -126,7 +117,7 @@ export const sockets = io => {
 						await UserClient.deletemessage(TwitchName, id);
 						UserClient = null;
 					} catch (err) {
-						console.log(err.message);
+						log(err.message, { error: true });
 						botDelete(id);
 					}
 				}
@@ -134,18 +125,16 @@ export const sockets = io => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const TwitchName = [...socket.rooms]
-				.find(room => room.includes("twitch"))
-				?.split?.("-")?.[1];
+			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botTimeout(user) {
-				console.log(`Timeout ${user} - Twitch`);
+				log(`Timeout ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
 					await TwitchClient.timeout(TwitchName, user, data.time ?? 300);
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 				}
 			}
 			if (!user) {
@@ -162,7 +151,7 @@ export const sockets = io => {
 						await UserClient.timeout(TwitchName, user, data.time ?? 300);
 						UserClient = null;
 					} catch (err) {
-						console.log(err.message);
+						log(err.message, { error: true });
 						botTimeout(user);
 					}
 				}
@@ -170,18 +159,16 @@ export const sockets = io => {
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const TwitchName = [...socket.rooms]
-				.find(room => room.includes("twitch"))
-				?.split?.("-")?.[1];
+			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botBan(user) {
-				console.log(`Ban ${user} - Twitch`);
+				log(`Ban ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
 					await TwitchClient.ban(TwitchName, user, data.time ?? 300);
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 				}
 			}
 
@@ -196,27 +183,24 @@ export const sockets = io => {
 					await UserClient.ban(TwitchName, user);
 					UserClient = null;
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 					botBan(user);
 				}
 			}
 		});
 
-		console.log("setting up send chat");
+		log("setting up send chat", { writeToConsole: true });
 		socket.on("sendchat", async data => {
-			console.log(`send chat: `, data);
+			log(`send chat: ${data}`);
 			const sender = data.sender;
 			const refreshToken = data.refreshToken;
 			const message = data.message;
-			const TwitchName = [...socket.rooms]
-				.find(room => room.includes("twitch"))
-				?.split?.("-")?.[1];
+			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 			if (!refreshToken) {
 				throw new Error("no auth");
 			}
 			if (sender && message) {
 				try {
-					console.log(sender, message, TwitchName);
 					let UserClient = await getUserClient(refreshToken, sender, TwitchName);
 					try {
 						await UserClient.join(TwitchName);
@@ -226,14 +210,14 @@ export const sockets = io => {
 					}
 					UserClient = null;
 				} catch (err) {
-					console.log(err.message);
+					log(err.message, { error: true });
 				}
 			}
 		});
 
 		socket.on("disconnect", () => {
-			console.log("a user disconnected");
-			console.log(socket.rooms);
+			log("a user disconnected");
+			log(socket.rooms, { writeToConsole: true });
 		});
 	});
 };

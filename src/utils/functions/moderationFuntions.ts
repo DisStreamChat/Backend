@@ -1,6 +1,7 @@
 import { JSDOM } from "jsdom";
 import URL from "url-parse";
 import nodeFetch from "node-fetch";
+import { log } from "./logging";
 
 export const warn = (member, guild, client, message) => {};
 
@@ -15,7 +16,7 @@ export const checkDiscordInviteLink = async url => {
 		const metaCheck2 = dom.querySelector("[property='og:url']");
 		return metaCheck1?.content === "@discord" && metaCheck2?.content?.includes("invite");
 	} catch (err) {
-		console.log(err.message);
+		log(err.message);
 		return false;
 	}
 };

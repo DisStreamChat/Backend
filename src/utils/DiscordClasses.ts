@@ -29,7 +29,6 @@ export class DiscordServer {
 		} catch (err) {
 			this.roles = [];
 		}
-		console.log(this.roles);
 	}
 }
 

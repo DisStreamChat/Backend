@@ -1,4 +1,3 @@
-;
 import express from "express";
 const router = express.Router();
 import sha1 from "sha1";
@@ -19,6 +18,7 @@ import { generateRankCard } from "../utils/functions";
 import { validateRequest } from "../middleware";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
 import tmi from "tmi.js";
+import { log } from "../utils/functions/logging";
 
 const sevenDays = 604800000;
 
@@ -71,7 +71,7 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		console.log(`Error getting channels: ${err}`);
+		log(`Error getting channels: ${err}`);
 		res.json([]);
 	}
 });
@@ -125,7 +125,7 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
-		console.log(err)
+		log(err.message, { error: true });
 		next(err);
 	}
 });
@@ -282,7 +282,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			console.log(`failed to join channel: ${err.message}`);
+			log(`failed to join channel: ${err.message}`);
 			let isMod = TwitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
@@ -513,7 +513,7 @@ router.get("/chatters", async (req, res, next) => {
 			try {
 				TwitchClient.join(req.query.user);
 			} catch (err) {
-				console.log(`Error getting channels: ${err}`);
+				log(`Error getting channels: ${err}`);
 			}
 		}, 1000);
 		res.json({ message: err.message, status: 500 });
@@ -549,7 +549,6 @@ router.get("/stats/twitch", async (req, res, next) => {
 });
 
 router.get("/webhooks/twitch", async (req, res, next) => {
-	// console.log(req.query);
 	res.send(req.query["hub.challenge"]);
 });
 
@@ -723,7 +722,7 @@ router.post("/discord/reactionmessage", validateRequest, async (req, res, next) 
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
-				console.log(`error in reacting to message: ${err.message}`);
+				log(`error in reacting to message: ${err.message}`);
 			}
 		}
 		res.json({ code: 200, message: "success", messageId: sentMessage.id });

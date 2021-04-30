@@ -16,10 +16,6 @@ export default async (message, DiscordClient) => {
 	if (deleteAction.action !== "MESSAGE_DELETE") {
 		executor = message.author;
 	} 
-	// else if (DiscordClient.deleter) {
-	// 	console.log("bot deleter");
-	// 	executor = DiscordClient.deleter;
-	// }
 
 	const [channelIds, active] = await setupLogging(guild, "messageDelete", DiscordClient);
 

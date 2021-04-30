@@ -22,7 +22,6 @@ export default {
 		} catch (err) {
 			return await message.channel.send(":x: User was not banned or doesn't exist");
         }
-        console.log(user)
 		const nickname = user.username;
 		await message.guild.members.unban(user.id);
 		const embed = new MessageEmbed()

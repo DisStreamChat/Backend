@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 import { TwitchApiClient as Api } from "../initClients";
 import fetch from "node-fetch";
+import { log } from "./logging";
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
@@ -8,8 +9,6 @@ export async function getBttvEmotes(channelName) {
 	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	let emotes = await bttvResponse.json();
 	const channelInfo = await Api.getUserInfo(channelName);
-	// console.log(channelInfo)
-	// replace with your channel url
 	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
 	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
 	if (channelEmotes) {
@@ -69,10 +68,10 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 			},
 		});
 		if (!response.ok) {
-			console.log(await response.json());
+			log(await response.json());
 		}
 	} catch (err) {
-		console.log(err.message);
+		log(err.message);
 	}
 
 	return leaseSeconds;
@@ -96,7 +95,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 			},
 		});
 	} catch (err) {
-		console.log(err.message);
+		log(err.message);
 	}
 
 	return leaseSeconds;
@@ -125,7 +124,6 @@ export const initWebhooks = async () => {
 		const nextConnectionTime = lastConnection + sevenDays;
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
 		const updateConnections = () => {
-			console.log(allConnections);
 			const value = new Date().getTime();
 			allConnections.forEach(async data => {
 				const id = data.channelId;
@@ -141,6 +139,6 @@ export const initWebhooks = async () => {
 			setInterval(updateConnections, tenDays);
 		}, timeUntilNextConnection);
 	} catch (err) {
-		console.log(err);
+		log(err);
 	}
 };
