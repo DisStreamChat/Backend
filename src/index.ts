@@ -60,4 +60,13 @@ const port = process.env.PORT || 3200;
 
 server.listen(port, () => {
 	log(`listening on port ${port}`, { writeToConsole: true });
+	setTimeout(function () {
+		throw new Error("We crashed!!!!!");
+	}, 1000);
+});
+
+process.on("uncaughtException", async error => {
+	await log(`Oh my god, something terrible happened: ${error}`, { DM: true, writeToConsole: true });
+
+	process.exit(1); // exit application
 });
