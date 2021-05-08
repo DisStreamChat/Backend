@@ -18,7 +18,7 @@ import { log } from "../../utils/functions/logging";
 const commands = commandFiles.reduce(
 	(acc, cur) => ({
 		...acc,
-		[cur.name.replace(".js", "")]: { ...cur, exec: require(cur.path) },
+		[cur.name.replace(".js", "")]: { ...cur, exec: require(cur.path).default },
 	}),
 	{}
 );
