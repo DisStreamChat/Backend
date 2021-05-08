@@ -13,7 +13,7 @@ export default ({ message, args }) => {
 			return Random(Number(val));
 		},
 		member: message.member,
-		user: message.user,
+		user: message.author,
 		author: message.author,
 		me: message.member,
 		time: () => (val, render) => {
