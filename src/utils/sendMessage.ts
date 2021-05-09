@@ -12,6 +12,7 @@ interface SendMessageOptions {
 const cacheInstance = new cache.Cache<string, MessageMap>();
 
 const handleMessageTimeout = async (key: string, value: MessageMap) => {
+	return;
 	const db = firestore();
 	const batch = db.batch();
 
