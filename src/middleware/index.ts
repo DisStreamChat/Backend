@@ -1,5 +1,5 @@
 import { firestore } from "firebase-admin";
-import { v4 as uuidv4 } from "uuid";
+import uuidv1 from "uuidv1";
 
 export const allowedOrigins = ["https://www.disstreamchat.com", "http://localhost:3200", "http://localhost:3000"];
 
@@ -15,7 +15,7 @@ export const validateRequest = async (req, res, next) => {
 		const otcData = (await firestore().collection("Secret").doc(userId).get()).data();
 		const otcFromDb = otcData?.value;
 		if (otcFromDb === otc) {
-			const newOtc = uuidv4();
+			const newOtc = uuidv1();
 			await firestore().collection("Secret").doc(userId).set({ value: newOtc });
 			return next();
 		}
