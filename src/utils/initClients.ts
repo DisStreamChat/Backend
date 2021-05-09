@@ -1,12 +1,11 @@
-
-import {Client} from "discord.js";
+import { Client } from "discord.js";
 import tmi from "tmi.js";
-import {initializeApp, credential, firestore} from "firebase-admin";
+import { initializeApp, credential, firestore } from "firebase-admin";
 //@ts-ignore
-import  TwitchApi from "twitchio-js";
+import TwitchApi from "twitchio-js";
 //@ts-ignore
-import  DiscordOauth2 from "discord-oauth2";
-import {cycleBotStatus} from "../utils/functions"
+import DiscordOauth2 from "discord-oauth2";
+import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
 
 // get the serviceAccount details from the base64 string stored in environment variables
@@ -27,18 +26,22 @@ DiscordClient.login(process.env.BOT_TOKEN);
 let serverLength = 0;
 
 DiscordClient.on("ready", async () => {
-	log("bot ready");
+	log("bot ready", { writeToConsole: true });
 	serverLength = DiscordClient.guilds.cache.array().length;
-	cycleBotStatus(DiscordClient, [
-		{
-			status: "online",
-			activity: { type: "WATCHING", name: `🔴 Live Chat in ${DiscordClient.guilds.cache.array().length} servers` },
-		},
-		{
-			status: "online",
-			activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
-		}
-	], 30000)
+	cycleBotStatus(
+		DiscordClient,
+		[
+			{
+				status: "online",
+				activity: { type: "WATCHING", name: `🔴 Live Chat in ${DiscordClient.guilds.cache.array().length} servers` },
+			},
+			{
+				status: "online",
+				activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
+			},
+		],
+		30000
+	);
 });
 
 // initialize the twitch client
@@ -58,10 +61,10 @@ export const TwitchClient = new tmi.Client({
 TwitchClient.connect();
 
 export const getCustomBots = async () => {
-	if(process.env.BOT_DEV == "true") return new Map()
+	if (process.env.BOT_DEV == "true") return new Map();
 	const botQuery = firestore().collection("customBot");
 	const botRef = await botQuery.get();
-	const bots : any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+	const bots: any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const customBots = new Map();
 	for (const bot of bots) {
 		const botClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
@@ -90,16 +93,16 @@ export const TwitchApiClient = new TwitchApi({
 	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 });
 
-export const DiscordOauthClient  = new DiscordOauth2({
+export const DiscordOauthClient = new DiscordOauth2({
 	clientId: process.env.DISCORD_CLIENT_ID,
 	clientSecret: process.env.DISCORD_CLIENT_SECRET,
 	redirectUri: process.env.REDIRECT_URI + "/?discord=true",
 });
 
-export const KrakenApiClient  = new TwitchApi({
+export const KrakenApiClient = new TwitchApi({
 	clientId: process.env.TWITCH_CLIENT_ID,
 	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
 	kraken: true,
 });
 
-export const customBots = getCustomBots()
+export const customBots = getCustomBots();
