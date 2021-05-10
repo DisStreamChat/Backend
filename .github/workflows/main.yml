@@ -1,0 +1,25 @@
+name: Docker build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+ 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker container
+        run: |
+          docker build -t gypsydangerous/disstreamchat:latest .
+      - name: Push Docker container
+        run: |
+          docker push gypsydangerous/disstreamchat:latest
+      - name: Deploy Docker container
+        run: |
+          echo do this with ssh?
