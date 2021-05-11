@@ -15,28 +15,39 @@ export const sockets = io => {
 
 		// the addme event is sent from the frontend on load with the data from the database
 		socket.on("addme", async message => {
-			log(`adding: ${message} to: ${socket.id}`, { writeToConsole: true });
+			log(`adding: ${JSON.stringify(message)} to: ${socket.id}`, { writeToConsole: true });
 			let { TwitchName, guildId, liveChatId } = message;
 			TwitchName = TwitchName?.toLowerCase?.();
 
-			if (TwitchName) await socketWrapper.join(`twitch-${TwitchName}`);
-			if (guildId) await socketWrapper.join(`guild-${guildId}`);
-			if (liveChatId) {
-				if (liveChatId instanceof Array) {
-					for (const id of liveChatId) {
-						await socketWrapper.join(`channel-${id}`);
-					}
-				} else {
-					await socketWrapper.join(`channel-${liveChatId}`);
+			try {
+				const channels = await TwitchClient.getChannels();
+				if (!channels.includes(TwitchName)) {
+					await TwitchClient.join(TwitchName);
+					console.log("joined channel")
 				}
+			} catch (err) {
+				log(err, { writeToConsole: true, error: true });
 			}
 
 			try {
-				const channels = await TwitchClient.getChannels();
-				if (!channels.includes(TwitchName?.toLowerCase())) {
-					await TwitchClient.join(TwitchName);
+				if (TwitchName) await socketWrapper.join(`twitch-${TwitchName}`);
+				if (guildId) await socketWrapper.join(`guild-${guildId}`);
+				if (liveChatId) {
+					if (liveChatId instanceof Array) {
+						for (const id of liveChatId) {
+							await socketWrapper.join(`channel-${id}`);
+						}
+					} else {
+						await socketWrapper.join(`channel-${liveChatId}`);
+					}
 				}
-			} catch (err) {}
+			} catch (err) {
+				log(err, { writeToConsole: true, error: true });
+			} finally {
+				console.log("finally");
+			}
+
+			
 		});
 
 		socket.on("deletemsg - discord", async data => {
