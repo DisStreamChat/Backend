@@ -10,11 +10,12 @@ export const getServers = https.onCall(async (data: ServersData, context) => {
 	const { discordId } = data;
 	const docRefs = await firestore().collection("Streamers").where("discordId", "==", discordId).get();
 	const discordDocRefs = await Promise.all(docRefs.docs.map(async doc => (await doc.ref.collection("discord").doc("data").get()).data()));
-	const docServers = discordDocRefs.map(doc => doc.guilds);
-	const servers = Array.from(new Set(docServers.map(a => a.id))).map(id => {
+	const docServers = discordDocRefs.reduce((acc, cur) => [...cur.guilds, ...(acc as Array<any>)], []);
+	const docServerIds = docServers.map(a => a.id)
+	const uniqueServerIds = new Set(docServerIds)
+	const servers = [...uniqueServerIds].map(id => {
 		return docServers.find(a => a.id === id);
-	})[0];
-	logger.debug(servers);
+	});
 	if (discordId === "193826355266191372") return { adminServers: servers };
 	const adminServerIds = await Promise.all(
 		servers.map(async server => {

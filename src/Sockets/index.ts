@@ -200,7 +200,6 @@ export const sockets = io => {
 			}
 		});
 
-		log("setting up send chat", { writeToConsole: true });
 		socket.on("sendchat", async data => {
 			log(`send chat: ${data}`);
 			const sender = data.sender;
