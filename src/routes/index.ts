@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 import sha1 from "sha1";
 import fetch from "node-fetch";
-import TwitchApi from "twitch-lib";
+import TwitchApi from "twitchio-js";
 import { firestore, auth } from "firebase-admin";
 import { getUserInfo } from "../utils/DiscordClasses";
 import {
@@ -237,7 +237,7 @@ router.get("/emotes", async (req, res, next) => {
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
 	const userApi = new TwitchApi({
 		clientId: process.env.TWITCH_CLIENT_ID,
-		authorizationToken: json.access_token,
+		authorizationKey: json.access_token,
 		kraken: true,
 	});
 	const emotes = await userApi.fetch(apiUrl, {
@@ -625,7 +625,7 @@ router.put("/twitch/follow", validateRequest, async (req, res, next) => {
 		);
 		const userApi = new TwitchApi({
 			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationToken: refreshData.access_token,
+			authorizationKey: refreshData.access_token,
 			kraken: true,
 		});
 		await userApi.fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
@@ -655,7 +655,7 @@ router.delete("/twitch/follow", validateRequest, async (req, res, next) => {
 		);
 		const userApi = new TwitchApi({
 			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationToken: refreshData.access_token,
+			authorizationKey: refreshData.access_token,
 			kraken: true,
 		});
 		await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
