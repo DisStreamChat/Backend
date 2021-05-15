@@ -13,8 +13,8 @@ export default async (reaction, user, onJoin = false) => {
 		value.reactions = value.actions
 	}
 	const guildDB = await guildRef.get();
-	const guildData = {...legacyGuildData, ...(guildDB.data() || {})};
-	const reactionMessages ={...legacyGuildData, ...(guildDB.data()?.messages || {})}
+	const guildData = {...(legacyGuildData || {}), ...(guildDB.data() || {})};
+	const reactionMessages ={...legacyGuildData, ...(guildDB.data()?.reactions?.messages || {})}
 	if (!guildData) {
 		try {
 			guildRef.update({});
