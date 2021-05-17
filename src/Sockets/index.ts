@@ -5,8 +5,9 @@ import { getUserClient } from "./userClients";
 // get the initialized clients from another file
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
+import Server from "socket.io";
 
-export const sockets = io => {
+export const sockets = (io: Server.Server) => {
 	log("setting up sockets", { writeToConsole: true });
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
@@ -23,7 +24,7 @@ export const sockets = io => {
 				const channels = await TwitchClient.getChannels();
 				if (!channels.includes(TwitchName)) {
 					await TwitchClient.join(TwitchName);
-					console.log("joined channel")
+					console.log("joined channel");
 				}
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
@@ -46,13 +47,11 @@ export const sockets = io => {
 			} finally {
 				console.log("finally");
 			}
-
-			
 		});
 
 		socket.on("deletemsg - discord", async data => {
 			let id = data.id || data;
-			const rooms = [...socket.rooms];
+			const rooms = [...Object.keys(socket.rooms)];
 			const guildId = rooms.find(room => room.includes("guild"))?.split?.("-")?.[1];
 			const liveChatId = rooms.filter(room => room.includes("channel"))?.map(id => id.split("-")[1]);
 
@@ -84,7 +83,7 @@ export const sockets = io => {
 
 		socket.on("banuser - discord", async data => {
 			let user = data.user || data;
-			const guildId = [...socket.rooms].find(room => room.includes("guild"))?.split?.("-")?.[1];
+			const guildId = [...Object.keys(socket.rooms)].find(room => room.includes("guild"))?.split?.("-")?.[1];
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
 
 			const modId = data.mod_id;
@@ -104,7 +103,7 @@ export const sockets = io => {
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			function botDelete(id) {
 				try {
@@ -136,7 +135,7 @@ export const sockets = io => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botTimeout(user) {
@@ -170,7 +169,7 @@ export const sockets = io => {
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botBan(user) {
@@ -205,7 +204,7 @@ export const sockets = io => {
 			const sender = data.sender;
 			const refreshToken = data.refreshToken;
 			const message = data.message;
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 			if (!refreshToken) {
 				throw new Error("no auth");
 			}
