@@ -24,7 +24,6 @@
             else if (codeArray.has("code")) {
                 try {
                     const otc = localStorage.getItem("oneTimeCode")
-                    console.log(otc)
                     const code = codeArray.get("code")
                     const response = await fetch(`https://api.disstreamchat.com/discord/token?code=${code}&create=true&redirect_uri=https://api.disstreamchat.com/oauth/discord`)
                     const json = await response.json()
