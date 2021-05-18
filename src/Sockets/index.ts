@@ -24,7 +24,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 				socket.leave(room);
 			});
 			try {
-				const channels = await TwitchClient.getChannels();
+				const channels = TwitchClient.getChannels();
 				if (!channels.includes(TwitchName)) {
 					await TwitchClient.join(TwitchName);
 					console.log("joined channel");
@@ -108,7 +108,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		socket.on("deletemsg - twitch", async data => {
 			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
-			function botDelete(id) {
+			function botDelete(id: string) {
 				try {
 					TwitchClient.deletemessage(TwitchName, id);
 				} catch (err) {
@@ -131,7 +131,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						UserClient = null;
 					} catch (err) {
 						log(err.message, { error: true });
-						botDelete(id)
+						botDelete(id);
 					}
 				}
 			}
@@ -141,7 +141,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
-			async function botTimeout(user) {
+			async function botTimeout(user: string) {
 				log(`Timeout ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
@@ -175,7 +175,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
-			async function botBan(user) {
+			async function botBan(user: string) {
 				log(`Ban ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
