@@ -6,8 +6,6 @@ import twitchRoutes from "./twitch"
 import authRoutes from "./auth"
 import appRoutes from "./app"
 
-
-// default endpoint
 router.get("/", (req, res) => {
 	res.json({
 		message: "📺 DisStreamChat API V2 📺",

@@ -10,6 +10,7 @@ import { TwitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } fr
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
+import { Platform } from "../../models/platform.enum";
 const router = express.Router();
 const sevenDays = 604800000;
 
@@ -65,11 +66,11 @@ router.put("/follow", validateRequest, async (req, res, next) => {
 });
 
 router.get("/following", async (req, res, next) => {
-	const user = req.query.user;
+	const {user, key} = req.query
 	if (!user) {
 		res.status(400).json({ messages: "missing user", code: 400 });
 	}
-	const userData = await Api.getUserInfo(user);
+	const userData = await Api.getUserInfo(user as string);
 	const id = userData.id;
 	const json = await KrakenApi.fetch(`https://api.twitch.tv/kraken/users/${id}/follows/channels?limit=${req.query.limit || 100}`, {
 		headers: {
@@ -78,11 +79,10 @@ router.get("/following", async (req, res, next) => {
 	});
 	try {
 		let followedChannels = [];
-		const key = req.query.key;
 		if (!key) {
 			followedChannels = json.follows;
 		} else {
-			followedChannels = json.follows.map(follow => follow.channel[key]);
+			followedChannels = json.follows.map(follow => follow.channel[key as string]);
 		}
 		res.json(followedChannels);
 	} catch (err) {
@@ -94,7 +94,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	const action = req.params.action;
 	const firebaseId = req.query.id || " ";
 	try {
-		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
+		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId as string).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -130,7 +130,7 @@ router.get("/emotes", async (req, res, next) => {
 	if (!user) {
 		return res.status(400).json({ message: "missing user", code: 400 });
 	}
-	const userInfo = await Api.getUserInfo(user);
+	const userInfo = await Api.getUserInfo(user as string);
 	const id = userInfo.id;
 	const firebaseId = sha1(id);
 	const userDataRef = firestore().collection("Streamers").doc(firebaseId);
@@ -164,12 +164,12 @@ router.get("/exists", async (req, res, next) => {
 		return res.status(400).json({ message: "missing channel name", code: 400 });
 	}
 
-	const userData = await Api.getUserInfo(channel);
+	const userData = await Api.getUserInfo(channel as string);
 	res.json({ exists: !!userData, data: userData });
 });
 
 router.get("/checkmod", async (req, res, next) => {
-	let channelName = req.query.channel;
+	let channelName = req.query.channel as string;
 
 	if (!channelName) {
 		return res.status(400).json({ message: "missing channel name", code: 400 });
@@ -178,7 +178,7 @@ router.get("/checkmod", async (req, res, next) => {
 		channelName = "#" + channelName;
 	}
 
-	const userName = req.query.user;
+	const userName = req.query.user as string;
 	try {
 		const inChannels = await TwitchClient.getChannels();
 		const alreadyJoined = inChannels.includes(channelName);
@@ -220,7 +220,7 @@ router.get("/checkmod", async (req, res, next) => {
 router.get("/profilepicture", async (req, res, next) => {
 	try {
 		const user = req.query.user;
-		const profilePicture = await getProfilePicture("twitch", user);
+		const profilePicture = await getProfilePicture(Platform.TWITCH, user as string);
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);

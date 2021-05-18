@@ -3,7 +3,6 @@ import http from "http";
 import { Server } from "socket.io";
 
 import cors from "cors";
-import bodyParser from "body-parser";
 import helmet from "helmet";
 import crypto from "crypto";
 
@@ -20,7 +19,7 @@ app.use(cors());
 
 // this function is used to verify twitch webhook requests
 app.use(
-	bodyParser.json({
+	express.json({
 		verify: function (req, res, buf, encoding) {
 			// is there a hub to verify against
 			req.twitch_hub = false;

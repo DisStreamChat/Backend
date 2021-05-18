@@ -11,6 +11,7 @@ import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed, TextChannel } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
+import { Platform } from "../../models/platform.enum";
 
 // get invite link to our discord
 router.get("/", (req, res) => {
@@ -30,13 +31,13 @@ router.get("/invite", (req, res) => {
 });
 
 router.get("/ismember", (req, res, next) => {
-	res.json({ result: !!DiscordClient.guilds.resolve(req.query.guild) });
+	res.json({ result: !!DiscordClient.guilds.resolve(req.query.guild as string) });
 });
 
 router.get("/getchannels", async (req, res, next) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await DiscordClient.guilds.resolve(id);
+		const selectedGuild = await DiscordClient.guilds.resolve(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -68,13 +69,13 @@ router.get("/resolvechannel", async (req, res, next) => {
 
 router.get("/resolveguild", async (req, res, next) => {
 	const { id } = req.query;
-	const selectedGuild = await DiscordClient.guilds.resolve(id);
+	const selectedGuild = await DiscordClient.guilds.resolve(id as string);
 	res.json(selectedGuild);
 });
 
 router.get("/resolveuser", async (req, res, next) => {
 	try {
-		res.json(await DiscordClient.users.fetch(req.query.user));
+		res.json(await DiscordClient.users.fetch(req.query.user as string));
 	} catch (err) {
 		next(err);
 	}
@@ -83,9 +84,9 @@ router.get("/resolveuser", async (req, res, next) => {
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
 	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 	try {
-		const token = req.query.token;
+		const { token } = req.query;
 		const tokenData = await DiscordOauthClient.tokenRequest({
-			refreshToken: token,
+			refreshToken: token as string,
 			scope: "identify guilds",
 			grantType: "refresh_token",
 			clientId: process.env.DISCORD_CLIENT_ID,
@@ -113,9 +114,16 @@ router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
-	const guildObj = DiscordClient.guilds.cache.get(guild);
-	const member = await guildObj.members.fetch(user);
-	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
+	const guildObj = DiscordClient.guilds.cache.get(guild as string);
+	const member = await guildObj.members.fetch(user as string);
+	const userData = (
+		await firestore()
+			.collection("Leveling")
+			.doc(guild as string)
+			.collection("users")
+			.doc(user as string)
+			.get()
+	).data();
 	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
 	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member, false);
 	res.setHeader("content-type", "text/html");
@@ -248,8 +256,8 @@ router.get("/guildcount", async (req, res, next) => {
 
 router.get("/profilepicture", async (req, res, next) => {
 	try {
-		const user = req.query.user;
-		const profilePicture = await getProfilePicture("discord", user);
+		const { user } = req.query;
+		const profilePicture = await getProfilePicture(Platform.DISCORD, user as string);
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
@@ -259,7 +267,7 @@ router.get("/profilepicture", async (req, res, next) => {
 router.get("/resolveemote", async (req, res, next) => {
 	try {
 		const { emote, guild } = req.query;
-		const emoteObject = DiscordClient.emojis.resolve(emote);
+		const emoteObject = DiscordClient.emojis.resolve(emote as string);
 		res.json(emoteObject);
 	} catch (err) {
 		next(err);
@@ -273,7 +281,7 @@ router.get("/emotes", async (req, res, next) => {
 router.get("/position", async (req, res, next) => {
 	try {
 		const { server } = req.query;
-		const guild = await DiscordClient.guilds.fetch(server);
+		const guild = await DiscordClient.guilds.fetch(server as string);
 		const member = guild.member(DiscordClient.user);
 		const highestRole = member.roles.highest;
 		res.json({ position: highestRole.position, rawPosition: highestRole.rawPosition });
@@ -284,7 +292,13 @@ router.get("/position", async (req, res, next) => {
 
 router.post("/details", async (req, res, next) => {
 	const { id } = req.query;
-	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, { merge: true });
+	await admin
+		.firestore()
+		.collection("Streamers")
+		.doc(id as string)
+		.collection("discord")
+		.doc("data")
+		.set(req.body, { merge: true });
 	res.end();
 });
 
