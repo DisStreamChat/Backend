@@ -74,7 +74,6 @@ export const getAllEmotes = async () => {
 };
 const emoteRefresh = 60000 * 10;
 setTimeout(() => {
-	console.log("starting emote fetch");
 	getAllEmotes()
 		.then(() => {
 			setInterval(getAllEmotes, emoteRefresh);
@@ -101,7 +100,6 @@ export const formatMessage = async (message, platform, tags, { HTMLClean, channe
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
 	const cachedBTTVEmotes = cache.get("bttv " + channelName);
 	const cachedFFZEmotes = cache.get("ffz " + channelName);
-	console.log(cachedBTTVEmotes, cachedFFZEmotes);
 	if (platform === "twitch" && channelName && cachedBTTVEmotes && cachedFFZEmotes) {
 		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes;
 		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;

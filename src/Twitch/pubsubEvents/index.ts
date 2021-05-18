@@ -119,7 +119,6 @@ const runIo = async io => {
 
 				pubSub.on("channel-points", async data => {
 					try {
-						console.log(data)
 						const { redemption, channel_id } = data;
 						const user = await Api.getUserInfo(channel_id);
 						const channelName = user.login;
