@@ -1,6 +1,5 @@
 import Discord from "discord.js";
 import DiscordOauth2 from "discord-oauth2";
-import fetch from "node-fetch";
 import { DiscordClient } from "../utils/initClients";
 const oauth = new DiscordOauth2();
 

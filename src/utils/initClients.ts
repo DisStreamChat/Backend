@@ -1,9 +1,7 @@
 import { Client } from "discord.js";
 import tmi from "tmi.js";
 import { initializeApp, credential, firestore } from "firebase-admin";
-//@ts-ignore
 import TwitchApi from "twitchio-js";
-//@ts-ignore
 import DiscordOauth2 from "discord-oauth2";
 import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
@@ -11,12 +9,10 @@ import { log } from "./functions/logging";
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
-// initialze the firebase admin api, this is used for generating a custom token for twitch auth with firebase
 initializeApp({
 	credential: credential.cert(serviceAccount),
 });
 
-// initialize the discord client
 export const DiscordClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
 
@@ -41,7 +37,6 @@ DiscordClient.on("ready", async () => {
 	);
 });
 
-// initialize the twitch client
 export const TwitchClient = new tmi.Client({
 	options: { debug: process.env.TWITCH_DEBUG == "true" },
 	connection: {

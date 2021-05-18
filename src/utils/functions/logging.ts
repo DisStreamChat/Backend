@@ -12,7 +12,7 @@ export interface logOptions {
 	DM?: boolean;
 }
 
-export const log = async (loggingString: string, { file, writeToConsole, error, DM }: logOptions = {}) => {
+export const log = async (loggingString: any, { file, writeToConsole, error, DM }: logOptions = {}) => {
 	const loggingFilePath = join(loggingPath, file || `${new Date().toLocaleDateString().replace(/\//g, "-")}.log`);
 	if (!fs.existsSync(loggingPath)) {
 		console.log("creating directory");
