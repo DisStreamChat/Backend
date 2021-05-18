@@ -23,21 +23,18 @@ DiscordClient.login(process.env.BOT_TOKEN);
 // import DBL "dblapi.js";
 // const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
 
-let serverLength = 0;
-
 DiscordClient.on("ready", async () => {
 	log("bot ready", { writeToConsole: true });
-	serverLength = DiscordClient.guilds.cache.array().length;
 	cycleBotStatus(
 		DiscordClient,
 		[
 			{
 				status: "online",
-				activity: { type: "WATCHING", name: `🔴 Live Chat in ${DiscordClient.guilds.cache.array().length} servers` },
+				activity: (client: Client) => ({ type: "WATCHING", name: `🔴 Live Chat in ${client.guilds.cache.array().length} servers` }),
 			},
 			{
 				status: "online",
-				activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
+				activity: (client: Client) => ({ type: "WATCHING", name: `@${client.user.username} help` }),
 			},
 		],
 		30000
@@ -60,7 +57,7 @@ export const TwitchClient = new tmi.Client({
 });
 TwitchClient.connect();
 
-export const getCustomBots = async () => {
+export const getCustomBots = async (): Promise<Map<string, Client>> => {
 	if (process.env.BOT_DEV == "true") return new Map();
 	const botQuery = firestore().collection("customBot");
 	const botRef = await botQuery.get();
@@ -84,7 +81,6 @@ export const getCustomBots = async () => {
 		});
 		customBots.set(bot.id, botClient);
 	}
-	// exports.customBots = customBots
 	return customBots;
 };
 

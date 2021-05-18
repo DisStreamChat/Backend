@@ -1,5 +1,7 @@
-export const resolveUser = async (msg, username) => {
-	if(!username?.length) return null
+import { GuildMember, Message } from "discord.js";
+
+export const resolveUser = async (msg: Message, username: string) => {
+	if (!username?.length) return null;
 	const memberCache = msg.guild.members.cache;
 	if (/<@!?\d+>/g.test(username)) {
 		return memberCache.get(msg.mentions.users.first().id);
@@ -16,14 +18,14 @@ export const resolveUser = async (msg, username) => {
 	if (memberCache.find(member => member.user.username === username)) {
 		return memberCache.find(member => member.user.username === username);
 	}
-	const userFromId = await msg.guild.members.fetch(username)
+	const userFromId = await msg.guild.members.fetch(username);
 	if (userFromId) {
-		return userFromId
+		return userFromId;
 	}
 	return null;
 };
 
-export const resolveRole = (msg, role) => {
+export const resolveRole = (msg: Message, role: string) => {
 	const roleCache = msg.guild.roles.cache;
 	if (/<@&\d+>/g.test(role)) {
 		return roleCache.get(msg.mentions.roles.first().id);
@@ -37,4 +39,4 @@ export const resolveRole = (msg, role) => {
 	return null;
 };
 
-export const getRoleIds = user => user.roles.cache.array().map(role => role.id);
+export const getRoleIds = (user: GuildMember) => user.roles.cache.array().map(role => role.id);

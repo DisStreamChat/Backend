@@ -1,6 +1,6 @@
 //@ts-ignore
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
-
+import Discord, { Client, PresenceData } from "discord.js";
 import { statSync, readdirSync } from "fs";
 import { join } from "path";
 
@@ -29,11 +29,11 @@ export const walkSync = (files, fileDir, fileList = []) => {
 	return fileList;
 };
 
-export const cleanRegex = function (str) {
+export const cleanRegex = function (str: string): string {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-export const Random = (min, max?: number) => {
+export const Random = (min: number | any[], max?: number): any => {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
 	}
@@ -43,9 +43,9 @@ export const Random = (min, max?: number) => {
 	return Math.random() * (max - min) + min;
 };
 
-export const hoursToMillis = hrs => hrs * 3600000;
+export const hoursToMillis = (hrs: number) => hrs * 3600000;
 
-export const sleep = async millis => new Promise(resolve => setTimeout(resolve, millis));
+export const sleep = async (millis: number) => new Promise(resolve => setTimeout(resolve, millis));
 
 export const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
 
@@ -53,16 +53,24 @@ export const isNumeric = value => {
 	return /^-?\d+[.\,]?\d*$/.test(value);
 };
 
-export const convertDiscordRoleColor = color => (color === "#000000" ? "#FFFFFF" : color);
+export const convertDiscordRoleColor = (color: string): string => (color === "#000000" ? "#FFFFFF" : color);
 
 export const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
 
-export const cycleBotStatus = (bot, statuses, timeout) => {
-	const setStatus = status => {
-		if (typeof status === "function") {
-			return bot.user.setPresence(status());
+interface DiscordActivity {
+	type: string;
+	name: string;
+}
+interface DiscordStatus extends Omit<PresenceData, "activity"> {
+	activity: PresenceData["activity"] | ((client: Client) => PresenceData["activity"]);
+}
+
+export const cycleBotStatus = (bot: Client, statuses: DiscordStatus[], timeout: number) => {
+	const setStatus = (status: DiscordStatus) => {
+		if (typeof status.activity === "function") {
+			return bot.user.setPresence({ ...status, activity: status.activity(bot) });
 		}
-		bot.user.setPresence(status);
+		bot.user.setPresence(status as PresenceData);
 	};
 
 	let currentStatus = 0;
@@ -71,11 +79,12 @@ export const cycleBotStatus = (bot, statuses, timeout) => {
 	setInterval(() => {
 		currentStatus += 1;
 		currentStatus = currentStatus % statuses.length;
-		setStatus(statuses[currentStatus]);
+		const status = statuses[currentStatus];
+		setStatus(status);
 	}, timeout);
 };
 
-export const isObject = val => typeof val === "object" && val; // required for "null" comparison
+export const isObject = (val: any): boolean => typeof val === "object" && val; // required for "null" comparison
 
 export function compare(obj1 = {}, obj2 = {}, deep?: boolean) {
 	const output = {},

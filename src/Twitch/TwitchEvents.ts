@@ -6,6 +6,7 @@ import { formatMessage } from "../utils/messageManipulation";
 
 // the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
+import tmi from "tmi.js";
 
 // TODO: move to firebase db
 import ranks from "../ranks.json";
@@ -18,6 +19,7 @@ import pubSub from "./pubsubEvents";
 import { TwitchMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
 import { log } from "../utils/functions/logging";
+import { Platform } from "../models/platform.enum";
 
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
@@ -65,7 +67,7 @@ const getBadges = async (channelName, tags) => {
 	return badges;
 };
 
-export default (TwitchClient, io, app) => {
+export default (TwitchClient: tmi.Client, io, app) => {
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
@@ -73,12 +75,12 @@ export default (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("deletemessage", tags["target-msg-id"]);
 	});
 
-	TwitchClient.on("ban", (channel, username, reason, userstate) => {
+	TwitchClient.on("ban", (channel, username, reason) => {
 		const channelName = channel.slice(1).toLowerCase();
 		io.in(`twitch-${channelName}`).emit("purgeuser", username);
 	});
 
-	TwitchClient.on("timeout", (channel, username, reason, duration, userstate) => {
+	TwitchClient.on("timeout", (channel, username, reason, duration) => {
 		const channelName = channel.slice(1).toLowerCase();
 		io.in(`twitch-${channelName}`).emit("purgeuser", username);
 	});
@@ -91,7 +93,7 @@ export default (TwitchClient, io, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "raid",
 			uuid: uuidv1(),
 			id: uuidv1(),
@@ -113,7 +115,7 @@ export default (TwitchClient, io, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "raid",
 			uuid: uuidv1(),
 			id: uuidv1(),
@@ -137,10 +139,7 @@ export default (TwitchClient, io, app) => {
 		}
 
 		// get all possible versions of the message with all variations of the message filters
-		// const plainMessage = await formatMessage(message, "twitch", tags);
-		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
-		// const censoredMessage = await formatMessage(message, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
+		let HTMLCleanMessage = await formatMessage(message, Platform.TWITCH, tags, { HTMLClean: true, channelName });
 
 		// get all badges for the user that sent the messages put them in an object
 		const badges = await getBadges(channelName, tags);
@@ -163,7 +162,7 @@ export default (TwitchClient, io, app) => {
 			displayName: tags["display-name"],
 			avatar: userData.profile_image_url, // long term TODO: look into caching profile picture
 			body: HTMLCleanMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: messageId,
 			id: tags.id,
 			badges,
@@ -178,7 +177,7 @@ export default (TwitchClient, io, app) => {
 
 		if (messageObject.body.length <= 0) return;
 
-		await sendMessage(messageObject, { channel: channelName, platform: "twitch" });
+		await sendMessage(messageObject, { channel: channelName, platform: Platform.TWITCH });
 	});
 
 	let globalCheerMotes = [];
@@ -223,7 +222,7 @@ export default (TwitchClient, io, app) => {
 	};
 	getAllCheerMotes();
 
-	TwitchClient.on("cheer", async (channel, tags, message, self) => {
+	TwitchClient.on("cheer", async (channel, tags, message) => {
 		const channelName = channel.slice(1).toLowerCase();
 		// TODO: improve Regex
 		// TODO: improve by splitting by spaces
@@ -242,6 +241,7 @@ export default (TwitchClient, io, app) => {
 			cheerMotes = [...CustomCheerMotes[channelName], ...cheerMotes];
 		}
 
+		//@ts-ignore
 		const cheerMatches = [...message.matchAll(cheerMoteRegex)];
 		const cheerMoteMatches = cheerMatches.map(match => ({
 			bits: +match[2],
@@ -264,9 +264,9 @@ export default (TwitchClient, io, app) => {
 			})
 			.filter(c => !!c);
 
-		let bits = tags.bits;
+		let bits = +tags.bits;
 
-		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
+		let HTMLCleanMessage = await formatMessage(message, Platform.TWITCH, tags, { HTMLClean: true, channelName });
 
 		HTMLCleanMessage = HTMLCleanMessage.replace(cheerMoteRegex, (match, prefix, number) => {
 			const cheerMote = cheerMoteMatchTiers.find(cheer => cheer.id == match.toLowerCase());
@@ -280,7 +280,7 @@ export default (TwitchClient, io, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "cheer",
 			uuid: tags.id,
 			id: tags.id,
@@ -293,7 +293,7 @@ export default (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
-	TwitchClient.on("anongiftpaidupgrade", async (channel, username, sender, tags) => {
+	TwitchClient.on("anongiftpaidupgrade" as any, async (channel: string, username: string, sender: any, tags: any) => {
 		const channelName = channel.slice(1).toLowerCase();
 		// if (!io.hasOwnProperty(channelName)) return;
 
@@ -301,13 +301,13 @@ export default (TwitchClient, io, app) => {
 
 		const theMessage = `${username}, is continuing their gift sub! (Originally from Anonymous)`;
 
-		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {	HTMLClean: true, });
+		//let HTMLCleanMessage = await formatMessage(themessage, Platform.TWITCH, tags, {	HTMLClean: true, });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
@@ -332,13 +332,13 @@ export default (TwitchClient, io, app) => {
 
 		const theMessage = `${username}, is continuing their gift sub! (Originally from ${sender}).`;
 
-		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, {HTMLClean: true,});
+		//let HTMLCleanMessage = await formatMessage(themessage, Platform.TWITCH, tags, {HTMLClean: true,});
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
@@ -383,7 +383,7 @@ export default (TwitchClient, io, app) => {
 				displayName: "DisStreamChat",
 				avatar: DisStreamChatProfile,
 				body: theMessage,
-				platform: "twitch",
+				platform: Platform.TWITCH,
 				messageId: "subscription",
 				uuid: tags.id,
 				id: tags.id,
@@ -427,7 +427,7 @@ export default (TwitchClient, io, app) => {
 			}
 		}
 
-		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true });
+		let HTMLCleanMessage = await formatMessage(message, Platform.TWITCH, tags, { HTMLClean: true });
 
 		theMessage += `\n${HTMLCleanMessage}`;
 
@@ -435,7 +435,7 @@ export default (TwitchClient, io, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
@@ -463,7 +463,7 @@ export default (TwitchClient, io, app) => {
 			theMessage = `Thanks for subscribing @${username}!`;
 		}
 
-		let HTMLCleanMessage = await formatMessage(msg || "", "twitch", tags, { HTMLClean: true });
+		let HTMLCleanMessage = await formatMessage(msg || "", Platform.TWITCH, tags, { HTMLClean: true });
 
 		theMessage += `\n${HTMLCleanMessage}`;
 
@@ -471,7 +471,7 @@ export default (TwitchClient, io, app) => {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
@@ -499,13 +499,13 @@ export default (TwitchClient, io, app) => {
 			theMessage = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
 		}
 
-		//let HTMLCleanMessage = await formatMessage(theMessage, "twitch", tags, { HTMLClean: true });
+		//let HTMLCleanMessage = await formatMessage(themessage, Platform.TWITCH, tags, { HTMLClean: true });
 
 		const messageObject = {
 			displayName: "DisStreamChat",
 			avatar: DisStreamChatProfile,
 			body: theMessage,
-			platform: "twitch",
+			platform: Platform.TWITCH,
 			messageId: "subscription",
 			uuid: tags.id,
 			id: tags.id,
@@ -560,7 +560,7 @@ export default (TwitchClient, io, app) => {
 							displayName: "DisStreamChat",
 							avatar: DisStreamChatProfile,
 							body: theMessage,
-							platform: "twitch",
+							platform: Platform.TWITCH,
 							messageId: "follow",
 							uuid: uuidv1(),
 							id: uuidv1(),

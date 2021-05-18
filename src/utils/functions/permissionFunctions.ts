@@ -1,23 +1,23 @@
 // @ts-ignore
 import adminIds from "../../ranks.json";
-import { Permissions } from "discord.js";
+import { Channel, Client, GuildMember, Message, Permissions, Role, TextChannel, User } from "discord.js";
 
-export const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
+export const ArrayAny = (arr1: any[], arr2: any[]): boolean => arr1.some(v => arr2.indexOf(v) >= 0);
 
-export const getHighestRole = roles => roles.reduce((acc, cur) => (acc.rawPosition > cur.rawPosition ? acc : cur));
+export const getHighestRole = (roles: Role[]) => roles.reduce((acc, cur) => (acc.rawPosition > cur.rawPosition ? acc : cur));
 
-export const checkOverwrites = (overwrites, perms, admin) => {
+export const checkOverwrites = (overwrites, perms, admin?: boolean) => {
 	const Allows = new Permissions(overwrites.allow);
 	const Deny = new Permissions(overwrites.deny);
 	return { allow: Allows.any(perms, admin), deny: !Deny.any(perms, admin) };
 };
 
-export const isAdmin = user => {
+export const isAdmin = (user: User | { id: string }) => {
 	const discordAdmins = adminIds.discord.developers;
 	return discordAdmins.includes(user.id);
 };
 
-export const adminWare = async (message, args, client, cb) => {
+export const adminWare = async (message: Message, args: string[], client: Client, cb) => {
 	const discordAdmins = adminIds.discord.developers;
 	if (discordAdmins.includes(message.author.id)) {
 		await cb(message, args, client);
@@ -26,7 +26,7 @@ export const adminWare = async (message, args, client, cb) => {
 	}
 };
 
-export const hasPermission = async (member, perms, channel?: any, admin?: any) => {
+export const hasPermission = async (member: GuildMember, perms: any[], channel?: TextChannel, admin?: boolean) => {
 	const guild = member.guild;
 	// if(guild.ownerId === member.id) return true
 	const hasGlobalPerms = ArrayAny(member.permissions.toArray(), perms);

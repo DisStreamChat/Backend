@@ -1,12 +1,13 @@
 ;
 
+import { Platform } from "../../models/platform.enum";
 import { DiscordClient, TwitchApiClient } from "../initClients";
 
-export const getProfilePicture = async (platform, username) => {
+export const getProfilePicture = async (platform: Platform, username: string) => {
 	let profilePicture;
-	if (platform === "twitch") {
+	if (platform === Platform.TWITCH) {
 		profilePicture = (await TwitchApiClient.getUserInfo(username))["profile_image_url"];
-	} else if (platform === "discord") {
+	} else if (platform === Platform.DISCORD) {
 		const userObj = await DiscordClient.users.fetch(username);
 		profilePicture = userObj.displayAvatarURL({ format: "png" });
 	}

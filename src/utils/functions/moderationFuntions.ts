@@ -2,12 +2,13 @@ import { JSDOM } from "jsdom";
 import URL from "url-parse";
 import nodeFetch from "node-fetch";
 import { log } from "./logging";
+import { Client, Guild, GuildMember, Message } from "discord.js";
 
-export const warn = (member, guild, client, message) => {};
+export const warn = (member: GuildMember, guild: Guild, client: Client, message: string) => {};
 
-export const informMods = (message, guild, client) => {};
+export const informMods = (message: string, guild: Guild, client: Client) => {};
 
-export const checkDiscordInviteLink = async url => {
+export const checkDiscordInviteLink = async (url: string): Promise<boolean> => {
 	try {
 		const response = await nodeFetch(url);
 		const text = await response.text();
@@ -21,7 +22,7 @@ export const checkDiscordInviteLink = async url => {
 	}
 };
 
-export const hasDiscordInviteLink = async urls => {
+export const hasDiscordInviteLink = async (urls: string[]): Promise<boolean> => {
 	for (const url of urls) {
 		if (await checkDiscordInviteLink(url)) {
 			return true;
@@ -30,15 +31,15 @@ export const hasDiscordInviteLink = async urls => {
 	return false;
 };
 
-export const checkBannedDomain = (url, domains = []) => {
+export const checkBannedDomain = (url: string, domains: string[] = []) => {
 	const parsed = new URL(url);
 	for (const domain of domains) {
-		if (parsed?.host?.includes?.(domain)) return true;
+		if (parsed.host.includes(domain)) return true;
 	}
 	return false;
 };
 
-export const hasBannedDomain = (urls, domains) => {
+export const hasBannedDomain = (urls: string[], domains: string[] = []) => {
 	for (const url of urls) {
 		if (checkBannedDomain(url, domains)) return true;
 	}

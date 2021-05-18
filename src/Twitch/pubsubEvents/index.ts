@@ -14,6 +14,7 @@ import { TwitchApiClient as Api } from "../../utils/initClients";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { customBots } from "../../utils/initClients";
 import { log } from "../../utils/functions/logging";
+import { Platform } from "../../models/platform.enum";
 
 const commands = commandFiles.reduce(
 	(acc, cur) => ({
@@ -151,7 +152,7 @@ const runIo = async io => {
 				pubSub.on("automod_rejected", async data => {
 					try {
 						const { channelName } = pubSub;
-						const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+						const theMessage = await formatMessage(data.message, Platform.TWITCH, {}, { HTMLClean: true });
 						const id = uuidv1();
 						const messageObject = {
 							displayName: "AutoMod",

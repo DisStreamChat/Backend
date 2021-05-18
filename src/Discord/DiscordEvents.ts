@@ -11,6 +11,7 @@ import fs from "fs";
 import admin from "firebase-admin";
 import { DiscordMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
+import { Platform } from "../models/platform.enum";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
@@ -116,7 +117,7 @@ export default async (client, io) => {
 
 			try {
 				const CleanMessage = message.cleanContent;
-				const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
+				const HTMLCleanMessage = await formatMessage(CleanMessage, Platform.DISCORD, {}, { HTMLClean: true });
 
 				const messageObject: DiscordMessageModel = {
 					displayName: senderName,
@@ -165,7 +166,7 @@ export default async (client, io) => {
 
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
-			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
+			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, Platform.DISCORD, {}, { HTMLClean: true });
 			const updateMessage = {
 				body: HTMLCleanMessage,
 				id: newMsg.id,

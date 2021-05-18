@@ -1,4 +1,4 @@
+//@ts-ignore
+export const escapePings = (text: string) => text.replaceAll("@", "@‍");
 
-export const escapePings = text => text.replace("@", "@‍")
-
-export const unescapeHTML = text => text.replace(/&lt;/gim, "<").replace(/&gt;/gim, ">")
+export const unescapeHTML = (text: string) => text.replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
