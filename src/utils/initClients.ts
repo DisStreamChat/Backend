@@ -5,6 +5,7 @@ import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
 import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
+import { TwitchClient } from "../clients/twitchClient";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -37,20 +38,22 @@ DiscordClient.on("ready", async () => {
 	);
 });
 
-export const TwitchClient = new tmi.Client({
-	options: { debug: process.env.TWITCH_DEBUG == "true" },
-	connection: {
-		// server: "irc.fdgt.dev",
-		secure: true,
-		reconnect: true,
-	},
-	identity: {
-		username: "disstreamchat",
-		password: process.env.TWITH_OAUTH_TOKEN,
-	},
-	channels: [process.env.DEBUG_CHANNEL || ""],
-});
-TwitchClient.connect();
+export const twitchClient = new TwitchClient(
+	new tmi.Client({
+		options: { debug: process.env.TWITCH_DEBUG == "true" },
+		connection: {
+			// server: "irc.fdgt.dev",
+			secure: true,
+			reconnect: true,
+		},
+		identity: {
+			username: "disstreamchat",
+			password: process.env.TWITH_OAUTH_TOKEN,
+		},
+		channels: [process.env.DEBUG_CHANNEL || ""],
+	})
+);
+twitchClient.connect();
 
 export const getCustomBots = async (): Promise<Map<string, Client>> => {
 	if (process.env.BOT_DEV == "true") return new Map();

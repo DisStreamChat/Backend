@@ -4,7 +4,7 @@ import TwitchEvents from "./Twitch/TwitchEvents";
 import DiscordEvents from "./Discord/DiscordEvents";
 import { log } from "./utils/functions/logging";
 import { sockets } from "./Sockets";
-import { DiscordClient, TwitchClient, customBots } from "./utils/initClients";
+import { DiscordClient, twitchClient, customBots } from "./utils/initClients";
 import { initializeApp, credential } from "firebase-admin";
 import { io, server, app } from "./app";
 
@@ -27,7 +27,7 @@ try {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./TwitchEvents.js
-TwitchEvents(TwitchClient, io, app);
+TwitchEvents(twitchClient, io, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD

@@ -6,7 +6,7 @@ import fetch from "node-fetch";
 import { firestore, auth } from "firebase-admin";
 import TwitchApi from "twitchio-js";
 import tmi from "tmi.js";
-import { TwitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } from "../../utils/initClients";
+import { twitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } from "../../utils/initClients";
 import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
@@ -115,7 +115,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 });
 
 router.get("/activechannels", async (req, res, next) => {
-	res.json(await TwitchClient.getChannels());
+	res.json(await twitchClient.getChannels());
 });
 
 router.get("/customemotes", async (req, res, next) => {
@@ -180,18 +180,18 @@ router.get("/checkmod", async (req, res, next) => {
 
 	const userName = req.query.user as string;
 	try {
-		const inChannels = await TwitchClient.getChannels();
+		const inChannels = await twitchClient.getChannels();
 		const alreadyJoined = inChannels.includes(channelName);
 
 		if (!alreadyJoined) {
 			const userData = await Api.getUserInfo(channelName.substring(1));
 			if (userData) {
-				await TwitchClient.join(channelName);
+				await twitchClient.join(channelName);
 			} else {
 				return res.status(400).json({ message: "invalid channel name, it seems like that isn't a twitch channel", code: 400 });
 			}
 		}
-		const results = await TwitchClient.mods(channelName);
+		const results = await twitchClient.mods(channelName);
 
 		const isMod = !!userName && results.includes(userName.toLowerCase());
 		if (isMod) {
@@ -202,15 +202,15 @@ router.get("/checkmod", async (req, res, next) => {
 	} catch (err) {
 		try {
 			log(`failed to join channel: ${err.message}`);
-			let isMod = TwitchClient.isMod(channelName, userName);
+			let isMod = twitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
-			TwitchClient.part(channelName);
+			twitchClient.part(channelName);
 			if (isMod) {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			TwitchClient.part(channelName);
+			twitchClient.part(channelName);
 			return res.status(500).json(null);
 		}
 	}
