@@ -1,17 +1,14 @@
-;
-
 import fetch from "node-fetch";
 import tmi from "tmi.js";
 import { ArrayAny } from "../utils/functions";
+import { log } from "../utils/functions/logging";
 
-const userClients = {}
+const userClients = {};
 
-const requiredScopes = ["chat:edit", "chat:read", "channel:moderate"]
+const requiredScopes = ["chat:edit", "chat:read", "channel:moderate"];
 
 export const createUserClient = async (refreshToken, modName, twitchName) => {
-	const response = await fetch(
-		`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
-	);
+	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
 	const data = await response.json();
 	if (!data) {
 		throw new Error("bad refresh token");
@@ -34,12 +31,15 @@ export const createUserClient = async (refreshToken, modName, twitchName) => {
 	});
 	userClients[modName] = userClient;
 	await userClient.connect();
-	return userClient
-}
+	return userClient;
+};
 
-export const getUserClient = async (refreshToken, modName, twitchName) => {
-	if(userClients[modName]) return userClients[modName]
-	const client = await createUserClient(refreshToken, modName, twitchName)
-	client.join(twitchName)
-	return client
-}
+export const getUserClient = async (refreshToken: string, modName: string, twitchName: string) => {
+	const oldClient = userClients[modName];
+	if (oldClient) return oldClient;
+	const client = await createUserClient(refreshToken, modName, twitchName);
+	client.join(twitchName).catch(err => {
+		log(err.message, { error: true });
+	});
+	return client;
+};

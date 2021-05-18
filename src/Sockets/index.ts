@@ -1,4 +1,3 @@
-import Socket from "socketio-promises";
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
@@ -7,48 +6,41 @@ import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 import { Server } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { AddEventModel } from "../models/sockets.model";
+import { getRooms, leaveAllRooms } from "./utils";
 
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 	log("setting up sockets", { writeToConsole: true });
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
-		const socketWrapper = new Socket(socket);
-		socket.emit("imConnected");
-
 		// the addme event is sent from the frontend on load with the data from the database
-		socket.on("addme", async message => {
-			log(`adding: ${JSON.stringify(message)} to: ${socket.id}`, { writeToConsole: true });
-			let { TwitchName, guildId, liveChatId } = message;
-			TwitchName = TwitchName?.toLowerCase?.();
-			[...socket.rooms].forEach(room => {
-				socket.leave(room);
-			});
+		socket.on("addme", async (message: AddEventModel) => {
+			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
+			let { twitchName, guildId, liveChatId } = message;
+			if (typeof twitchName === "string") {
+				twitchName = transformTwitchUsername(twitchName.toLowerCase());
+			}
+			leaveAllRooms(socket)
 			try {
 				const channels = TwitchClient.getChannels();
-				if (!channels.includes(TwitchName)) {
-					await TwitchClient.join(TwitchName);
-					console.log("joined channel");
+				if (!channels.includes(twitchName)) {
+					await TwitchClient.join(twitchName);
+					log(`joined channel: ${twitchName}`, { writeToConsole: true });
 				}
-			} catch (err) {
-				log(err, { writeToConsole: true, error: true });
-			}
 
-			try {
-				if (TwitchName) await socketWrapper.join(`twitch-${TwitchName}`);
-				if (guildId) await socketWrapper.join(`guild-${guildId}`);
+				if (twitchName) await socket.join(`twitch-${twitchName}`);
+				if (guildId) await socket.join(`guild-${guildId}`);
 				if (liveChatId) {
 					if (liveChatId instanceof Array) {
 						for (const id of liveChatId) {
-							await socketWrapper.join(`channel-${id}`);
+							await socket.join(`channel-${id}`);
 						}
 					} else {
-						await socketWrapper.join(`channel-${liveChatId}`);
+						await socket.join(`channel-${liveChatId}`);
 					}
 				}
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
-			} finally {
-				console.log("finally");
 			}
 		});
 
@@ -106,11 +98,11 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const twitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			function botDelete(id: string) {
 				try {
-					TwitchClient.deletemessage(TwitchName, id);
+					TwitchClient.deletemessage(twitchName, id);
 				} catch (err) {
 					log(err.message, { error: true });
 				}
@@ -126,8 +118,8 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 					botDelete(id);
 				} else {
 					try {
-						let UserClient = await getUserClient(refreshToken, modName, TwitchName);
-						await UserClient.deletemessage(TwitchName, id);
+						let UserClient = await getUserClient(refreshToken, modName, twitchName);
+						await UserClient.deletemessage(twitchName, id);
 						UserClient = null;
 					} catch (err) {
 						log(err.message, { error: true });
@@ -138,14 +130,14 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const twitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botTimeout(user: string) {
 				log(`Timeout ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
-					await TwitchClient.timeout(TwitchName, user, data.time ?? 300);
+					await TwitchClient.timeout(twitchName, user, data.time ?? 300);
 				} catch (err) {
 					log(err.message, { error: true });
 				}
@@ -160,8 +152,8 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 					botTimeout(user);
 				} else {
 					try {
-						let UserClient = await getUserClient(refreshToken, modName, TwitchName);
-						await UserClient.timeout(TwitchName, user, data.time ?? 300);
+						let UserClient = await getUserClient(refreshToken, modName, twitchName);
+						await UserClient.timeout(twitchName, user, data.time ?? 300);
 						UserClient = null;
 					} catch (err) {
 						log(err.message, { error: true });
@@ -172,14 +164,14 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const twitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botBan(user: string) {
 				log(`Ban ${user} - Twitch`, { writeToConsole: true });
 				try {
 					//Possible to do: let default timeouts be assigned in dashboard
-					await TwitchClient.ban(TwitchName, user, data.time ?? 300);
+					await TwitchClient.ban(twitchName, user, data.time ?? 300);
 				} catch (err) {
 					log(err.message, { error: true });
 				}
@@ -192,8 +184,8 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 				botBan(user);
 			} else {
 				try {
-					let UserClient = await getUserClient(refreshToken, modName, TwitchName);
-					await UserClient.ban(TwitchName, user);
+					let UserClient = await getUserClient(refreshToken, modName, twitchName);
+					await UserClient.ban(twitchName, user);
 					UserClient = null;
 				} catch (err) {
 					log(err.message, { error: true });
@@ -207,18 +199,18 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			const sender = data.sender;
 			const refreshToken = data.refreshToken;
 			const message = data.message;
-			const TwitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const twitchName = [...socket.rooms].find(room => room.includes("twitch"))?.split?.("-")?.[1];
 			if (!refreshToken) {
 				throw new Error("no auth");
 			}
 			if (sender && message) {
 				try {
-					let UserClient = await getUserClient(refreshToken, sender, TwitchName);
+					let UserClient = await getUserClient(refreshToken, sender, twitchName);
 					try {
-						await UserClient.join(TwitchName);
-						await UserClient.say(TwitchName, message);
+						await UserClient.join(twitchName);
+						await UserClient.say(twitchName, message);
 					} catch (err) {
-						await UserClient.say(TwitchName, message);
+						await UserClient.say(twitchName, message);
 					}
 					UserClient = null;
 				} catch (err) {
@@ -233,3 +225,6 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 	});
 };
+function transformTwitchUsername(arg0: string): string {
+	throw new Error("Function not implemented.");
+}
