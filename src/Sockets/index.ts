@@ -131,7 +131,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						UserClient = null;
 					} catch (err) {
 						log(err.message, { error: true });
-						botDelete(id);
+						botDelete(id)
 					}
 				}
 			}
