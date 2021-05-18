@@ -5,8 +5,10 @@ import { getUserClient } from "./userClients";
 // get the initialized clients from another file
 import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
+import { Server } from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
-export const sockets = io => {
+export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 	log("setting up sockets", { writeToConsole: true });
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
@@ -18,12 +20,14 @@ export const sockets = io => {
 			log(`adding: ${JSON.stringify(message)} to: ${socket.id}`, { writeToConsole: true });
 			let { TwitchName, guildId, liveChatId } = message;
 			TwitchName = TwitchName?.toLowerCase?.();
-
+			[...socket.rooms].forEach(room => {
+				socket.leave(room);
+			});
 			try {
 				const channels = await TwitchClient.getChannels();
 				if (!channels.includes(TwitchName)) {
 					await TwitchClient.join(TwitchName);
-					console.log("joined channel")
+					console.log("joined channel");
 				}
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
@@ -46,8 +50,6 @@ export const sockets = io => {
 			} finally {
 				console.log("finally");
 			}
-
-			
 		});
 
 		socket.on("deletemsg - discord", async data => {
