@@ -7,24 +7,28 @@ import admin from "firebase-admin";
 import { Server } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { AddEventModel } from "../models/sockets.model";
-import { getRooms, leaveAllRooms } from "./utils";
+import { leaveAllRooms } from "./utils";
+import { transformTwitchUsername } from "../utils/functions/stringManipulation";
 
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
-	log("setting up sockets", { writeToConsole: true });
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
-		// the addme event is sent from the frontend on load with the data from the database
-		socket.on("addme", async (message: AddEventModel) => {
+
+		socket.on("add", async (message: AddEventModel) => {
 			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
+
 			let { twitchName, guildId, liveChatId } = message;
+
 			if (typeof twitchName === "string") {
 				twitchName = transformTwitchUsername(twitchName.toLowerCase());
 			}
+
 			leaveAllRooms(socket);
+
 			try {
 				const channels = twitchClient.channels;
 				if (!channels.includes(twitchName)) {
-					await twitchClient.join(twitchName);
+					twitchClient.join(twitchName);
 					log(`joined channel: ${twitchName}`, { writeToConsole: true });
 				}
 
@@ -39,19 +43,15 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						await socket.join(`channel-${liveChatId}`);
 					}
 				}
+				socket.data = { twitchName, guildId, liveChatId };
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
 			}
 		});
 
 		socket.on("deletemsg - discord", async data => {
-			let id = data.id || data;
-			const rooms = getRooms(socket);
-			const guildId = rooms.find(room => room.includes("guild"))?.split?.("-")?.[1];
-			const liveChatId = rooms.filter(room => room.includes("channel"))?.map(id => id.split("-")[1]);
-
-			const modId = data.mod_id;
-			const refreshToken = data.refresh_token;
+			const { id, mod_id: modId, refresh_token: refreshToken } = data;
+			const { guildId, liveChatId } = socket.data;
 
 			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
 			const modData: any = await modRef.get();
@@ -77,8 +77,8 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("banuser - discord", async data => {
-			let user = data.user || data;
-			const guildId = getRooms(socket).find(room => room.includes("guild"))?.split?.("-")?.[1];
+			let { user } = data;
+			const { guildId } = socket.data;
 			const connectGuild = DiscordClient.guilds.resolve(guildId);
 
 			const modId = data.mod_id;
@@ -88,7 +88,10 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			const modData: any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
-			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
+			if (modRefreshToken !== refreshToken) {
+				log("Bad mod auth", { error: true, writeToConsole: true });
+				throw new Error("Bad Auth");
+			}
 
 			try {
 				connectGuild.members.ban(user, { days: 1 });
@@ -98,9 +101,9 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			const twitchName = getRooms(socket).find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const { twitchName } = socket.data;
 
-			async function botDelete(id: string){
+			async function botDelete(id: string) {
 				await twitchClient.deleteMessage(twitchName, id);
 			}
 
@@ -127,26 +130,20 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const twitchName = getRooms(socket).find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const { twitchName } = socket.data;
 
-			let user = data.user;
+			let { user } = data;
 			async function botTimeout(user: string) {
-				log(`Timeout ${user} - Twitch`, { writeToConsole: true });
-				try {
-					//Possible to do: let default timeouts be assigned in dashboard
-					await twitchClient.timeout(twitchName, user, data.time ?? 300);
-				} catch (err) {
-					log(err.message, { error: true });
-				}
+				await twitchClient.timeout(twitchName, user, data.time);
 			}
 			if (!user) {
-				botTimeout(data);
+				await botTimeout(data);
 			} else {
 				const modName = data.modName;
 				const refreshToken = data.refresh_token;
 
 				if (!refreshToken) {
-					botTimeout(user);
+					await botTimeout(user);
 				} else {
 					try {
 						let UserClient = await getUserClient(refreshToken, modName, twitchName);
@@ -154,24 +151,18 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						UserClient = null;
 					} catch (err) {
 						log(err.message, { error: true });
-						botTimeout(user);
+						await botTimeout(user);
 					}
 				}
 			}
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const twitchName = getRooms(socket).find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const { twitchName } = socket.data;
 
 			let user = data.user;
 			async function botBan(user: string) {
-				log(`Ban ${user} - Twitch`, { writeToConsole: true });
-				try {
-					//Possible to do: let default timeouts be assigned in dashboard
-					await twitchClient.ban(twitchName, user, data.time ?? 300);
-				} catch (err) {
-					log(err.message, { error: true });
-				}
+				await twitchClient.ban(twitchName, user);
 			}
 
 			const modName = data.modName;
@@ -192,12 +183,12 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("sendchat", async data => {
-			log(`send chat: ${data}`);
-			const sender = data.sender;
-			const refreshToken = data.refreshToken;
-			const message = data.message;
-			const twitchName = getRooms(socket).find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			log(`send chat: ${JSON.stringify(data, null, 4)}`);
+			const { sender, refreshToken, message } = data;
+			const { twitchName } = socket.data;
+
 			if (!refreshToken) {
+				log("no authed message", { writeToConsole: true });
 				throw new Error("no auth");
 			}
 			if (sender && message) {
@@ -217,11 +208,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("disconnect", () => {
-			log("a user disconnected");
-			log(socket.rooms, { writeToConsole: true });
+			log("a user disconnected", { writeToConsole: true });
 		});
 	});
 };
-function transformTwitchUsername(arg0: string): string {
-	throw new Error("Function not implemented.");
-}

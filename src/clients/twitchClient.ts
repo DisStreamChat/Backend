@@ -25,5 +25,19 @@ export class TwitchClient {
 		}
 	}
 
-	async timeout(channelName: string, user: string, )
+	async timeout(channelName: string, user: string, duration?: number) {
+		try {
+			await this._client.timeout(channelName, user, duration ?? 300);
+		} catch (err) {
+			log(err.message, { error: true });
+		}
+	}
+
+	async ban(channelName: string, user: string, reason?: string) {
+		try {
+			await this._client.ban(channelName, user, reason);
+		} catch (err) {
+			log(err.message, { error: true });
+		}
+	}
 }
