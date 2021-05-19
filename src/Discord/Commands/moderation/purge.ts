@@ -1,8 +1,7 @@
-import {
-	sleep,
-	hasDiscordInviteLink
-} from "../../../utils/functions";
+import { Message } from "discord.js";
 import getUrls from "extract-urls";
+
+import { hasDiscordInviteLink, sleep } from "../../../utils/functions";
 
 const fetchAmountfromId = async (message, id) => {
 	let after;
@@ -40,27 +39,27 @@ const checkAmountLimits = (message, amount) => {
 	}
 };
 
-const fetchMessages = async (message, amount, filter = "") => {
+const fetchMessages = async (message, amount, filter = "", input = "") => {
 	let messages = [];
 	let after = message.id;
 	while (messages.length < amount) {
 		const options = { limit: 100, after: null };
 		if (after) options.after = after;
 		const allMessages = (await message.channel.messages.fetch(options)).array();
-		const filteredMessages = await filterMessages(message, allMessages, filter);
+		const filteredMessages = await filterMessages(message, allMessages, filter, input);
 		messages = [...messages, ...filteredMessages];
 		after = allMessages[allMessages.length - 1]?.id;
 	}
 	return messages.slice(0, amount);
 };
 
-const filterMessages = async (message, messages, filter) => {
+const filterMessages = async (message: Message, messages: Message[], filter, input = "") => {
 	switch (filter) {
 		case "text":
 			return messages.filter(msg => {
 				const embeds = msg.embeds.length;
 				const attachments = msg?.attachments;
-				const filter = attachments?.filter(atch => atch.height).size;
+				const filter = attachments?.filter(atch => !!atch.height).size;
 				return (!embeds && !filter) || msg.id === message.id;
 			});
 		case "embeds":
@@ -70,7 +69,7 @@ const filterMessages = async (message, messages, filter) => {
 		case "images":
 			return messages.filter(msg => {
 				const attachments = msg?.attachments;
-				const filter = attachments?.filter(atch => atch.height).size || msg.id === message.id;
+				const filter = attachments?.filter(atch => !!atch.height).size || msg.id === message.id;
 				return filter;
 			});
 		case "mentions":
@@ -97,6 +96,8 @@ const filterMessages = async (message, messages, filter) => {
 				})
 			);
 			return messages.filter(msg => invites.includes(msg.id));
+		case "from":
+			return messages.filter(msg => msg.author.id === input);
 		default:
 			return messages;
 	}
@@ -108,7 +109,7 @@ const getMessages = async (message, amount, filter) => {
 
 const hasOldMessage = async messages => {
 	const now = new Date().getTime();
-	const fourteenDaysAgo = new Date(now - 1.21e9);
+	const fourteenDaysAgo = new Date(now - 1.21e9).getTime();
 	for (const message of messages) {
 		if (message.createdAt < fourteenDaysAgo) {
 			return true;
@@ -143,6 +144,7 @@ const commands = [
 	"text",
 	"humans",
 	"bots",
+	"from",
 ];
 
 export default {
@@ -168,7 +170,7 @@ export default {
 		}
 		if (checkAmountLimits(message, amount)) return;
 		client.deleter = message.author;
-		const messages = await fetchMessages(message, amount, filter);
+		const messages = await fetchMessages(message, amount, filter, args[2]);
 		await purgeMessages(messages, message);
 		const msg = await message.channel.send(`Deleted ${messages.length - 1} message(s)`);
 		setTimeout(() => {
