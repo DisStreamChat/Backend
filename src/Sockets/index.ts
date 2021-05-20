@@ -4,14 +4,22 @@ import { getUserClient } from "./userClients";
 // get the initialized clients from another file
 import { DiscordClient, twitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { AddEventModel } from "../models/sockets.model";
 import { leaveAllRooms } from "./utils";
 import { transformTwitchUsername } from "../utils/functions/stringManipulation";
 
+interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
+	data: {
+		twitchName: string;
+		guildId: string;
+		liveChatId: string[];
+	};
+}
+
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
-	io.on("connection", socket => {
+	io.on("connection", (socket: CustomSocket) => {
 		log("a user connected", { writeToConsole: true });
 
 		socket.on("add", async (message: AddEventModel) => {
