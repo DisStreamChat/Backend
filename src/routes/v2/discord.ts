@@ -1,17 +1,19 @@
+import { Channel, MessageEmbed, TextChannel } from "discord.js";
 import express from "express";
-import { validateRequest } from "../../middleware";
-import { getProfilePicture } from "../../utils/functions/users";
-const router = express.Router();
-
-import sha1 from "sha1";
 import fetch from "fetchio-js";
 import admin, { auth, firestore } from "firebase-admin";
+import sha1 from "sha1";
+
+import { validateRequest } from "../../middleware";
+import { Platform } from "../../models/platform.enum";
+import { Object } from "../../models/shared.model";
 import { getUserInfo } from "../../utils/DiscordClasses";
-import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
-import { Channel, MessageEmbed, TextChannel } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
-import { Platform } from "../../models/platform.enum";
+import { getProfilePicture } from "../../utils/functions/users";
+import { discordClient, DiscordOauthClient } from "../../utils/initClients";
+
+const router = express.Router();
 
 // get invite link to our discord
 router.get("/", (req, res) => {
@@ -30,14 +32,14 @@ router.get("/invite", (req, res) => {
 	}
 });
 
-router.get("/ismember", (req, res, next) => {
-	res.json({ result: !!DiscordClient.guilds.resolve(req.query.guild as string) });
+router.get("/ismember", (req, res) => {
+	res.json({ result: !!discordClient.guilds.resolve(req.query.guild as string) });
 });
 
-router.get("/getchannels", async (req, res, next) => {
+router.get("/getchannels", async (req, res) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await DiscordClient.guilds.resolve(id as string);
+		const selectedGuild = await discordClient.guilds.resolve(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -60,21 +62,21 @@ router.get("/getchannels", async (req, res, next) => {
 	}
 });
 
-router.get("/resolvechannel", async (req, res, next) => {
+router.get("/resolvechannel", async (req, res) => {
 	const { guild, channel } = req.query;
 	const response = await fetch("https://api.disstreamchat.com/v2/discord/getchannels?guild=" + guild);
 	res.json(response.find((ch: Channel) => ch.id === channel));
 });
 
-router.get("/resolveguild", async (req, res, next) => {
+router.get("/resolveguild", async (req, res) => {
 	const { id } = req.query;
-	const selectedGuild = await DiscordClient.guilds.resolve(id as string);
+	const selectedGuild = await discordClient.guilds.resolve(id as string);
 	res.json(selectedGuild);
 });
 
 router.get("/resolveuser", async (req, res, next) => {
 	try {
-		res.json(await DiscordClient.users.fetch(req.query.user as string));
+		res.json(await discordClient.users.fetch(req.query.user as string));
 	} catch (err) {
 		next(err);
 	}
@@ -101,7 +103,7 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const messageToDelete = await channelObj.messages.fetch(message);
 		await messageToDelete.delete();
@@ -113,7 +115,7 @@ router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
-	const guildObj = DiscordClient.guilds.cache.get(guild as string);
+	const guildObj = discordClient.guilds.cache.get(guild as string);
 	const member = await guildObj.members.fetch(user as string);
 	const userData = (
 		await firestore()
@@ -132,14 +134,14 @@ router.get("/rankcard", async (req, res, next) => {
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, reactions, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
-					reaction = DiscordClient.emojis.cache.get(reaction);
+					reaction = discordClient.emojis.cache.get(reaction);
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
@@ -155,7 +157,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server, messageId } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const messageToEdit = await channelObj.messages.fetch(messageId);
@@ -170,7 +172,7 @@ router.get("/token", async (req, res, next) => {
 	try {
 		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 		log(`redirect uri: ${redirect_uri}/?discord=true`);
-		const code = req.query.code;
+		const { code } = req.query as Object<string>;
 		if (!code) {
 			return res.status(401).json({
 				status: 401,
@@ -180,12 +182,11 @@ router.get("/token", async (req, res, next) => {
 		const body = {
 			code: code,
 			scope: "identify guilds",
-			grantType: "authorization_code",
+			grantType: "authorization_code" as "refresh_token" | "authorization_code",
 			clientId: process.env.DISCORD_CLIENT_ID,
 			clientSecret: process.env.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
-		//@ts-ignore
 		const tokenData = await DiscordOauthClient.tokenRequest(body);
 		const discordInfo = await getUserInfo(tokenData);
 		if (req.query.create) {
@@ -244,13 +245,12 @@ router.get("/token", async (req, res, next) => {
 			res.json(discordInfo);
 		}
 	} catch (err) {
-		// res.send
 		next(err);
 	}
 });
 
 router.get("/guildcount", async (req, res, next) => {
-	res.json(DiscordClient.guilds.cache.array().length);
+	res.json(discordClient.guilds.cache.array().length);
 });
 
 router.get("/profilepicture", async (req, res, next) => {
@@ -265,8 +265,8 @@ router.get("/profilepicture", async (req, res, next) => {
 
 router.get("/resolveemote", async (req, res, next) => {
 	try {
-		const { emote, guild } = req.query;
-		const emoteObject = DiscordClient.emojis.resolve(emote as string);
+		const { emote } = req.query as Object<string>;
+		const emoteObject = discordClient.emojis.resolve(emote);
 		res.json(emoteObject);
 	} catch (err) {
 		next(err);
@@ -274,14 +274,14 @@ router.get("/resolveemote", async (req, res, next) => {
 });
 
 router.get("/emotes", async (req, res, next) => {
-	res.json(DiscordClient.emojis.cache.array());
+	res.json(discordClient.emojis.cache.array());
 });
 
 router.get("/position", async (req, res, next) => {
 	try {
 		const { server } = req.query;
-		const guild = await DiscordClient.guilds.fetch(server as string);
-		const member = guild.member(DiscordClient.user);
+		const guild = await discordClient.guilds.fetch(server as string);
+		const member = guild.member(discordClient.user);
 		const highestRole = member.roles.highest;
 		res.json({ position: highestRole.position, rawPosition: highestRole.rawPosition });
 	} catch (err) {
@@ -290,14 +290,8 @@ router.get("/position", async (req, res, next) => {
 });
 
 router.post("/details", async (req, res, next) => {
-	const { id } = req.query;
-	await admin
-		.firestore()
-		.collection("Streamers")
-		.doc(id as string)
-		.collection("discord")
-		.doc("data")
-		.set(req.body, { merge: true });
+	const { id } = req.query as Object<string>;
+	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, { merge: true });
 	res.end();
 });
 

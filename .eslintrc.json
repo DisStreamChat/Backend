@@ -1,0 +1,74 @@
+{
+	"root": true,
+	"overrides": [
+		{
+			"files": [
+				"*.ts"
+			],
+			"parserOptions": {
+				"project": [
+					"tsconfig.json"
+				],
+				"createDefaultProgram": true
+			},
+			"extends": [
+				"prettier"
+			],
+			"rules": {
+				"@typescript-eslint/explicit-member-accessibility": [
+					"off",
+					{
+						"accessibility": "explicit"
+					}
+				],
+				"arrow-parens": [
+					"off",
+					"as-needed"
+				],
+				"id-blacklist": "error",
+				"import/order": "off",
+				"@typescript-eslint/naming-convention": [
+					"error",
+					{
+						"selector": "enumMember",
+						"format": [
+							"camelCase",
+							"PascalCase",
+							"UPPER_CASE"
+						]
+					}
+				],
+				"no-shadow": "off",
+				"@typescript-eslint/no-shadow": [
+					"error"
+				],
+				"no-underscore-dangle": [
+					"error",
+					{
+						"allowAfterThis": true
+					}
+				],
+				"prefer-arrow/prefer-arrow-functions": "off",
+				"@typescript-eslint/member-ordering": [
+					"warn",
+					{
+						"default": [
+							"signature",
+							"field",
+							"constructor",
+							"method"
+						]
+					}
+				],
+				"@typescript-eslint/quotes": [
+					"warn",
+					"single",
+					{
+						"avoidEscape": true,
+						"allowTemplateLiterals": false
+					}
+				]
+			}
+		}
+	]
+}

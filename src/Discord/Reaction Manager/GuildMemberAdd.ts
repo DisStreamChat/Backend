@@ -10,10 +10,10 @@ export default async (member, DiscordClient) => {
 	rolesToGive = [...(rolesToGive || []), ...(roleData?.join?.roles || [])];
 	if (!rolesToGive) return;
 	for (const roleToGive of rolesToGive) {
-		try{
+		try {
 			await addRole({ member, role: roleToGive.id || roleToGive, DMuser, DiscordClient });
-		}catch(err){
-			log(err.message, {error: true})
+		} catch (err) {
+			log(err.message, { error: true });
 		}
 	}
 };

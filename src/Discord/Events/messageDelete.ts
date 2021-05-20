@@ -1,6 +1,6 @@
 import setupLogging from "./utils/setupLogging";
 import { logMessageDelete } from "./utils";
-import {firestore} from "firebase-admin";
+import { firestore } from "firebase-admin";
 
 export default async (message, DiscordClient) => {
 	await new Promise(res => setTimeout(res, 500));
@@ -15,7 +15,7 @@ export default async (message, DiscordClient) => {
 
 	if (deleteAction.action !== "MESSAGE_DELETE") {
 		executor = message.author;
-	} 
+	}
 
 	const [channelIds, active] = await setupLogging(guild, "messageDelete", DiscordClient);
 

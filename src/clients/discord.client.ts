@@ -1,4 +1,7 @@
+import { Client } from "discord.js";
 
-export class DiscordClient {
-	
+export class DiscordClient extends Client {
+	constructor(options) {
+		super(options);
+	}
 }

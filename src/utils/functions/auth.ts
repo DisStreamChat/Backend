@@ -1,8 +1,7 @@
-import fetch from "fetchio-js"
+import fetch from "fetchio-js";
 
-
-export const refreshTwitchToken = async  (refresh_token) => {
+export const refreshTwitchToken = async (refresh_token: string) => {
 	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
 	const response = await fetch(apiURL, { method: "POST" });
-	return response
-}
+	return response;
+};

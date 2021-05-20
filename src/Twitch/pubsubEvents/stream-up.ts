@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
+import { TwitchApiClient as Api, discordClient } from "../../utils/initClients";
 import { firestore } from "firebase-admin";
 import { log } from "../../utils/functions/logging";
 interface StreamModel {
@@ -52,7 +52,7 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 
 	for (const server of serversToNofiyData) {
 		try {
-			const notifyBot = bots.get(server.docId) || DiscordClient;
+			const notifyBot = bots.get(server.docId) || discordClient;
 
 			const notifyChannelId = server["notification-channels"][data.id];
 

@@ -1,10 +1,10 @@
 //@ts-ignore
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import Discord, { Client, PresenceData } from "discord.js";
-import { statSync, readdirSync } from "fs";
+import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
-export * from "./canvasFunctions";
+export * from "./svgFunctions";
 export * from "./settingFunctions";
 export * from "./moderationFuntions";
 export * from "./levelingFunctions";
@@ -94,8 +94,8 @@ export function compare(obj1 = {}, obj2 = {}, deep?: boolean) {
 		const value1 = obj1[key],
 			value2 = obj2[key];
 
-		if ((isObject(value1) || isObject(value2)) && deep) output[key] = compare(value1, value2);
 		// recursively call
+		if ((isObject(value1) || isObject(value2)) && deep) output[key] = compare(value1, value2);
 		else output[key] = value1 === value2;
 	}
 

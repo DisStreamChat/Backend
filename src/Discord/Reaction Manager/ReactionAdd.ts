@@ -27,6 +27,6 @@ export default async (reaction, user, DiscordClient) => {
 			}
 		}
 	} catch (err) {
-		console.log(err.message)
+		console.log(err.message);
 	}
 };

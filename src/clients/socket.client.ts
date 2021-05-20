@@ -1,3 +1,1 @@
-export class SocketClient {
-	
-}
+export class SocketClient {}

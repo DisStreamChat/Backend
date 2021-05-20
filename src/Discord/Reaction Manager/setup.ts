@@ -8,13 +8,13 @@ export default async (reaction, user, onJoin = false) => {
 	const legacyGuildRef = firestore().collection("reactions").doc(guild.id);
 	const legacyGuildDB = await legacyGuildRef.get();
 	const legacyGuildData = legacyGuildDB.data();
-	for(const message of Object.entries(legacyGuildData || {})){
-		const [key, value] = message
-		value.reactions = value.actions
+	for (const message of Object.entries(legacyGuildData || {})) {
+		const [key, value] = message;
+		value.reactions = value.actions;
 	}
 	const guildDB = await guildRef.get();
-	const guildData = {...(legacyGuildData || {}), ...(guildDB.data() || {})};
-	const reactionMessages ={...legacyGuildData, ...(guildDB.data()?.reactions?.messages || {})}
+	const guildData = { ...(legacyGuildData || {}), ...(guildDB.data() || {}) };
+	const reactionMessages = { ...legacyGuildData, ...(guildDB.data()?.reactions?.messages || {}) };
 	if (!guildData) {
 		try {
 			guildRef.update({});
@@ -33,7 +33,7 @@ export default async (reaction, user, onJoin = false) => {
 		if (!action) action = reactionRoleMessage.reactions["catch-all"];
 	}
 	if (!action) return {};
-	const roles = action.roles ?? action.role
+	const roles = action.roles ?? action.role;
 	let rolesToGiveId = Array.isArray(roles) ? roles : [roles];
 	const rolesToGive = await Promise.all(rolesToGiveId.map(roleToGive => guild.roles.fetch(roleToGive.id ?? roleToGive)));
 	let member = await reaction.message.guild.members.resolve(user);

@@ -1,4 +1,3 @@
-
 // the admin app has already been initialized in routes/index.js
 
 export default {
@@ -10,6 +9,6 @@ export default {
 	description: "Get the link to the leaderboard for this guild.",
 	usage: ["leaderboard"],
 	execute: async (message, args, client) => {
-		message.channel.send(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`)
+		message.channel.send(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`);
 	},
 };

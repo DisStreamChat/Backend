@@ -1,5 +1,5 @@
 export interface AddEventModel {
-	twitchName: string,
-	guildId: string,
-	liveChatId: string[]
+	twitchName: string;
+	guildId: string;
+	liveChatId: string[];
 }

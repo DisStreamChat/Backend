@@ -1,4 +1,4 @@
-import { resolveUser, generateRankCard }from "../../../utils/functions";
+import { resolveUser, generateRankCard } from "../../../utils/functions";
 import { MessageAttachment } from "discord.js";
 import path from "path";
 import fs from "fs";
@@ -26,10 +26,10 @@ export default {
 		if (user.user?.bot || user.bot) {
 			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
 		}
-		let userData = (
-			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()
-		).data();
-		const customRankCardData = (await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()).docs[0]?.data?.();
+		let userData = (await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()).data();
+		const customRankCardData = (
+			await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
+		).docs[0]?.data?.();
 		if (!userData) userData = { xp: 0, level: 0 };
 
 		const sorted = (
@@ -38,7 +38,7 @@ export default {
 		let rank = sorted.findIndex(entry => entry.id === user.id) + 1;
 		if (rank === 0) rank = sorted.length + 1;
 		userData.rank = rank;
-		const rankCard = await generateRankCard({...userData, ...(customRankCardData || {})}, user);
+		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, user);
 		const attachment = new MessageAttachment(rankCard, "card.png");
 		message.channel.send(msg, attachment);
 		// fs.writeFileSync(path.join(__dirname, `../../../../images/${user.user.username}.png`), rankCard);

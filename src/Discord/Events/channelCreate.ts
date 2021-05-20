@@ -1,7 +1,9 @@
-import { MessageEmbed } from "discord.js";
+import { GuildChannel, MessageEmbed, TextChannel } from "discord.js";
+
+import { DiscordClient } from "../../clients/discord.client";
 import setupLogging from "./utils/setupLogging";
 
-export default async (channel, client) => {
+export default async (channel: GuildChannel, client: DiscordClient) => {
 	const guild = channel.guild;
 
 	const [channelIds, active] = await setupLogging(guild, "channelCreate", client);
@@ -13,8 +15,6 @@ export default async (channel, client) => {
 	}
 
 	const embed = new MessageEmbed()
-		//.setAuthor(member.user.tag, member.user.displayAvatarURL())
-		//.setThumbnail(member.user.displayAvatarURL())
 		.setDescription(`:inbox_tray: ${channel.name} **channel created**`)
 		.setFooter(`ID: ${channel.id} ${parentCheck}`)
 		.setTimestamp(new Date())
@@ -22,7 +22,7 @@ export default async (channel, client) => {
 
 	for (const channelId of channelIds) {
 		if (!channelId) return;
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
 	}

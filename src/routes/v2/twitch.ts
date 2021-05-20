@@ -11,6 +11,7 @@ import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/f
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
 import { Platform } from "../../models/platform.enum";
+import { Object } from "../../models/shared.model";
 const router = express.Router();
 const sevenDays = 604800000;
 
@@ -66,7 +67,7 @@ router.put("/follow", validateRequest, async (req, res, next) => {
 });
 
 router.get("/following", async (req, res, next) => {
-	const {user, key} = req.query
+	const { user, key } = req.query;
 	if (!user) {
 		res.status(400).json({ messages: "missing user", code: 400 });
 	}
@@ -94,7 +95,14 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	const action = req.params.action;
 	const firebaseId = req.query.id || " ";
 	try {
-		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId as string).collection("twitch").doc("data").get()).data();
+		const userFirebaseData = (
+			await firestore()
+				.collection("Streamers")
+				.doc(firebaseId as string)
+				.collection("twitch")
+				.doc("data")
+				.get()
+		).data();
 		const refreshData = await Api.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
@@ -114,18 +122,18 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	}
 });
 
-router.get("/activechannels", async (req, res, next) => {
-	res.json(await twitchClient.getChannels());
+router.get("/activechannels", async (req, res) => {
+	res.json(twitchClient.channels);
 });
 
-router.get("/customemotes", async (req, res, next) => {
+router.get("/customemotes", async (req, res) => {
 	const channelName = req.query.channel || req.query.name;
 	if (!channelName) return res.status(400).json({ message: "missing channel name", code: 400 });
 	const [bttv, ffz] = await Promise.all([getBttvEmotes(channelName), getFfzEmotes(channelName)]);
 	res.json({ bttv, ffz });
 });
 
-router.get("/emotes", async (req, res, next) => {
+router.get("/emotes", async (req, res) => {
 	const user = req.query.user;
 	if (!user) {
 		return res.status(400).json({ message: "missing user", code: 400 });
@@ -167,7 +175,7 @@ router.get("/exists", async (req, res, next) => {
 	res.json({ exists: !!userData, data: userData });
 });
 
-router.get("/checkmod", async (req, res, next) => {
+router.get("/checkmod", async (req, res) => {
 	let channelName = req.query.channel as string;
 
 	if (!channelName) {
@@ -177,22 +185,22 @@ router.get("/checkmod", async (req, res, next) => {
 		channelName = "#" + channelName;
 	}
 
-	const userName = req.query.user as string;
+	const { user } = req.query as Object<string>;
 	try {
-		const inChannels = await twitchClient.getChannels();
+		const inChannels = twitchClient.channels;
 		const alreadyJoined = inChannels.includes(channelName);
 
 		if (!alreadyJoined) {
 			const userData = await Api.getUserInfo(channelName.substring(1));
 			if (userData) {
-				await twitchClient.join(channelName);
+				twitchClient.join(channelName);
 			} else {
 				return res.status(400).json({ message: "invalid channel name, it seems like that isn't a twitch channel", code: 400 });
 			}
 		}
 		const results = await twitchClient.mods(channelName);
 
-		const isMod = !!userName && results.includes(userName.toLowerCase());
+		const isMod = !!user && results.includes(user.toLowerCase());
 		if (isMod) {
 			return res.json(await Api.getUserInfo(channelName.substring(1)));
 		} else {
@@ -200,16 +208,16 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			log(`failed to join channel: ${err.message}`);
-			let isMod = twitchClient.isMod(channelName, userName);
+			log(`failed to join channel: ${channelName} because of ${err.message}`, { writeToConsole: true });
+			let isMod = twitchClient.isMod(channelName, user);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
-			isMod = chatters?.moderators?.includes?.(userName) || isMod;
-			twitchClient.part(channelName);
+			isMod = chatters?.moderators?.includes?.(user) || isMod;
+			twitchClient.leave(channelName);
 			if (isMod) {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			twitchClient.part(channelName);
+			twitchClient.leave(channelName);
 			return res.status(500).json(null);
 		}
 	}
@@ -218,8 +226,8 @@ router.get("/checkmod", async (req, res, next) => {
 
 router.get("/profilepicture", async (req, res, next) => {
 	try {
-		const user = req.query.user;
-		const profilePicture = await getProfilePicture(Platform.TWITCH, user as string);
+		const { user } = req.query as Object<string>;
+		const profilePicture = await getProfilePicture(Platform.TWITCH, user);
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
@@ -227,22 +235,20 @@ router.get("/profilepicture", async (req, res, next) => {
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
-	const refresh_token = req.query.token;
-	const json = await refreshTwitchToken(refresh_token);
+	const { token } = req.query as Object<string>;
+
+	const json = await refreshTwitchToken(token);
 	res.json(json);
 });
 
 router.get("/token", async (req, res, next) => {
 	try {
-		// get the oauth code from the the request
-		const code = req.query.code;
-		// get the access token and refresh token from the from the twitch oauth2 endpoint
+		const { code } = req.query;
 		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
 
-		// get the user info like username and user id by validating the access token with twitch
 		const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
 			headers: {
 				Authorization: `OAuth ${response.access_token}`,
@@ -343,8 +349,7 @@ router.get("/token", async (req, res, next) => {
 			});
 
 			// setup the follow webhook if there isn't already one
-			const hasConnection =
-				(await firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).docs.length > 0;
+			const hasConnection = !(await firestore().collection("webhookConnections").where("channelId", "==", user_id).get()).empty;
 			if (!hasConnection) {
 				subscribeToFollowers(user_id, sevenDays);
 				firestore().collection("webhookConnections").doc(uid).set({

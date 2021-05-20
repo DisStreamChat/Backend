@@ -6,7 +6,7 @@ import TwitchApi from "twitchio-js";
 import { firestore, auth } from "firebase-admin";
 import { getUserInfo } from "../utils/DiscordClasses";
 import {
-	DiscordClient,
+	discordClient,
 	twitchClient,
 	TwitchApiClient as Api,
 	KrakenApiClient as KrakenApi,
@@ -48,13 +48,13 @@ router.get("/makecoffee", (req, res) => {
 });
 
 router.get("/ismember", (req, res, next) => {
-	res.json({ result: !!DiscordClient.guilds.resolve(req.query.guild as string) });
+	res.json({ result: !!discordClient.guilds.resolve(req.query.guild as string) });
 });
 
 router.get("/getchannels", async (req, res, next) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await DiscordClient.guilds.resolve(id as string);
+		const selectedGuild = await discordClient.guilds.resolve(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -211,7 +211,7 @@ router.get("/discord/token", async (req, res, next) => {
 });
 
 router.get("/guildcount", async (req, res, next) => {
-	res.json(DiscordClient.guilds.cache.array().length);
+	res.json(discordClient.guilds.cache.array().length);
 });
 
 router.get("/emotes", async (req, res, next) => {
@@ -303,7 +303,7 @@ router.get("/profilepicture", async (req, res, next) => {
 		if (platform === "twitch" || !platform) {
 			profilePicture = (await Api.getUserInfo(user as string))["profile_image_url"];
 		} else if (platform === "discord") {
-			const userObj = await DiscordClient.users.fetch(req.query.user as string);
+			const userObj = await discordClient.users.fetch(req.query.user as string);
 			profilePicture = userObj.displayAvatarURL({ format: "png" });
 		}
 		if (!profilePicture) {
@@ -473,7 +473,7 @@ router.get("/resolveuser", async (req, res, next) => {
 		res.json(await Api.getUserInfo(req.query.user as string));
 	} else if (req.query.platform === "discord") {
 		try {
-			res.json(await DiscordClient.users.fetch(req.query.user as string));
+			res.json(await discordClient.users.fetch(req.query.user as string));
 		} catch (err) {
 			next(err);
 		}
@@ -483,7 +483,7 @@ router.get("/resolveuser", async (req, res, next) => {
 router.get("/resolveguild", async (req, res, next) => {
 	if (!req.query.guild) return res.status(400).json({ message: "missing guild id" });
 	try {
-		res.json(await DiscordClient.guilds.resolve(req.query.guild as string));
+		res.json(await discordClient.guilds.resolve(req.query.guild as string));
 	} catch (err) {
 		next(err);
 	}
@@ -704,7 +704,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 
 router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
-	const guildObj = DiscordClient.guilds.cache.get(guild as string);
+	const guildObj = discordClient.guilds.cache.get(guild as string);
 	const member = await guildObj.members.fetch(user as string);
 	const userData = (
 		await firestore()
@@ -723,7 +723,7 @@ router.get("/rankcard", async (req, res, next) => {
 router.post("/discord/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, reactions, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
@@ -746,7 +746,7 @@ router.post("/discord/reactionmessage", validateRequest, async (req, res, next) 
 router.delete("/discord/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const messageToDelete = await channelObj.messages.fetch(message);
 		await messageToDelete.delete();

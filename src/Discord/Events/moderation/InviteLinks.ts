@@ -1,8 +1,9 @@
-import {firestore} from "firebase-admin";
-import { getDiscordSettings, 
-	// informMods, 
-	// warn, 
-	// hasDiscordInviteLink 
+import { firestore } from "firebase-admin";
+import {
+	getDiscordSettings,
+	// informMods,
+	// warn,
+	// hasDiscordInviteLink
 } from "../../../utils/functions";
 import getUrls from "extract-urls";
 

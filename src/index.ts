@@ -4,7 +4,7 @@ import TwitchEvents from "./Twitch/TwitchEvents";
 import DiscordEvents from "./Discord/DiscordEvents";
 import { log } from "./utils/functions/logging";
 import { sockets } from "./Sockets";
-import { DiscordClient, twitchClient, customBots } from "./utils/initClients";
+import { discordClient, twitchClient, customBots } from "./utils/initClients";
 import { initializeApp, credential } from "firebase-admin";
 import { io, server, app } from "./app";
 
@@ -34,7 +34,7 @@ TwitchEvents(twitchClient, io, app);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./DiscordEvents.js
-DiscordEvents(DiscordClient, io);
+DiscordEvents(discordClient, io);
 if (process.env.BOT_DEV != "true") {
 	customBots.then(bots => {
 		for (const bot of bots.values()) {

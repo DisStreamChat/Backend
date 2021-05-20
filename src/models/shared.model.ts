@@ -1,3 +1,3 @@
 export interface Object<T = any> {
-	[key: string]: T
+	[key: string]: T;
 }

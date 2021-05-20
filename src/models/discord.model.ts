@@ -19,6 +19,4 @@ export interface RoleModel {
 	rawPosition: string;
 }
 
-export interface CustomClient extends Discord.Client {
-	
-}
+export interface CustomClient extends Discord.Client {}

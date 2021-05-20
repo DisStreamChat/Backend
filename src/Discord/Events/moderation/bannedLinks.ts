@@ -1,7 +1,8 @@
-import {firestore} from "firebase-admin";
-import { getDiscordSettings, 
-	// informMods, 
-	// warn 
+import { firestore } from "firebase-admin";
+import {
+	getDiscordSettings,
+	// informMods,
+	// warn
 } from "../../../utils/functions";
 
 export default async (message, client) => {

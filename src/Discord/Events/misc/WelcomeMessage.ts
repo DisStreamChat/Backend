@@ -1,4 +1,3 @@
-;
 import { formatFromNow, getDiscordSettings } from "../../../utils/functions";
 import generateView from "../../Commands/CustomCommands/GenerateView";
 import Mustache from "mustache";

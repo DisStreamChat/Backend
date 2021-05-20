@@ -9,7 +9,7 @@ setTimeout(() => {
 			.doc("loggingEvents")
 			.onSnapshot(snapshot => {
 				const data = snapshot.data();
-				
+
 				defaultLogging = data;
 			});
 	})();

@@ -1,7 +1,7 @@
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
-import { DiscordClient, twitchClient } from "../utils/initClients";
+import { discordClient, twitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
@@ -66,7 +66,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 
 			if (modRefreshToken !== refreshToken) throw new Error("Bad Auth");
 
-			const connectGuild = DiscordClient.guilds.resolve(guildId);
+			const connectGuild = discordClient.guilds.resolve(guildId);
 			const guildChannels = connectGuild.channels;
 
 			for (const channelId of liveChatId) {
@@ -86,7 +86,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		socket.on("banuser - discord", async data => {
 			let { user } = data;
 			const { guildId } = socket.data;
-			const connectGuild = DiscordClient.guilds.resolve(guildId);
+			const connectGuild = discordClient.guilds.resolve(guildId);
 
 			const modId = data.mod_id;
 			const refreshToken = data.refresh_token;

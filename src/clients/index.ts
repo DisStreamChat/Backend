@@ -1,4 +1,1 @@
-
-export class DisStreamChatClient {
-	
-}
+export class DisStreamChatClient {}

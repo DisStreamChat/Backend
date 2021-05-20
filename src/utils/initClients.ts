@@ -6,6 +6,7 @@ import DiscordOauth2 from "discord-oauth2";
 import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
 import { TwitchClient } from "../clients/twitch.client";
+import { DiscordClient } from "../clients/discord.client";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -14,16 +15,16 @@ initializeApp({
 	credential: credential.cert(serviceAccount),
 });
 
-export const DiscordClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
-DiscordClient.login(process.env.BOT_TOKEN);
+export const discordClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+discordClient.login(process.env.BOT_TOKEN);
 
 // import DBL "dblapi.js";
 // const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
 
-DiscordClient.on("ready", async () => {
+discordClient.on("ready", async () => {
 	log("bot ready", { writeToConsole: true });
 	cycleBotStatus(
-		DiscordClient,
+		discordClient,
 		[
 			{
 				status: "online",
@@ -55,14 +56,14 @@ export const twitchClient = new TwitchClient(
 );
 twitchClient.connect();
 
-export const getCustomBots = async (): Promise<Map<string, Client>> => {
+export const getCustomBots = async (): Promise<Map<string, DiscordClient>> => {
 	if (process.env.BOT_DEV == "true") return new Map();
 	const botQuery = firestore().collection("customBot");
 	const botRef = await botQuery.get();
 	const bots: any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const customBots = new Map();
 	for (const bot of bots) {
-		const botClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+		const botClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 		await botClient.login(bot.token);
 		botClient.once("ready", async () => {
 			if (bot.status) {
