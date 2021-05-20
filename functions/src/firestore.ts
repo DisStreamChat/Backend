@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import fetch from "node-fetch";
 
-const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
+const ArrayAny = (arr1: any[], arr2: any[]) => arr1.some(v => arr2.indexOf(v) >= 0);
 
 const log = (...args) => functions.logger.debug(...args);
 

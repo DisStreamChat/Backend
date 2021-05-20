@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import URL from "url-parse";
-import nodeFetch from "node-fetch";
+import nodeFetch from "fetchio-js";
 import { log } from "./logging";
 import { Client, Guild, GuildMember, Message } from "discord.js";
 

@@ -1,7 +1,6 @@
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
-// get the initialized clients from another file
 import { DiscordClient, twitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 import { Server, Socket } from "socket.io";

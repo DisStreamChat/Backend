@@ -2,7 +2,7 @@ import express from "express";
 import { validateRequest } from "../../middleware";
 import { getProfilePicture } from "../../utils/functions/users";
 import sha1 from "sha1";
-import fetch from "node-fetch";
+import fetch from "fetchio-js";
 import { firestore, auth } from "firebase-admin";
 import TwitchApi from "twitchio-js";
 import tmi from "tmi.js";
@@ -138,21 +138,20 @@ router.get("/emotes", async (req, res, next) => {
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData?.refresh_token;
 	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
-	const json = await response.json();
-	const scopes = json.scope;
+	const scopes = response.scope;
 	if (!scopes || !scopes.includes("user_subscriptions")) {
 		return res.status(401).json({ message: "missing scopes", code: 401 });
 	}
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
 	const userApi = new TwitchApi({
 		clientId: process.env.TWITCH_CLIENT_ID,
-		authorizationKey: json.access_token,
+		authorizationKey: response.access_token,
 		kraken: true,
 	});
 	const emotes = await userApi.fetch(apiUrl, {
 		headers: {
 			Accept: "application/vnd.twitchtv.v5+json",
-			Authorization: `OAuth ${json.access_token}`,
+			Authorization: `OAuth ${response.access_token}`,
 		},
 	});
 	res.json(emotes);
@@ -242,25 +241,23 @@ router.get("/token", async (req, res, next) => {
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
-		const json = await response.json();
 
 		// get the user info like username and user id by validating the access token with twitch
 		const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
 			headers: {
-				Authorization: `OAuth ${json.access_token}`,
+				Authorization: `OAuth ${response.access_token}`,
 			},
 		});
 
-		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
-			res.status(validationJson.status);
-			const err = new Error(validationJson.message);
+			res.status(validationResponse.status);
+			const err = new Error(validationResponse.message);
 			return res.json({
-				status: validationJson.status,
-				message: validationJson.message,
+				status: validationResponse.status,
+				message: validationResponse.message,
 			});
 		} else {
-			const { login, user_id } = validationJson;
+			const { login, user_id } = validationResponse;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
 			// automatically mod the bot in the users channel on sign in
@@ -273,7 +270,7 @@ router.get("/token", async (req, res, next) => {
 					},
 					identity: {
 						username: login,
-						password: json.access_token,
+						password: response.access_token,
 					},
 					channels: [login],
 				});
@@ -342,7 +339,7 @@ router.get("/token", async (req, res, next) => {
 
 			await firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
 				user_id,
-				refresh_token: json.refresh_token,
+				refresh_token: response.refresh_token,
 			});
 
 			// setup the follow webhook if there isn't already one
@@ -360,7 +357,7 @@ router.get("/token", async (req, res, next) => {
 				displayName: userInfo.display_name,
 				profilePicture: userInfo.profile_image_url,
 				ModChannels,
-				refresh_token: json.refresh_token,
+				refresh_token: response.refresh_token,
 			});
 		}
 	} catch (err) {

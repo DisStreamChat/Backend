@@ -4,11 +4,11 @@ import { getProfilePicture } from "../../utils/functions/users";
 const router = express.Router();
 
 import sha1 from "sha1";
-import fetch from "node-fetch";
+import fetch from "fetchio-js";
 import admin, { auth, firestore } from "firebase-admin";
 import { getUserInfo } from "../../utils/DiscordClasses";
 import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
-import { MessageEmbed, TextChannel } from "discord.js";
+import { Channel, MessageEmbed, TextChannel } from "discord.js";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { Platform } from "../../models/platform.enum";
@@ -63,8 +63,7 @@ router.get("/getchannels", async (req, res, next) => {
 router.get("/resolvechannel", async (req, res, next) => {
 	const { guild, channel } = req.query;
 	const response = await fetch("https://api.disstreamchat.com/v2/discord/getchannels?guild=" + guild);
-	const json = await response.json();
-	res.json(json.filter(ch => ch.id == channel)[0]);
+	res.json(response.find((ch: Channel) => ch.id === channel));
 });
 
 router.get("/resolveguild", async (req, res, next) => {

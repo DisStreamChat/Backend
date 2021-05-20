@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import fetch from "fetchio-js";
 import tmi from "tmi.js";
 import { ArrayAny } from "../utils/functions";
 import { log } from "../utils/functions/logging";
@@ -9,7 +9,7 @@ const requiredScopes = ["chat:edit", "chat:read", "channel:moderate"];
 
 export const createUserClient = async (refreshToken, modName, twitchName) => {
 	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
-	const data = await response.json();
+	const data = response
 	if (!data) {
 		throw new Error("bad refresh token");
 	}

@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 import sha1 from "sha1";
-import fetch from "node-fetch";
+import fetch from "fetchio-js";
 import TwitchApi from "twitchio-js";
 import { firestore, auth } from "firebase-admin";
 import { getUserInfo } from "../utils/DiscordClasses";
@@ -79,8 +79,7 @@ router.get("/getchannels", async (req, res, next) => {
 router.get("/resolvechannel", async (req, res, next) => {
 	const { guild, channel } = req.query;
 	const response = await fetch("https://api.disstreamchat.com/getchannels?guild=" + guild);
-	const json = await response.json();
-	res.json(json.filter(ch => ch.id == channel)[0]);
+	res.json(response.filter(ch => ch.id == channel)[0]);
 });
 
 // redirect to the invite page for the bot you can specify a guild if you want
@@ -107,8 +106,7 @@ router.get("/app", async (req, res) => {
 	}
 	const apiURL = "https://api.github.com/repos/disstreamchat/App/releases";
 	const response = await fetch(apiURL);
-	const json = await response.json();
-	res.redirect(json[0].assets[0].browser_download_url);
+	res.redirect(response[0].assets[0].browser_download_url);
 });
 
 router.get("/discord/token/refresh", validateRequest, async (req, res, next) => {
@@ -229,21 +227,20 @@ router.get("/emotes", async (req, res, next) => {
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData?.refresh_token;
 	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
-	const json = await response.json();
-	const scopes = json.scope;
+	const scopes = response.scope;
 	if (!scopes || !scopes.includes("user_subscriptions")) {
 		return res.status(401).json({ message: "missing scopes", code: 401 });
 	}
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
 	const userApi = new TwitchApi({
 		clientId: process.env.TWITCH_CLIENT_ID,
-		authorizationKey: json.access_token,
+		authorizationKey: response.access_token,
 		kraken: true,
 	});
 	const emotes = await userApi.fetch(apiUrl, {
 		headers: {
 			Accept: "application/vnd.twitchtv.v5+json",
-			Authorization: `OAuth ${json.access_token}`,
+			Authorization: `OAuth ${response.access_token}`,
 		},
 	});
 	res.json(emotes);
@@ -261,7 +258,7 @@ router.get("/checkmod", async (req, res, next) => {
 
 	const userName = req.query.user as string;
 	try {
-		const inChannels = await twitchClient.getChannels();
+		const inChannels = await twitchClient.channels;
 		const alreadyJoined = inChannels.includes(channelName);
 
 		if (!alreadyJoined) {
@@ -332,8 +329,7 @@ router.get("/twitch/token/refresh", validateRequest, async (req, res, next) => {
 	const refresh_token = req.query.token;
 	const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&grant_type=refresh_token&refresh_token=${refresh_token}`;
 	const response = await fetch(apiURL, { method: "POST" });
-	const json = await response.json();
-	res.json(json);
+	res.json(response);
 });
 
 router.get("/token", async (req, res, next) => {
@@ -346,25 +342,23 @@ router.get("/token", async (req, res, next) => {
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
-		const json = await response.json();
 
 		// get the user info like username and user id by validating the access token with twitch
 		const validationResponse = await fetch("https://id.twitch.tv/oauth2/validate", {
 			headers: {
-				Authorization: `OAuth ${json.access_token}`,
+				Authorization: `OAuth ${response.access_token}`,
 			},
 		});
 
-		const validationJson = await validationResponse.json();
 		if (!validationResponse.ok) {
-			res.status(validationJson.status);
-			const err = new Error(validationJson.message);
+			res.status(validationResponse.status);
+			const err = new Error(validationResponse.message);
 			return res.json({
-				status: validationJson.status,
-				message: validationJson.message,
+				status: validationResponse.status,
+				message: validationResponse.message,
 			});
 		} else {
-			const { login, user_id } = validationJson;
+			const { login, user_id } = validationResponse;
 			const ModChannels = await Api.getUserModerationChannels(login);
 
 			// automatically mod the bot in the users channel on sign in
@@ -377,7 +371,7 @@ router.get("/token", async (req, res, next) => {
 					},
 					identity: {
 						username: login,
-						password: json.access_token,
+						password: response.access_token,
 					},
 					channels: [login],
 				});
@@ -446,7 +440,7 @@ router.get("/token", async (req, res, next) => {
 
 			await firestore().collection("Streamers").doc(uid).collection("twitch").doc("data").set({
 				user_id,
-				refresh_token: json.refresh_token,
+				refresh_token: response.refresh_token,
 			});
 
 			// setup the follow webhook if there isn't already one
@@ -464,7 +458,7 @@ router.get("/token", async (req, res, next) => {
 				displayName: userInfo.display_name,
 				profilePicture: userInfo.profile_image_url,
 				ModChannels,
-				refresh_token: json.refresh_token,
+				refresh_token: response.refresh_token,
 			});
 		}
 	} catch (err) {
@@ -498,16 +492,15 @@ router.get("/resolveguild", async (req, res, next) => {
 router.get("/chatters", async (req, res, next) => {
 	try {
 		const response = await fetch(`https://tmi.twitch.tv/group/user/${req.query.user}/chatters`);
-		const json = await response.json();
 		let onlineBots = [];
 		let count = 0;
-		for (let [key, value] of Object.entries(json.chatters || {})) {
+		for (let [key, value] of Object.entries(response.chatters || {})) {
 			//@ts-ignore
-			json.chatters[key] = value.filter(name => !onlineBots.includes(name));
-			count += json.chatters[key].length;
+			response.chatters[key] = value.filter(name => !onlineBots.includes(name));
+			count += response.chatters[key].length;
 		}
-		json.chatter_count = count;
-		res.json(json);
+		response.chatter_count = count;
+		res.json(response);
 	} catch (err) {
 		setTimeout(() => {
 			try {
@@ -528,7 +521,6 @@ router.get("/stats/twitch", async (req, res, next) => {
 		const chattersUrl = `https://api.disstreamchat.com/chatters/?user=${streamerName}`;
 		const streamDataResponse = await Api.fetch(apiUrl);
 		const response = await fetch(chattersUrl);
-		const json = await response.json();
 		const streamData = streamDataResponse.data;
 		const stream = streamData[0];
 		if (stream) {
@@ -538,7 +530,7 @@ router.get("/stats/twitch", async (req, res, next) => {
 			return res.json(stream);
 		} else if (isNew) {
 			return res.json({
-				viewer_count: json.chatter_count,
+				viewer_count: response.chatter_count,
 				isLive: false,
 			});
 		}

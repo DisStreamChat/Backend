@@ -8,8 +8,7 @@ router.get("/download", async (req, res) => {
 	}
 	const apiURL = "https://api.github.com/repos/disstreamchat/App/releases";
 	const response = await fetch(apiURL);
-	const json = await response.json();
-	res.redirect(json[0].assets[0].browser_download_url);
+	res.redirect(response[0].assets[0].browser_download_url);
 });
 
 export default router;

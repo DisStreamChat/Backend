@@ -1,16 +1,15 @@
 import { firestore } from "firebase-admin";
 import { TwitchApiClient as Api } from "../initClients";
-import fetch from "node-fetch";
+import fetch from "fetchio-js";
 import { log } from "./logging";
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
 	let bttvRegex;
-	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
-	let emotes = await bttvResponse.json();
+	let emotes = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	const channelInfo = await Api.getUserInfo(channelName);
 	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
-	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
+	const { channelEmotes, sharedEmotes } = bttvChannelResponse;
 	if (channelEmotes) {
 		emotes = emotes.concat(channelEmotes);
 	}
