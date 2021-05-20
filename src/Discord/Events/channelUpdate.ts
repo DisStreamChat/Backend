@@ -1,5 +1,7 @@
 import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
+import { GuildChannel, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
 
 const ignoredDifferences = ["permissionOverwrites"];
 
@@ -13,7 +15,7 @@ const valueMap = {
 	topic: value => (!value ? "No Topic" : value),
 };
 
-export default async (oldChannel, newChannel, client) => {
+export default async (oldChannel: Partial<GuildChannel>, newChannel: Partial<GuildChannel>, client: DiscordClient) => {
 	const guild = newChannel.guild;
 
 	const [channelIds, active] = await setupLogging(guild, "channelUpdate", client);
@@ -29,7 +31,7 @@ export default async (oldChannel, newChannel, client) => {
 
 	if (!channelIds) return;
 	for (const channelId of channelIds) {
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
 	}

@@ -1,4 +1,6 @@
+import { Guild } from "discord.js";
 import { firestore } from "firebase-admin";
+import { DiscordClient } from "../../../clients/discord.client";
 import { getDiscordSettings, getLoggingSettings } from "../../../utils/functions";
 
 let defaultLogging;
@@ -15,15 +17,15 @@ setTimeout(() => {
 	})();
 }, 1000);
 
-export default async (guild, id, client): Promise<[any[], boolean]> => {
+export default async (guild: Guild, id: string, client: DiscordClient): Promise<[string[], boolean]> => {
 	let channelIds = [];
 	let active = false;
 	const serverSettingsData = await getDiscordSettings({ guild: guild.id, client });
 	const serverData = await getLoggingSettings({ guild: guild.id, client });
 	if (serverData) {
 		channelIds = Object.values(serverData)
-			.filter((action: any) => action.action?.id?.toLowerCase() === id?.toLowerCase())
-			.map((action: any) => action.channel.id);
+			.filter((log: any) => log.action?.id?.toLowerCase() === id?.toLowerCase())
+			.map((log: any) => log.channel.id);
 
 		if (serverSettingsData) {
 			active = serverSettingsData.activePlugins.logging;

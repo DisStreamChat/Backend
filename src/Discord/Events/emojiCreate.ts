@@ -1,7 +1,8 @@
-import { MessageEmbed } from "discord.js";
+import { Emoji, GuildEmoji, MessageEmbed, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
 import setupLogging from "./utils/setupLogging";
 
-export default async (emoji, client) => {
+export default async (emoji: GuildEmoji, client: DiscordClient) => {
 	const guild = emoji.guild;
 	if (!guild) return;
 
@@ -21,7 +22,7 @@ export default async (emoji, client) => {
 	for (const channelId of channelIds) {
 		if (!channelId) return;
 
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
 	}

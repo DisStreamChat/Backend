@@ -4,6 +4,7 @@ import * as discord from "discord.js";
 import * as admin from "firebase-admin";
 export * from "./firestore"
 export * from "./servers"
+export * from "./leveling"
 
 admin.initializeApp();
 

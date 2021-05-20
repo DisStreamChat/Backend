@@ -1,5 +1,5 @@
 import { resolveUser, generateRankCard } from "../../../utils/functions";
-import { MessageAttachment } from "discord.js";
+import { Message, MessageAttachment } from "discord.js";
 import path from "path";
 import fs from "fs";
 
@@ -14,33 +14,37 @@ export default {
 	plugin: "leveling",
 	description: "Get someones experience and level on this server in a rankcard.",
 	usage: ["(user)"],
-	execute: async (message, args, client) => {
-		let user = await resolveUser(message, args.join(" "));
+	execute: async (message: Message, args, client) => {
+		let member = await resolveUser(message, args.join(" "));
 		let msg = "";
-		if (!user) {
+		if (!member) {
 			if (args.length) {
 				msg = "user not found, here are your stats";
 			}
-			user = message.member;
+			member = message.member;
 		}
-		if (user.user?.bot || user.bot) {
-			return await message.channel.send(`❌ ${user} is a bot and bots don't level.`);
+		
+		if (member.user.bot) {
+			return await message.channel.send(`❌ ${member} is a bot and bots don't level.`);
 		}
-		let userData = (await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()).data();
+		
+		let userData = (await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(member.id).get()).data();
+		
 		const customRankCardData = (
-			await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
+			await admin.firestore().collection("Streamers").where("discordId", "==", member.id).get()
 		).docs[0]?.data?.();
+		
 		if (!userData) userData = { xp: 0, level: 0 };
 
 		const sorted = (
 			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").orderBy("xp", "desc").get()
 		).docs.map(doc => ({ id: doc.id, ...doc.data() }));
-		let rank = sorted.findIndex(entry => entry.id === user.id) + 1;
+
+		let rank = sorted.findIndex(entry => entry.id === member.id) + 1;
 		if (rank === 0) rank = sorted.length + 1;
 		userData.rank = rank;
-		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, user);
+		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member);
 		const attachment = new MessageAttachment(rankCard, "card.png");
 		message.channel.send(msg, attachment);
-		// fs.writeFileSync(path.join(__dirname, `../../../../images/${user.user.username}.png`), rankCard);
 	},
 };
