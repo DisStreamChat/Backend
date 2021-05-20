@@ -24,7 +24,8 @@ const commands = commandFiles.reduce(
 	{}
 );
 
-const runIo = async io => {
+// TODO: refactor so it doesn't fire on follow
+const pubSub = async io => {
 	if (process.env.BOT_DEV == "true") return;
 
 	let pubsubbedChannels = [];
@@ -221,4 +222,4 @@ const runIo = async io => {
 		});
 };
 
-export default runIo;
+export default pubSub;

@@ -283,12 +283,12 @@ router.get("/checkmod", async (req, res, next) => {
 			let isMod = twitchClient.isMod(channelName, userName);
 			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
-			twitchClient.part(channelName);
+			twitchClient.leave(channelName);
 			if (isMod) {
 				return res.json(await Api.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			twitchClient.part(channelName);
+			twitchClient.leave(channelName);
 			return res.status(500).json(null);
 		}
 	}
@@ -581,7 +581,7 @@ router.get("/customemotes", async (req, res, next) => {
 });
 
 router.get("/twitch/channels", async (req, res, next) => {
-	res.json(await twitchClient.getChannels());
+	res.json(twitchClient.channels);
 });
 
 router.get("/twitch/follows", async (req, res, next) => {

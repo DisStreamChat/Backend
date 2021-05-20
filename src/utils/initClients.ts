@@ -5,7 +5,7 @@ import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
 import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
-import { TwitchClient } from "../clients/twitchClient";
+import { TwitchClient } from "../clients/twitch.client";
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));

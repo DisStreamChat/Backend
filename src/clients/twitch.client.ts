@@ -1,4 +1,4 @@
-import tmi from "tmi.js";
+import tmi, { Events } from "tmi.js";
 import { log } from "../utils/functions/logging";
 export class TwitchClient {
 	constructor(private _client: tmi.Client) {}
@@ -38,6 +38,36 @@ export class TwitchClient {
 			await this._client.ban(channelName, user, reason);
 		} catch (err) {
 			log(err.message, { error: true });
+		}
+	}
+
+	async on(event: keyof Events, callback) {
+		this._client.on(event, callback);
+	}
+
+	async leave(channel: string) {
+		try {
+			await this._client.part(channel);
+		} catch (err) {
+			log(err, { error: true });
+		}
+	}
+
+	async isMod(channel: string, username: string) {
+		try {
+			return await this._client.isMod(channel, username);
+		} catch (err) {
+			log(err, { error: true });
+			return false;
+		}
+	}
+
+	async mods(channel: string) {
+		try {
+			return await this._client.mods(channel);
+		} catch (err) {
+			log(err, { error: true });
+			return [];
 		}
 	}
 }

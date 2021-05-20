@@ -3,9 +3,8 @@ export interface BaseMessageModel {
 	avatar: string;
 	body: string;
 	platform: "twitch" | "discord";
-	messageId: string;
 	id: string;
-	badges: {
+	badges?: {
 		[key: string]: {
 			image: string;
 			title: string;
@@ -13,7 +12,7 @@ export interface BaseMessageModel {
 	};
 	sentAt: number;
 	userColor: string;
-	messageType: string;
+	type: string;
 }
 
 export interface DiscordMessageModel extends BaseMessageModel {
@@ -22,12 +21,14 @@ export interface DiscordMessageModel extends BaseMessageModel {
 }
 
 export interface TwitchMessageModel extends BaseMessageModel {
-	replyParentDisplayName: string;
-	replyParentMessageBody: string;
-	replyParentMessageId: string;
-	replyParentMessageUserId: string;
+	replyParentDisplayName?: string;
+	replyParentMessageBody?: string;
+	replyParentMessageId?: string;
+	replyParentMessageUserId?: string;
+	highlightedMessageId?: string;
+	messageType?: string;
 }
 
-export type GenericMessageType = DiscordMessageModel | TwitchMessageModel
+export type GenericMessageType = DiscordMessageModel | TwitchMessageModel;
 
-export type MessageMap = Map<string, GenericMessageType>
+export type MessageMap = Map<string, GenericMessageType>;
