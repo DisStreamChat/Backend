@@ -1,4 +1,3 @@
-import { Guild } from "discord.js";
 import { firestore } from "firebase-admin";
 import { DiscordClient } from "../../../clients/discord.client";
 import { getDiscordSettings, getLoggingSettings } from "../../../utils/functions";
@@ -17,7 +16,7 @@ setTimeout(() => {
 	})();
 }, 1000);
 
-export default async (guild: Guild, id: string, client: DiscordClient): Promise<[string[], boolean]> => {
+export default async (guild: { id: string }, id: string, client: DiscordClient): Promise<[string[], boolean]> => {
 	let channelIds = [];
 	let active = false;
 	const serverSettingsData = await getDiscordSettings({ guild: guild.id, client });

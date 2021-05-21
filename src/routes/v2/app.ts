@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 
 router.get("/download", async (req, res) => {
-	const version = req.query.version;
+	const { version } = req.query;
 	if (version) {
 		return res.redirect(`https://github.com/DisTwitchChat/App/releases/download/v${version}/disstreamchat-Setup-${version}.exe`);
 	}

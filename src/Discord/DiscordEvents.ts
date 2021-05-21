@@ -12,6 +12,7 @@ import admin from "firebase-admin";
 import { DiscordMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
 import { Platform } from "../models/platform.enum";
+import { Object } from "../models/shared.model";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
@@ -68,18 +69,18 @@ export default async (client, io) => {
 
 			const senderName = message.member.displayName;
 
-			const badges = {};
+			const badges: Object<{ image: string; title: string }> = {};
 
 			// custom badges based on permissions or if the user is an admin
 			if (message.member) {
-				if (message.guild.ownerID == message.author.id) {
-					badges["broadcaster"] = {
+				if (message.guild.ownerID === message.author.id) {
+					badges.broadcaster = {
 						image: "https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1",
 						title: "Server Owner",
 					};
 				} else {
 					if (message.member.hasPermission(["MANAGE_MESSAGES"])) {
-						badges["moderator"] = {
+						badges.moderator = {
 							image: "https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1",
 							title: "Moderator",
 						};
@@ -87,14 +88,14 @@ export default async (client, io) => {
 				}
 
 				if (message.member.premiumSinceTimestamp) {
-					badges["booster"] = {
+					badges.booster = {
 						image: "https://cdn.discordapp.com/attachments/711241287134609480/727707559045365771/serverbooster.png",
 						title: "Server Booster",
 					};
 				}
 
 				if (ranks.discord.developers.includes(message.author.id)) {
-					badges["developer"] = {
+					badges.developer = {
 						image: "https://cdn.discordapp.com/attachments/699812263670055052/722630142987468900/icon_18x18.png",
 						title: "DisStreamchat Staff",
 					};
@@ -102,13 +103,13 @@ export default async (client, io) => {
 			}
 
 			if (message.author.bot) {
-				badges["bot"] = {
+				badges.bot = {
 					image: "https://cdn.betterttv.net/tags/bot.png",
 					title: "Discord Bot",
 				};
 			}
 
-			//Setting Override/Default Color (Webhooks aren't members, so we default to this)
+			// Setting Override/Default Color (Webhooks aren't members, so we default to this)
 			let userHexColor = "#FFFFFF";
 
 			if (message.member) {
@@ -126,8 +127,7 @@ export default async (client, io) => {
 					avatar: message.author.displayAvatarURL(),
 					body: HTMLCleanMessage,
 					platform: "discord",
-					messageId: "",
-					messageType: "chat",
+					type: "chat",
 					id: message.id,
 					badges,
 					sentAt: message.createdAt.getTime(),
