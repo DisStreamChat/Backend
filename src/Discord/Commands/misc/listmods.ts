@@ -1,8 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import { getDiscordSettings } from "../../../utils/functions";
 
-// the admin app has already been initialized in routes/index.js
-
 export default {
 	name: "listmods",
 	aliases: ["mods"],
