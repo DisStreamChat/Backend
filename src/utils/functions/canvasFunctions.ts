@@ -1,4 +1,4 @@
-import { getXp } from "./levelingFunctions";
+import { abs, floor, getXp } from "./levelingFunctions";
 import svg2img from "svg2img";
 import { GuildMember } from "discord.js";
 
@@ -20,10 +20,10 @@ export const generateRankCard = async (userData, user: GuildMember, buffer = tru
 	// calculate all required values
 	const xpToNextLevel = getXp(userData.level + 1);
 	const xpForCurrentLevel = getXp(userData.level);
-	const xpLevelDif = Math.abs(xpToNextLevel - xpForCurrentLevel);
-	const xpProgress = Math.abs(userData.xp - xpForCurrentLevel);
+	const xpLevelDif = abs(xpToNextLevel - xpForCurrentLevel);
+	const xpProgress = abs(userData.xp - xpForCurrentLevel);
 	const percentDone = xpProgress / xpLevelDif;
-	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : Math.floor(xpProgress);
+	const displayXp = xpProgress > 1000 ? `${(xpProgress / 1000).toFixed(2)}k` : floor(xpProgress);
 	const displayXpToGo = xpLevelDif > 1000 ? `${(xpLevelDif / 1000).toFixed(2)}k` : xpLevelDif;
 
 	const profileUrl = user.user.displayAvatarURL({ format: "png" });
