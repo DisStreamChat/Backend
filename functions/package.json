@@ -26,6 +26,7 @@
     "url-polyfill": "^1.1.12"
   },
   "devDependencies": {
+    "@typescript-eslint/parser": "^4.24.0",
     "firebase-functions-test": "^0.1.6",
     "tslint": "^5.12.0",
     "typescript": "^3.2.2"
