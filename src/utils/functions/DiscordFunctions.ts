@@ -1,4 +1,6 @@
-export const resolveUser = async (msg, username) => {
+import { GuildMember } from "discord.js";
+
+export const resolveUser = async (msg, username): Promise<GuildMember> => {
 	if(!username?.length) return null
 	const memberCache = msg.guild.members.cache;
 	if (/<@!?\d+>/g.test(username)) {

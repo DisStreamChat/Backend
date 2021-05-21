@@ -1,5 +1,6 @@
 import { getXp } from "./levelingFunctions";
 import svg2img from "svg2img";
+import { GuildMember } from "discord.js";
 
 const bufferifySVG = (svg: string, opts?: any): Promise<Buffer> => {
 	return new Promise((res, rej) =>
@@ -9,7 +10,7 @@ const bufferifySVG = (svg: string, opts?: any): Promise<Buffer> => {
 	);
 };
 
-export const generateRankCard = async (userData, user, buffer = true) => {
+export const generateRankCard = async (userData, user: GuildMember, buffer = true) => {
 	const primaryColor = userData.primaryColor || "#c31503";
 	const backgroundColor1 = "#1f2525a0";
 	const backgroundColor2 = `#090b0b${(userData.backgroundOpacity ?? 255).toString(16)}`;
