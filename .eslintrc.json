@@ -1,66 +1,156 @@
 {
 	"root": true,
+	"env": {
+		"mocha": true,
+		"node": true,
+		"es6": true
+	},
+	"parserOptions": {
+		"project": ["tsconfig.json", "tsconfig.spec.json"]
+	},
 	"parser": "@typescript-eslint/parser",
-	"overrides": [
-		{
-			"files": ["*.ts"],
-			"parserOptions": {
-				"project": ["tsconfig.json"]
-			},
-			"extends": ["prettier"],
-			"rules": {
-				"@typescript-eslint/explicit-member-accessibility": [
-					"off",
-					{
-						"accessibility": "explicit"
-					}
-				],
-				"arrow-parens": ["off", "as-needed"],
-				"id-blacklist": "error",
-				"import/order": "off",
-				"@typescript-eslint/naming-convention": [
-					"error",
-					{
-						"selector": "enumMember",
-						"format": ["camelCase", "PascalCase", "UPPER_CASE"]
-					}
-				],
-				"no-shadow": "off",
-				"@typescript-eslint/no-shadow": ["error"],
-				"no-underscore-dangle": [
-					"error",
-					{
-						"allowAfterThis": true
-					}
-				],
-				"prefer-arrow/prefer-arrow-functions": "off",
-				"@typescript-eslint/member-ordering": [
-					"warn",
-					{
-						"default": ["signature", "field", "constructor", "method"]
-					}
-				],
-				"@typescript-eslint/quotes": [
-					"warn",
-					"single",
-					{
-						"avoidEscape": true,
-						"allowTemplateLiterals": false
-					}
-				],
-				"rules": {
-					"prefer-destructuring": [
-						"error",
-						{
-							"array": true,
-							"object": true
-						},
-						{
-							"enforceForRenamedProperties": false
-						}
-					]
-				}
-			}
+	"plugins": ["jsdoc"],
+	"settings": {
+		"import/parsers": {
+			"@typescript-eslint/parser": [".ts", ".tsx"]
+		},
+		"jsdoc": {
+			"mode": "typescript"
 		}
-	]
+	},
+	"rules": {
+		// ORIGINAL tslint.json -> 'arrow-parens': false,
+		"arrow-parens": ["off", "as-needed"],
+		"camelcase": "error",
+		"class-methods-use-this": "off",
+		"comma-dangle": "off",
+		"complexity": "off",
+		"constructor-super": "error",
+		"dot-notation": "error",
+		"eqeqeq": ["error", "smart"],
+		"guard-for-in": "error",
+		"id-blacklist": ["error", "any", "Number", "number", "String", "string", "Boolean", "boolean", "Undefined"],
+		"id-match": "error",
+		"import/extensions": "off",
+		"import/no-deprecated": "warn",
+		"import/order": "off",
+		"import/prefer-default-export": "off",
+		"import/no-extraneous-dependencies": "off",
+		"lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+		"max-classes-per-file": "off",
+		"max-len": [
+			"error",
+			{
+				"code": 140
+			}
+		],
+		"prefer-destructuring": ["error", { "object": true, "array": false }],
+		"new-parens": "error",
+		"no-bitwise": "error",
+		"no-caller": "error",
+		"no-cond-assign": "error",
+		"no-console": [
+			"error",
+			{
+				"allow": [
+					"log",
+					"warn",
+					"dir",
+					"timeLog",
+					"assert",
+					"clear",
+					"count",
+					"countReset",
+					"group",
+					"groupEnd",
+					"table",
+					"dirxml",
+					"error",
+					"groupCollapsed",
+					"Console",
+					"profile",
+					"profileEnd",
+					"timeStamp",
+					"context"
+				]
+			}
+		],
+		"no-continue": "off",
+		"no-debugger": "error",
+		"no-empty": "off",
+		"no-eval": "error",
+		"no-fallthrough": "error",
+		"no-invalid-this": "off",
+		"no-mixed-operators": "off",
+		"no-multiple-empty-lines": "off",
+		"no-new-wrappers": "error",
+		"no-plusplus": "off",
+		"no-prototype-builtins": "off",
+		"no-restricted-globals": "off",
+		"no-restricted-imports": ["error", "rxjs/Rx"],
+		"no-restricted-syntax": [
+			"error",
+			{
+				"selector": "ForInStatement",
+				"message": "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array."
+			},
+			{
+				"selector": "LabeledStatement",
+				"message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+			},
+			{
+				"selector": "WithStatement",
+				"message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
+			}
+		],
+		"no-shadow": [
+			"error",
+			{
+				"hoist": "all"
+			}
+		],
+		"no-throw-literal": "error",
+		"no-trailing-spaces": "error",
+		"no-undef-init": "error",
+		"no-underscore-dangle": "off",
+		"no-unsafe-finally": "error",
+		"no-unused-expressions": "error",
+		"no-unused-labels": "error",
+		"object-shorthand": "error",
+		"one-var": ["error", "never"],
+		"quote-props": ["error", "as-needed"],
+		"radix": "error",
+		"spaced-comment": "error",
+		"use-isnan": "error",
+		"valid-typeof": "off",
+		// ORIGINAL tslint.json -> 'array-type': false,
+		"@typescript-eslint/array-type": "off",
+		"@typescript-eslint/explicit-function-return-type": [
+			"error",
+			{
+				"allowExpressions": true,
+				"allowTypedFunctionExpressions": true,
+				"allowHigherOrderFunctions": true
+			}
+		],
+		"@typescript-eslint/explicit-member-accessibility": [
+			"off",
+			{
+				"accessibility": "explicit"
+			}
+		],
+		"@typescript-eslint/interface-name-prefix": "off",
+		"@typescript-eslint/member-ordering": "error",
+		"@typescript-eslint/no-empty-function": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"no-use-before-define": "off",
+		"@typescript-eslint/no-use-before-define": ["error", { "functions": false }],
+		"@typescript-eslint/no-non-null-assertion": "off",
+		"@typescript-eslint/no-parameter-properties": "off",
+		"@typescript-eslint/prefer-for-of": "error",
+		"@typescript-eslint/prefer-function-type": "error",
+		"@typescript-eslint/quotes": ["error", "single", { "avoidEscape": true }],
+		"@typescript-eslint/unified-signatures": "error",
+		"jsdoc/no-types": "error"
+	}
 }
