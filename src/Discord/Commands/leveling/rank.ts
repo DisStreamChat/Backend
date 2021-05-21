@@ -27,12 +27,14 @@ export default {
 
 		console.time("user fetch");
 		let userData = (await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").doc(user.id).get()).data();
-
-		const customRankCardData = (
-			await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
-		).docs[0]?.data?.();
+		let customRankCardData = userData;
+		if (!customRankCardData.primaryColor) {
+			customRankCardData = (
+				await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
+			).docs[0]?.data?.();
+		}
 		console.timeEnd("user fetch");
-		
+
 		if (!userData) userData = { xp: 0, level: 0, rank: 100000 };
 		console.time("start generating");
 		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, user);
