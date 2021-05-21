@@ -5,6 +5,9 @@ const aggregateRank = functions.firestore.document("Leveling/{guildId}/users/{us
 	const {guildId, userId} = context.params
 
 	const guildRef = firestore().collection("Leveling").doc(guildId).collection("users")
+	const user = (
+		await firestore().collection("Streamers").where("discordId", "==", userId).get()
+	).docs.reduce((acc, cur) => ({...cur.data(), ...acc}), {}) as any
 
 	const docRef = guildRef.doc(userId)
 
@@ -15,7 +18,7 @@ const aggregateRank = functions.firestore.document("Leveling/{guildId}/users/{us
 	let rank = sorted.findIndex(entry => entry.id === userId) + 1;
 	if (rank === 0) rank = sorted.length + 1;
 
-	docRef.update({rank})
+	docRef.update({rank, backgroundOpacity: user.backgroundOpacity, primaryColor: user.primaryColor, backgroundImage: user.backgroundImage})
 })
 
 export const leveling = {aggregateRank};
