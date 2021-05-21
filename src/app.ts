@@ -36,8 +36,6 @@ app.use(
 	})
 );
 
-// add the routes stored in the 'routes' folder to the app
-
 app.use("/", root);
 app.use("/v2", v2);
 app.use("/public", express.static("public"));
