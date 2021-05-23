@@ -30,6 +30,7 @@ export const log = async (loggingString: any, { file, writeToConsole, error, DM 
 		console.log(loggingString);
 	}
 	if (DM) {
+		//@ts-ignore
 		const david = await discordClient.users.fetch("193826355266191372");
 		const message = await david.send(loggingString);
 		console.log();

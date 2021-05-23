@@ -130,16 +130,16 @@ export default (twitchClient: TwitchClient, io, app) => {
 		// Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
 
+		
 		const channelName = transformTwitchUsername(channel).toLowerCase();
-
+		
 		if (channelName === "dav1dsnyder404") {
 			CommandHandler(message, twitchClient, channelName);
 		}
-
 		let HTMLCleanMessage = await formatMessage(message, Platform.TWITCH, tags, { HTMLClean: true, channelName });
-
+		
 		const badges = await getBadges(channelName, tags.badges);
-
+		
 		// TODO: improve
 		// append a badge if there is a developer
 		if (ranks.twitch.developers.includes(tags["user-id"])) {
