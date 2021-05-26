@@ -19,7 +19,7 @@ interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
 
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 	io.on("connection", (socket: CustomSocket) => {
-		log("a user connected", { writeToConsole: true });
+		log(`${socket.id} connected`, { writeToConsole: true });
 
 		socket.on("add", async (message: AddEventModel) => {
 			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
@@ -215,7 +215,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("disconnect", () => {
-			log("a user disconnected", { writeToConsole: true });
+			log(`${socket.id} disconnected`, { writeToConsole: true });
 		});
 	});
 };
