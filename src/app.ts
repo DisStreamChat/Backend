@@ -11,7 +11,15 @@ import v2 from "./routes/v2";
 
 export const app = express();
 export const server = new http.Server(app);
-export const io = new Server(server);
+export const io = new Server(server, {
+	cors: {
+		origin: (_, callback) => {
+			callback(null, true);
+		},
+		methods: ['GET', 'PUT', 'POST'],
+		credentials: true
+	},
+});
 
 // add the basic middleware to the express app
 app.use(helmet());
@@ -20,7 +28,7 @@ app.use(cors());
 // this function is used to verify twitch webhook requests
 app.use(
 	express.json({
-		verify (req: any, res, buf, encoding) {
+		verify(req: any, res, buf, encoding) {
 			// is there a hub to verify against
 			// eslint-disable-next-line camelcase
 			req.twitch_hub = false;
