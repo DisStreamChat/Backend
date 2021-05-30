@@ -9,7 +9,7 @@ import { AddEventModel } from "../models/sockets.model";
 import { leaveAllRooms } from "./utils";
 import { transformTwitchUsername } from "../utils/functions/stringManipulation";
 
-interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
+export interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
 	data: {
 		twitchName: string;
 		guildId: string;
