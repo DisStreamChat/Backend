@@ -1,3 +1,5 @@
+import { MessageButton } from "discord-buttons";
+
 export default {
 	name: "vote",
 	aliases: [],
@@ -6,6 +8,7 @@ export default {
 	description: "Get the link to vote for disstreambot on top.gg",
 	usage: [],
 	execute: async (msg, args, bot) => {
-		msg.channel.send("You can vote for DisStreamBot by visiting http://vote.disstreamchat.com. Thank you!");
+		const button = new MessageButton().setURL("http://vote.disstreamchat.com").setStyle("url").setLabel("Vote for DisStreamBot on top.gg")
+		msg.channel.send("**Thank you!**", button);
 	},
 };
