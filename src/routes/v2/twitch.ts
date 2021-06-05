@@ -93,7 +93,6 @@ router.get("/following", async (req, res, next) => {
 
 router.get("/resolveuser", async (req, res, next) => {
 	const details = await Api.getUserInfo(req.query.user as string)
-	console.log(details)
 	res.json(details);
 });
 
