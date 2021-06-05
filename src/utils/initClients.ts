@@ -23,6 +23,7 @@ discordClient.login(process.env.BOT_TOKEN);
 
 discordClient.on("ready", async () => {
 	log("bot ready", { writeToConsole: true });
+	discordClient.slashCommandHandler()
 	cycleBotStatus(
 		discordClient,
 		[
