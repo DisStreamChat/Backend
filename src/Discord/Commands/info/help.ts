@@ -139,6 +139,7 @@ export default {
 			return categories;
 		}, {});
 		const allCommandCategories = { ...commandCategories, custom: customCommands };
+		console.log(args);
 		if (args.length === 0) {
 			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({
 				message,
@@ -146,59 +147,63 @@ export default {
 				commands: allCommandCategories,
 				page: 1,
 			});
-			const leftbutton = new MessageButton().setStyle("red").setLabel("⬅️").setID("click_to_function");
-			const rightbutton = new MessageButton().setStyle("red").setLabel("➡️").setID("click_to_function");
-			const row = new MessageActionRow().addComponent(leftbutton).addComponent(rightbutton);
+			const leftButton = new MessageButton().setStyle("blurple").setLabel("Previous Page").setID("previous_page");
+			const rightButton = new MessageButton().setStyle("blurple").setLabel("Next Page").setID("next_page");
+			const deleteButton = new MessageButton().setStyle("red").setLabel("Delete").setID("delete");
+			const row = new MessageActionRow()
+				.addComponent(leftButton)
+				.addComponent(rightButton)
+				.addComponent(deleteButton);
 			const helpMsg = await message.channel.send({ component: row, embed: helpEmbed });
-			const pageCollector = helpMsg.createReactionCollector(
-				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
-			);
-			let currentPage = 1;
+			// const pageCollector = helpMsg.createReactionCollector(
+			// 	(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
+			// );
+			// let currentPage = 1;
 
-			await helpMsg.react("⬅️");
-			await helpMsg.react("➡️");
-			await helpMsg.react("❌");
-			pageCollector.on("end", () => {
-				helpMsg.reactions.removeAll();
-			});
-			pageCollector.on("collect", async reaction => {
-				let pageChanged = false;
-				switch (reaction.emoji.name) {
-					case "⬅️":
-						if (currentPage > 1) {
-							currentPage -= 1;
-							pageChanged = true;
-						}
-						break;
-					case "➡️":
-						if (currentPage < maxPages) {
-							currentPage += 1;
-							pageChanged = true;
-						}
-						break;
-					case "❌":
-						pageCollector.stop();
-						break;
-					default:
-						return;
-				}
-				const senders = reaction.users.cache.array().filter(user => user.id !== client.user.id);
-				for (const sender of senders) {
-					reaction.users.remove(sender);
-				}
-				if (pageChanged) {
-					helpMsg.edit(
-						(
-							await generateHelpEmbed({
-								message,
-								client,
-								commands: allCommandCategories,
-								page: currentPage,
-							})
-						).embed
-					);
-				}
-			});
+			// await helpMsg.react("⬅️");
+			// await helpMsg.react("➡️");
+			// await helpMsg.react("❌");
+			// pageCollector.on("end", () => {
+			// 	helpMsg.reactions.removeAll();
+			// });
+			// pageCollector.on("collect", async reaction => {
+			// 	let pageChanged = false;
+			// 	switch (reaction.emoji.name) {
+			// 		case "⬅️":
+			// 			if (currentPage > 1) {
+			// 				currentPage -= 1;
+			// 				pageChanged = true;
+			// 			}
+			// 			break;
+			// 		case "➡️":
+			// 			if (currentPage < maxPages) {
+			// 				currentPage += 1;
+			// 				pageChanged = true;
+			// 			}
+			// 			break;
+			// 		case "❌":
+			// 			pageCollector.stop();
+			// 			break;
+			// 		default:
+			// 			return;
+			// 	}
+			// 	const senders = reaction.users.cache.array().filter(user => user.id !== client.user.id);
+			// 	for (const sender of senders) {
+			// 		reaction.users.remove(sender);
+			// 	}
+			// 	if (pageChanged) {
+			// 		helpMsg.edit(
+			// 			(
+			// 				await generateHelpEmbed({
+			// 					message,
+			// 					client,
+			// 					commands: allCommandCategories,
+			// 					page: currentPage,
+			// 				})
+			// 			).embed
+			// 		);
+			// 	}
+			// });
 		} else if (!["module", "admin", "commands"].includes(args[0])) {
 			const selectedCommand = allCommands.find(
 				command => command.displayName?.toLowerCase() === args[0]?.toLowerCase()

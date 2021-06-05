@@ -28,7 +28,7 @@ export default async (message, client) => {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		prefix = settings?.prefix || "!";
 	} catch (err) {}
-	if (process.env.BOT_DEV == "true") prefix = "?";
+	if (process.env.BOT_DEV == "true") prefix = ".";
 	client.prefix = prefix;
 	const isMention = message?.mentions?.users?.has(client.user.id);
 	let isCommand = message.content.startsWith(prefix) || isMention;

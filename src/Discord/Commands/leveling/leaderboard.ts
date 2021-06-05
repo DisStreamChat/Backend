@@ -1,4 +1,4 @@
-// the admin app has already been initialized in routes/index.js
+import { MessageButton } from "discord-buttons";
 
 export default {
 	name: "leaderboard",
@@ -9,6 +9,11 @@ export default {
 	description: "Get the link to the leaderboard for this guild.",
 	usage: ["leaderboard"],
 	execute: async (message, args, client) => {
-		message.channel.send(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`);
+		const button = new MessageButton()
+			.setStyle("url")
+			.setLabel(`${message.guild.name}'s Leaderboard`)
+			.setURL(`https://www.disstreamchat.com/leaderboard/${message.guild.id}`);
+
+		message.channel.send("​", button);
 	},
 };

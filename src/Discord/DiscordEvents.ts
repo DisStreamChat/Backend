@@ -13,6 +13,7 @@ import { DiscordMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
 import { Platform } from "../models/platform.enum";
 import { Object } from "../models/shared.model";
+import MessageButton from "discord-buttons/typings/v12/Classes/MessageButton";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
@@ -56,6 +57,11 @@ export default async (client, io) => {
 				client.settings[change.doc.id] = change.doc.data();
 			});
 		});
+
+	client.on("clickButton", async button => {
+		console.log(button.message)
+		button.defer();
+	});
 
 	client.on("message", async message => {
 		try {
@@ -113,7 +119,8 @@ export default async (client, io) => {
 			let userHexColor = "#FFFFFF";
 
 			if (message.member) {
-				userHexColor = message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor;
+				userHexColor =
+					message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor;
 			}
 
 			try {
@@ -166,7 +173,12 @@ export default async (client, io) => {
 
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
-			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, Platform.DISCORD, {}, { HTMLClean: true });
+			const HTMLCleanMessage = await formatMessage(
+				newMsg.cleanContent,
+				Platform.DISCORD,
+				{},
+				{ HTMLClean: true }
+			);
 			const updateMessage = {
 				body: HTMLCleanMessage,
 				id: newMsg.id,
