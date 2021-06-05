@@ -1,9 +1,10 @@
-import { GuildMember, Message } from "discord.js";
+import { Guild, GuildMember, Message } from "discord.js";
 
-export const resolveUser = async (msg: Message, username: string) => {
+export const resolveUser = async (msg: Message, username: string, guild?: Guild) => {
+	const usedGuild = msg ? msg.guild : guild
 	if (!username?.length) return null;
-	const memberCache = msg.guild.members.cache;
-	if (/<@!?\d+>/g.test(username)) {
+	const memberCache = usedGuild.members.cache;
+	if (/<@!?\d+>/g.test(username) && msg) {
 		return memberCache.get(msg.mentions.users.first().id);
 	}
 	if (memberCache.has(username)) {
@@ -18,7 +19,7 @@ export const resolveUser = async (msg: Message, username: string) => {
 	if (memberCache.find(member => member.user.username === username)) {
 		return memberCache.find(member => member.user.username === username);
 	}
-	const userFromId = await msg.guild.members.fetch(username);
+	const userFromId = await usedGuild.members.fetch(username);
 	if (userFromId) {
 		return userFromId;
 	}
