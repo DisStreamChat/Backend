@@ -7,6 +7,7 @@ import { cycleBotStatus } from "../utils/functions";
 import { log } from "./functions/logging";
 import { TwitchClient } from "../clients/twitch.client";
 import { DiscordClient } from "../clients/discord.client";
+import DiscordButtons from "discord-buttons"
 
 // get the serviceAccount details from the base64 string stored in environment variables
 const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
@@ -16,6 +17,7 @@ initializeApp({
 });
 
 export const discordClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+DiscordButtons(discordClient)
 discordClient.login(process.env.BOT_TOKEN);
 
 // import DBL "dblapi.js";

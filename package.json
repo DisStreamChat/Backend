@@ -38,6 +38,8 @@
 		"date-fns": "^2.14.0",
 		"dblapi.js": "^2.4.1",
 		"deep-equal": "^2.0.4",
+		"discord-buttons": "^3.1.1",
+		"discord-buttons-react": "^0.0.4",
 		"discord-oauth2": "^2.2.0",
 		"discord-slash-commands-client": "^1.2.1",
 		"discord.js": "^12.5.3",

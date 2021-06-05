@@ -1,9 +1,11 @@
 import { isAdmin, hasPermission, ArrayAny, getRoleIds } from "../../../utils/functions";
 import { MessageEmbed } from "discord.js";
 import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/functions";
+import { MessageActionRow, MessageButton } from "discord-buttons";
 
 // the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
+import { DiscordClient } from "../../../clients/discord.client";
 
 interface CommandModel {
 	plugin: string;
@@ -44,7 +46,9 @@ const getHelpText = ({ message, client, selectedCommand }) =>
 				.addField("Description", selectedCommand.description || "No Description Provided")
 				.addField(
 					"Parameters. <> => Required. () => optional",
-					(Array.isArray(selectedCommand.usage) ? selectedCommand.usage?.join?.("\n") : selectedCommand.usage) || "None"
+					(Array.isArray(selectedCommand.usage)
+						? selectedCommand.usage?.join?.("\n")
+						: selectedCommand.usage) || "None"
 				)
 				.setThumbnail(client.user.displayAvatarURL())
 		: null;
@@ -69,14 +73,19 @@ const addTips = async embed => {
 		"Tip",
 		"Type `help <command name>` for help on a specific commands and `help commands <command name>` to get help on a specific custom command "
 	);
-	embed.addField("Support Server", "If you have any questions or bug reports come tell us at https://discord.disstreamchat.com");
+	embed.addField(
+		"Support Server",
+		"If you have any questions or bug reports come tell us at https://discord.disstreamchat.com"
+	);
 	embed.addField("Custom Commands", "To get more help on custom commands use `help commands`");
 	return embed;
 };
 
 const maxCommands = 2;
 const generateHelpEmbed = async ({ message, client, commands, custom = false, page = 1 }) => {
-	const pages = custom ? Math.ceil(commands.length / (maxCommands * 4)) : Math.ceil(Object.keys(commands || {}).length / maxCommands);
+	const pages = custom
+		? Math.ceil(commands.length / (maxCommands * 4))
+		: Math.ceil(Object.keys(commands || {}).length / maxCommands);
 	const index = (page - 1) * maxCommands;
 	const helpEmbed = new MessageEmbed()
 		.setTitle("DisStreambot Help")
@@ -92,7 +101,9 @@ const generateHelpEmbed = async ({ message, client, commands, custom = false, pa
 			custom
 				? commands
 						.slice(index, index + maxCommands * 4)
-						.map(command => (command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``))
+						.map(command =>
+							command.displayName.includes("<:") ? command.displayName : `\`${command.displayName}\``
+						)
 						.join(", ")
 				: Object.entries(commands)
 						.slice(index, index + maxCommands)
@@ -100,7 +111,10 @@ const generateHelpEmbed = async ({ message, client, commands, custom = false, pa
 							return `**${key}**\n${value.map(command => `\`${command.displayName}\``).join(", ")}\n`;
 						})
 		)
-		.addField("---------------------------------------------------", "--------------------------------------------------");
+		.addField(
+			"---------------------------------------------------",
+			"--------------------------------------------------"
+		);
 
 	return { maxPages: pages, embed: await addTips(helpEmbed) };
 };
@@ -112,7 +126,7 @@ export default {
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
 	usage: ["(command_name)"],
-	execute: async (message, args, client) => {
+	execute: async (message, args, client: DiscordClient) => {
 		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
 		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
@@ -126,12 +140,21 @@ export default {
 		}, {});
 		const allCommandCategories = { ...commandCategories, custom: customCommands };
 		if (args.length === 0) {
-			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({ message, client, commands: allCommandCategories, page: 1 });
-			const helpMsg = await message.channel.send(helpEmbed);
+			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({
+				message,
+				client,
+				commands: allCommandCategories,
+				page: 1,
+			});
+			const leftbutton = new MessageButton().setStyle("red").setLabel("⬅️").setID("click_to_function");
+			const rightbutton = new MessageButton().setStyle("red").setLabel("➡️").setID("click_to_function");
+			const row = new MessageActionRow().addComponent(leftbutton).addComponent(rightbutton);
+			const helpMsg = await message.channel.send({ component: row, embed: helpEmbed });
 			const pageCollector = helpMsg.createReactionCollector(
 				(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
 			);
 			let currentPage = 1;
+
 			await helpMsg.react("⬅️");
 			await helpMsg.react("➡️");
 			await helpMsg.react("❌");
@@ -164,11 +187,22 @@ export default {
 					reaction.users.remove(sender);
 				}
 				if (pageChanged) {
-					helpMsg.edit((await generateHelpEmbed({ message, client, commands: allCommandCategories, page: currentPage })).embed);
+					helpMsg.edit(
+						(
+							await generateHelpEmbed({
+								message,
+								client,
+								commands: allCommandCategories,
+								page: currentPage,
+							})
+						).embed
+					);
 				}
 			});
 		} else if (!["module", "admin", "commands"].includes(args[0])) {
-			const selectedCommand = allCommands.find(command => command.displayName?.toLowerCase() === args[0]?.toLowerCase());
+			const selectedCommand = allCommands.find(
+				command => command.displayName?.toLowerCase() === args[0]?.toLowerCase()
+			);
 			const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
 			if (!commandHelpEmbed) {
 				await message.channel.send(":x: Command not found, use help to get the list of available commands");
@@ -181,7 +215,9 @@ export default {
 					if (args[1]) {
 						const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
 						if (!commandHelpEmbed) {
-							await message.channel.send(":x: Command not found, use `help` to get the list of available commands");
+							await message.channel.send(
+								":x: Command not found, use `help` to get the list of available commands"
+							);
 						} else {
 							await message.channel.send(commandHelpEmbed);
 						}

@@ -2,6 +2,7 @@ import { Client, MessageEmbed } from "discord.js";
 import { client } from "tmi.js";
 import { Object } from "../models/shared.model";
 import { log } from "../utils/functions/logging";
+import DiscordButtons from "discord-buttons"
 
 interface SlashCommandOptions {
 	data: {
@@ -13,6 +14,7 @@ interface SlashCommandOptions {
 export class DiscordClient extends Client {
 	constructor(options) {
 		super(options);
+
 	}
 
 	get _api() {
@@ -58,6 +60,7 @@ export class DiscordClient extends Client {
 
 	slashCommandHandler() {
 		this.ws.on("INTERACTION_CREATE" as any, async interaction => {
+			if(interaction.type !== 2) return
 			const command = interaction.data.name.toLowerCase();
 			if (command === "ping") {
 				let pingembed = new MessageEmbed()
