@@ -9,6 +9,7 @@ import { AddEventModel } from "../models/sockets.model";
 import { leaveAllRooms } from "./utils";
 import { transformTwitchUsername } from "../utils/functions/stringManipulation";
 import cookie from "cookie";
+import { Client } from "tmi.js";
 
 export interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
 	data: {
@@ -67,7 +68,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						await socket.join(`channel-${liveChatId}`);
 					}
 				}
-				socket.data = { twitchName, guildId, liveChatId, ...(socket.data || {}) };
+				socket.data = { ...(socket.data || {}), twitchName, guildId, liveChatId };
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
 			}
@@ -217,17 +218,20 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 
 			const { refresh_token: refreshToken } = twitchData;
 			const sender = dbUserData.TwitchName ?? dbUserData.twitchName;
-
 			if (sender && message) {
 				try {
-					let UserClient = await getUserClient(refreshToken, sender, twitchName);
+					let userClient: Client = await getUserClient(refreshToken, sender, twitchName);
 					try {
-						await UserClient.join(twitchName);
-						await UserClient.say(twitchName, message);
+						await userClient.join(twitchName);
+						await userClient.say(twitchName, message);
 					} catch (err) {
-						await UserClient.say(twitchName, message);
+						try {
+							await userClient.say(twitchName, message);
+						} catch (err) {
+							console.log(err.message);
+						}
 					}
-					UserClient = null;
+					userClient = null;
 				} catch (err) {
 					log(err.message, { error: true });
 				}
