@@ -1,5 +1,5 @@
 import { isAdmin, hasPermission, ArrayAny, getRoleIds } from "../../../utils/functions";
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/functions";
 import { MessageActionRow, MessageButton } from "discord-buttons";
 
@@ -82,11 +82,28 @@ const addTips = async embed => {
 };
 
 const maxCommands = 2;
-const generateHelpEmbed = async ({ message, client, commands, custom = false, page = 1 }) => {
+export const generateHelpMessage = async ({ message, client, commands = null, custom = false, page = 1 }) => {
+	if (!commands) {
+		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
+		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
+		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
+		const guildData = guildRef.data();
+		let customCommands = filterCustomCommands(guildData, message);
+		const allCommands = [...availableCommands, ...customCommands];
+		const commandCategories = availableCommands.reduce((categories, current) => {
+			if (categories[current.category]) categories[current.category].push(current);
+			else categories[current.category] = [current];
+			return categories;
+		}, {});
+		commands = { ...commandCategories, custom: customCommands };
+	}
+
 	const pages = custom
 		? Math.ceil(commands.length / (maxCommands * 4))
 		: Math.ceil(Object.keys(commands || {}).length / maxCommands);
+
 	const index = (page - 1) * maxCommands;
+
 	const helpEmbed = new MessageEmbed()
 		.setTitle("DisStreambot Help")
 		.setDescription(`Here are all the available commands.`)
@@ -116,7 +133,21 @@ const generateHelpEmbed = async ({ message, client, commands, custom = false, pa
 			"--------------------------------------------------"
 		);
 
-	return { maxPages: pages, embed: await addTips(helpEmbed) };
+	const leftButton = new MessageButton()
+		.setStyle(page <= 1 ? "grey" : "blurple")
+		.setLabel("Previous Page")
+		.setID(`help_page${page - 1}`)
+		.setDisabled(page <= 1);
+	const rightButton = new MessageButton()
+		.setStyle(page >= pages ? "grey" : "blurple")
+		.setLabel("Next Page")
+		.setID(`help_page${page + 1}`)
+		.setDisabled(page >= pages);
+	const deleteButton = new MessageButton().setStyle("red").setLabel("Delete").setID("help_delete").setEmoji("♥");
+
+	const row = new MessageActionRow().addComponent(leftButton).addComponent(rightButton).addComponent(deleteButton);
+
+	return { maxPages: pages, embed: await addTips(helpEmbed), component: row };
 };
 
 export default {
@@ -126,168 +157,104 @@ export default {
 	aliases: [],
 	description: "See the commands you can use and get on help on each command",
 	usage: ["(command_name)"],
-	execute: async (message, args, client: DiscordClient) => {
-		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
-		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
-		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
-		const guildData = guildRef.data();
-		let customCommands = filterCustomCommands(guildData, message);
-		const allCommands = [...availableCommands, ...customCommands];
-		const commandCategories = availableCommands.reduce((categories, current) => {
-			if (categories[current.category]) categories[current.category].push(current);
-			else categories[current.category] = [current];
-			return categories;
-		}, {});
-		const allCommandCategories = { ...commandCategories, custom: customCommands };
-		console.log(args);
+	execute: async (message: Message, args, client: DiscordClient) => {
 		if (args.length === 0) {
-			const { embed: helpEmbed, maxPages } = await generateHelpEmbed({
+			const {
+				embed: helpEmbed,
+				maxPages,
+				component,
+			} = await generateHelpMessage({
 				message,
 				client,
-				commands: allCommandCategories,
 				page: 1,
 			});
-			const leftButton = new MessageButton().setStyle("blurple").setLabel("Previous Page").setID("previous_page");
-			const rightButton = new MessageButton().setStyle("blurple").setLabel("Next Page").setID("next_page");
-			const deleteButton = new MessageButton().setStyle("red").setLabel("Delete").setID("delete");
-			const row = new MessageActionRow()
-				.addComponent(leftButton)
-				.addComponent(rightButton)
-				.addComponent(deleteButton);
-			const helpMsg = await message.channel.send({ component: row, embed: helpEmbed });
-			// const pageCollector = helpMsg.createReactionCollector(
-			// 	(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
-			// );
-			// let currentPage = 1;
 
-			// await helpMsg.react("⬅️");
-			// await helpMsg.react("➡️");
-			// await helpMsg.react("❌");
-			// pageCollector.on("end", () => {
-			// 	helpMsg.reactions.removeAll();
-			// });
-			// pageCollector.on("collect", async reaction => {
-			// 	let pageChanged = false;
-			// 	switch (reaction.emoji.name) {
-			// 		case "⬅️":
-			// 			if (currentPage > 1) {
-			// 				currentPage -= 1;
-			// 				pageChanged = true;
-			// 			}
-			// 			break;
-			// 		case "➡️":
-			// 			if (currentPage < maxPages) {
-			// 				currentPage += 1;
-			// 				pageChanged = true;
-			// 			}
-			// 			break;
-			// 		case "❌":
-			// 			pageCollector.stop();
-			// 			break;
-			// 		default:
-			// 			return;
-			// 	}
-			// 	const senders = reaction.users.cache.array().filter(user => user.id !== client.user.id);
-			// 	for (const sender of senders) {
-			// 		reaction.users.remove(sender);
-			// 	}
-			// 	if (pageChanged) {
-			// 		helpMsg.edit(
-			// 			(
-			// 				await generateHelpEmbed({
-			// 					message,
-			// 					client,
-			// 					commands: allCommandCategories,
-			// 					page: currentPage,
-			// 				})
-			// 			).embed
-			// 		);
-			// 	}
-			// });
-		} else if (!["module", "admin", "commands"].includes(args[0])) {
-			const selectedCommand = allCommands.find(
-				command => command.displayName?.toLowerCase() === args[0]?.toLowerCase()
-			);
-			const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
-			if (!commandHelpEmbed) {
-				await message.channel.send(":x: Command not found, use help to get the list of available commands");
-			} else {
-				await message.channel.send(commandHelpEmbed);
-			}
-		} else {
-			switch (args[0]) {
-				case "commands":
-					if (args[1]) {
-						const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
-						if (!commandHelpEmbed) {
-							await message.channel.send(
-								":x: Command not found, use `help` to get the list of available commands"
-							);
-						} else {
-							await message.channel.send(commandHelpEmbed);
-						}
-					} else {
-						const availableCustomCommands = await getCommands(message, { commands: guildData });
-						const { embed: customHelpEmbed, maxPages } = await generateHelpEmbed({
-							message,
-							client,
-							commands: availableCustomCommands,
-							custom: true,
-							page: 1,
-						});
-						const helpMsg = await message.channel.send(customHelpEmbed);
-						const pageCollector = helpMsg.createReactionCollector(
-							(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
-						);
-						let currentPage = 1;
-						await helpMsg.react("⬅️");
-						await helpMsg.react("➡️");
-						await helpMsg.react("❌");
-						pageCollector.on("end", () => {
-							helpMsg.reactions.removeAll();
-						});
-						pageCollector.on("collect", async reaction => {
-							let pageChanged = false;
-							switch (reaction.emoji.name) {
-								case "⬅️":
-									if (currentPage > 1) {
-										currentPage -= 1;
-										pageChanged = true;
-									}
-									break;
-								case "➡️":
-									if (currentPage < maxPages) {
-										currentPage += 1;
-										pageChanged = true;
-									}
-									break;
-								case "❌":
-									pageCollector.stop();
-									break;
-								default:
-									return;
-							}
-							const senders = reaction.users.cache.array().filter(user => user.id !== client.user.id);
-							for (const sender of senders) {
-								reaction.users.remove(sender);
-							}
-							if (pageChanged) {
-								helpMsg.edit(
-									(
-										await generateHelpEmbed({
-											message,
-											client,
-											commands: availableCustomCommands,
-											custom: true,
-											page: currentPage,
-										})
-									).embed
-								);
-							}
-						});
-					}
-					break;
-			}
-		}
+			const helpMsg = await message.channel.send({ component: component, embed: helpEmbed } as any);
+	}
+		// else if (!["module", "admin", "commands"].includes(args[0])) {
+		// 	const selectedCommand = allCommands.find(
+		// 		command => command.displayName?.toLowerCase() === args[0]?.toLowerCase()
+		// 	);
+		// 	const commandHelpEmbed = getHelpText({ message, client, selectedCommand });
+		// 	if (!commandHelpEmbed) {
+		// 		await message.channel.send(":x: Command not found, use help to get the list of available commands");
+		// 	} else {
+		// 		await message.channel.send(commandHelpEmbed);
+		// 	}
+		// } else {
+		// 	switch (args[0]) {
+		// 		case "commands":
+		// 			if (args[1]) {
+		// 				const commandHelpEmbed = getHelpText({ message, client, selectedCommand: guildData[args[1]] });
+		// 				if (!commandHelpEmbed) {
+		// 					await message.channel.send(
+		// 						":x: Command not found, use `help` to get the list of available commands"
+		// 					);
+		// 				} else {
+		// 					await message.channel.send(commandHelpEmbed);
+		// 				}
+		// 			} else {
+		// 				const availableCustomCommands = await getCommands(message, { commands: guildData });
+		// 				const { embed: customHelpEmbed, maxPages } = await generateHelpMessage({
+		// 					message,
+		// 					client,
+		// 					commands: availableCustomCommands,
+		// 					custom: true,
+		// 					page: 1,
+		// 				});
+		// 				const helpMsg = await message.channel.send(customHelpEmbed);
+		// 				const pageCollector = helpMsg.createReactionCollector(
+		// 					(reaction, user) => ["⬅️", "➡️", "❌"].includes(reaction.emoji.name) && !user?.bot
+		// 				);
+		// 				let currentPage = 1;
+		// 				await helpMsg.react("⬅️");
+		// 				await helpMsg.react("➡️");
+		// 				await helpMsg.react("❌");
+		// 				pageCollector.on("end", () => {
+		// 					helpMsg.reactions.removeAll();
+		// 				});
+		// 				pageCollector.on("collect", async reaction => {
+		// 					let pageChanged = false;
+		// 					switch (reaction.emoji.name) {
+		// 						case "⬅️":
+		// 							if (currentPage > 1) {
+		// 								currentPage -= 1;
+		// 								pageChanged = true;
+		// 							}
+		// 							break;
+		// 						case "➡️":
+		// 							if (currentPage < maxPages) {
+		// 								currentPage += 1;
+		// 								pageChanged = true;
+		// 							}
+		// 							break;
+		// 						case "❌":
+		// 							pageCollector.stop();
+		// 							break;
+		// 						default:
+		// 							return;
+		// 					}
+		// 					const senders = reaction.users.cache.array().filter(user => user.id !== client.user.id);
+		// 					for (const sender of senders) {
+		// 						reaction.users.remove(sender);
+		// 					}
+		// 					if (pageChanged) {
+		// 						helpMsg.edit(
+		// 							(
+		// 								await generateHelpMessage({
+		// 									message,
+		// 									client,
+		// 									commands: availableCustomCommands,
+		// 									custom: true,
+		// 									page: currentPage,
+		// 								})
+		// 							).embed
+		// 						);
+		// 					}
+		// 				});
+		// 			}
+		// 			break;
+		// 	}
+		// }
 	},
 };

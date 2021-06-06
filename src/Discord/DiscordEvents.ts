@@ -13,7 +13,8 @@ import { DiscordMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
 import { Platform } from "../models/platform.enum";
 import { Object } from "../models/shared.model";
-import MessageButton from "discord-buttons/typings/v12/Classes/MessageButton";
+import MessageButton from "discord-buttons";
+import { generateHelpMessage } from "./Commands/info/help";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
@@ -59,8 +60,23 @@ export default async (client, io) => {
 		});
 
 	client.on("clickButton", async button => {
-		console.log(button.message)
-		button.defer();
+		const helpRegex = /help_page(\d+)/;
+		const match = (button.id as string).match(helpRegex);
+		await button.defer(true)
+		button.deffered = false
+		if (match) {
+			const nextPage = Number(match[1]);
+			const { embed, maxPages, component } = await generateHelpMessage({
+				message: button.message,
+				client,
+				custom: false,
+				page: nextPage,
+			});
+			await button.message.edit({ component, embed });
+		}
+		try {
+			await button.defer();
+		} catch (err) {}
 	});
 
 	client.on("message", async message => {

@@ -38,7 +38,6 @@ export class DiscordClient extends Client {
 
 	async reply(id: string, token: string, response: { data: Object<any> }) {
 		response.data.type = 4;
-		console.log(response);
 		//@ts-ignore
 		this._api.interactions(id, token).callback.post(response);
 	}
@@ -47,7 +46,7 @@ export class DiscordClient extends Client {
 		return this.getApp(guildId).commands.get();
 	}
 
-	async registerSlashCommand(details: SlashCommandOptions) {
+	async registerSlashCommand(details: SlashCommandOptions, callback) {
 		const guilds = this.guilds.cache.array();
 		for (const guild of guilds) {
 			try {
@@ -64,9 +63,9 @@ export class DiscordClient extends Client {
 	slashCommandHandler() {
 		this.ws.on("INTERACTION_CREATE" as any, async interaction => {
 			if (interaction.type !== 2) return;
+			console.log(interaction);
 			const command = interaction.data.name.toLowerCase();
 			const options = interaction.data.options;
-			console.log(interaction);
 			if (command === "whois") {
 				const guild = await this.guilds.fetch(interaction.guild_id);
 				let member = await resolveUser(null as any, options[0].value, guild);
@@ -114,8 +113,8 @@ export class DiscordClient extends Client {
 				await this.reply(interaction.id, interaction.token, {
 					data: {
 						type: 4,
-						flags: 64,
 						data: {
+							flags: 64,
 							embeds: [pingembed],
 						},
 					},
