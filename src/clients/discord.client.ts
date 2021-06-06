@@ -1,19 +1,23 @@
-import { Channel, Client, Collection, Guild, GuildMember, MessageEmbed, User } from "discord.js";
-import { client } from "tmi.js";
+import { Channel, Client, Guild, GuildMember, User } from "discord.js";
 import { Object } from "../models/shared.model";
 import { log } from "../utils/functions/logging";
-import DiscordButtons from "discord-buttons";
-import { resolveUser, formatFromNow } from "../utils/functions";
 
 interface SlashCommandOptions {
-	data: {
-		name: string;
-		description: string;
-		options?: any[];
-	};
+	name: string;
+	description: string;
+	options?: any[];
 }
 
-class SlashCommandInteraction {
+interface SlashCommandResponse {
+	ephemeral?: boolean;
+	content?: string;
+	embed?: any;
+	embeds?: any[];
+	component?: any;
+	components?: any[]
+}
+
+export class SlashCommandInteraction {
 	arguments: Object<string>;
 
 	channel: Channel;
@@ -23,34 +27,49 @@ class SlashCommandInteraction {
 	id: string;
 	token: string;
 	name: string;
+	createdAt: number;
+	author: User
 	constructor(interaction, public client: DiscordClient) {
+		this.createdAt = new Date().getTime();
 		this.guild = this.client.guilds.resolve(interaction.guild_id);
 		this.channel = this.guild.channels.resolve(interaction.channel_id);
+		this.user = this.client.users.resolve(interaction.member.user.id);
+		this.member = this.guild.members.resolve(interaction.member.id);
 		this.token = interaction.token;
 		this.id = interaction.id;
 		this.arguments = interaction.data.options?.reduce((acc, cur) => ({ ...acc, [cur.name]: cur.value }), {});
 		this.name = interaction.data.name;
+		this.author = this.user
 	}
 
-	async reply(data) {
-		if(data.embed) {
-			data.embeds = [...(data.embeds || []), data.embed]
-			delete data.embed
-		}
+	async reply(data: SlashCommandResponse | string) {
+		if (typeof data === "string") data = { content: data };
+
+		const newData = {
+			embeds: [...(data.embeds || []), data.embed],
+			// components: [...(data.components || []), data.component],
+			flags: data.ephemeral ? 64 : null,
+			content: data.content,
+		};
 		await this.client._api.interactions(this.id, this.token).callback.post({
 			data: {
 				type: 4,
-				data,
+				data: newData,
 			},
 		});
 	}
 }
 
-type slashCommandCallback = (interaction: SlashCommandInteraction) => Promise<void>;
+export type slashCommandCallback = (interaction: SlashCommandInteraction) => Promise<void>;
 
 export class DiscordClient extends Client {
 	slashCommands: Object<slashCommandCallback>;
-
+	commands: Object<any>;
+	prefix: string;
+	settings: any;
+	leveling: any;
+	logging: any;
+	listeners: any;
 	constructor(options) {
 		super(options);
 		this.slashCommands = {};
@@ -79,11 +98,10 @@ export class DiscordClient extends Client {
 
 	async registerSlashCommand(details: SlashCommandOptions, callback: slashCommandCallback) {
 		const guilds = this.guilds.cache.array();
+		this.slashCommands[details.name] = callback;
 		for (const guild of guilds) {
 			try {
-				// const commands = await this.getSlashCommands(guild.id);
-				await this.getApp(guild.id).commands.post(details);
-				this.slashCommands[details.data.name] = callback;
+				await this.getApp(guild.id).commands.post({ data: details });
 			} catch (err) {
 				log(err, { error: true, writeToConsole: true });
 			}

@@ -27,11 +27,9 @@ discordClient.on("ready", async () => {
 	log("bot ready", { writeToConsole: true });
 	discordClient.registerSlashCommand(
 		{
-			data: {
-				name: "whois",
-				description: "Get Details about a user",
-				options: [{ name: "user", description: "A users Name", type: 3, required: true }],
-			},
+			name: "whois",
+			description: "Get Details about a user",
+			options: [{ name: "user", description: "A users Name", type: 3, required: true }],
 		},
 		async interaction => {
 			const guild = await discordClient.guilds.fetch(interaction.guild.id);
@@ -73,7 +71,7 @@ discordClient.on("ready", async () => {
 
 			interaction.reply({
 				embed,
-				flags: 64,
+				ephemeral: true,
 			});
 		}
 	);

@@ -1,28 +1,34 @@
 import path from "path";
 import fs from "fs";
-import { getDiscordSettings, walkSync } from "../utils/functions";
-const commandPath = path.join(__dirname, "Commands");
-const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
-const commands = {};
 import customCommandHandler from "./Commands/CustomCommands";
 import { Command } from "../utils/classes";
+import { getDiscordSettings, walkSync } from "../utils/functions";
+import { DiscordClient } from "../clients/discord.client";
+
+export const commandFilter = command => command.name.endsWith(".js");
+
+const commandPath = path.join(__dirname, "Commands");
+
+const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath).filter(commandFilter);
+const commands = {};
 
 commandFiles.forEach(async command => {
-	if (command.name.endsWith(".js")) {
-		let { default: commandObj } = require(command.path);
-		if (commandObj.id) {
-			commandObj = new Command(commandObj);
-			const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
-				commands[name] = commandObj;
-			});
-		}
+	let { default: commandObj } = require(command.path);
+	if (commandObj.id) {
+		commandObj = new Command(commandObj);
+		const _ = [commandObj.name, ...(commandObj.aliases || [])].map(name => {
+			commands[name] = commandObj;
+		});
 	}
 });
 
-export default async (message, client) => {
+export const setCommands = (client: DiscordClient) => {
 	if (!client.commands) {
 		client.commands = commands;
 	}
+};
+
+export default async (message, client: DiscordClient) => {
 	let prefix = "!";
 	try {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });

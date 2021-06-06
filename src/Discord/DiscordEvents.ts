@@ -1,6 +1,6 @@
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
-import CommandHandler from "./CommandHandler";
+import CommandHandler, { commandFilter } from "./CommandHandler";
 import ReactionRoles from "./Reaction Manager";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
@@ -13,12 +13,25 @@ import { DiscordMessageModel } from "../models/message.model";
 import { sendMessage } from "../utils/sendMessage";
 import { Platform } from "../models/platform.enum";
 import { Object } from "../models/shared.model";
-import MessageButton from "discord-buttons";
 import { generateHelpMessage } from "./Commands/info/help";
+import { DiscordClient, slashCommandCallback } from "../clients/discord.client";
+import { walkSync } from "../utils/functions";
+
+export interface SlashCommandObject {
+	name: string;
+	description: string;
+	options?: any[];
+	execute: slashCommandCallback;
+}
+
+const slashCommandPath = path.join(__dirname, "slashCommands");
+const slashCommandFiles = walkSync(fs.readdirSync(slashCommandPath), slashCommandPath).filter(commandFilter);
+const slashCommands: SlashCommandObject[] = slashCommandFiles.map(command => require(command.path).default);
+
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
-export default async (client, io) => {
+export default async (client: DiscordClient, io) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
@@ -59,11 +72,16 @@ export default async (client, io) => {
 			});
 		});
 
+	for (const { execute, ...command } of slashCommands) {
+		console.log(command)
+		client.registerSlashCommand(command, execute);
+	}
+
 	client.on("clickButton", async button => {
 		const helpRegex = /help_page(\d+)/;
 		const match = (button.id as string).match(helpRegex);
-		await button.defer(true)
-		button.deffered = false
+		await button.defer(true);
+		button.deffered = false;
 		if (match) {
 			const nextPage = Number(match[1]);
 			const { embed, maxPages, component } = await generateHelpMessage({

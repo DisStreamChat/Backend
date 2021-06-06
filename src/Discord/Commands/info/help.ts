@@ -1,5 +1,5 @@
 import { isAdmin, hasPermission, ArrayAny, getRoleIds } from "../../../utils/functions";
-import { Message, MessageEmbed } from "discord.js";
+import { Channel, GuildMember, Message, MessageEmbed, TextChannel } from "discord.js";
 import { getDiscordSettings, convertDiscordRoleColor } from "../../../utils/functions";
 import { MessageActionRow, MessageButton } from "discord-buttons";
 
@@ -25,7 +25,7 @@ const getCommands = async (message, client, plugins = {}) => {
 		if (!command.adminOnly && !command.permissions?.length) {
 			availableCommands.push(commandObj);
 			continue;
-		} else if (command.adminOnly && isAdmin(message.author)) {
+		} else if (command.adminOnly && isAdmin(message.author ?? message.user)) {
 			availableCommands.push(commandObj);
 			continue;
 		} else if (command.permissions?.length && (await hasPermission(message.member, command.permissions || []))) {
@@ -84,6 +84,7 @@ const addTips = async embed => {
 const maxCommands = 2;
 export const generateHelpMessage = async ({ message, client, commands = null, custom = false, page = 1 }) => {
 	if (!commands) {
+		message.member = message.member ?? await message.guild.members.fetch(message.user.id)
 		const guildSettings = await getDiscordSettings({ client, guild: message.guild.id });
 		let availableCommands = await getCommands(message, client, guildSettings?.activePlugins || {});
 		const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
@@ -112,7 +113,7 @@ export const generateHelpMessage = async ({ message, client, commands = null, cu
 		.setAuthor("DisStreamBot Commands", client.user.displayAvatarURL())
 		.setTimestamp(message.createdAt)
 		.setFooter(`Page ${page}/${pages}`)
-		.setColor(convertDiscordRoleColor(message.guild.me.displayHexColor))
+		// .setColor(convertDiscordRoleColor(message.guild.me.displayHexColor))
 		.addField(
 			"Available Commands",
 			custom
@@ -170,7 +171,7 @@ export default {
 			});
 
 			const helpMsg = await message.channel.send({ component: component, embed: helpEmbed } as any);
-	}
+		}
 		// else if (!["module", "admin", "commands"].includes(args[0])) {
 		// 	const selectedCommand = allCommands.find(
 		// 		command => command.displayName?.toLowerCase() === args[0]?.toLowerCase()
