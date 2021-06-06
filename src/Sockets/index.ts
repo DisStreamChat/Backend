@@ -8,18 +8,36 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { AddEventModel } from "../models/sockets.model";
 import { leaveAllRooms } from "./utils";
 import { transformTwitchUsername } from "../utils/functions/stringManipulation";
+import cookie from "cookie";
 
 export interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
 	data: {
 		twitchName: string;
 		guildId: string;
 		liveChatId: string[];
+		userData?: { name: string; uid: string; token: string };
 	};
 }
 
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 	io.on("connection", (socket: CustomSocket) => {
 		log(`${socket.id} connected`, { writeToConsole: true });
+		const token = cookie.parse(socket.handshake.headers.cookie)["auth-token"];
+		admin
+			.auth()
+			.verifyIdToken(token)
+			.catch(() => {
+				socket.disconnect(true);
+			})
+			.then(data => {
+				console.log(data);
+				if (!data) return socket.disconnect(true);
+				socket.data.userData = {
+					token,
+					name: data.name,
+					uid: data.uid,
+				};
+			});
 
 		socket.on("add", async (message: AddEventModel) => {
 			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
@@ -50,7 +68,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						await socket.join(`channel-${liveChatId}`);
 					}
 				}
-				socket.data = { twitchName, guildId, liveChatId };
+				socket.data = { twitchName, guildId, liveChatId, ...(socket.data || {}) };
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
 			}
@@ -190,14 +208,17 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("sendchat", async data => {
-			log(`send chat: ${JSON.stringify(data, null, 4)}`);
-			const { sender, refreshToken, message } = data;
-			const { twitchName } = socket.data;
+			log(`send chat: ${JSON.stringify(data, null, 4)}`, { writeToConsole: true });
+			const { message } = data;
+			const { twitchName, userData } = socket.data;
+			const userRef = admin.firestore().collection("Streamers").doc(userData.uid);
+			const dbUserData = (await userRef.get()).data();
+			const twitchRef = userRef.collection("twitch").doc("data");
+			const twitchData = (await twitchRef.get()).data();
 
-			if (!refreshToken) {
-				log("no authed message", { writeToConsole: true });
-				throw new Error("no auth");
-			}
+			const { refresh_token: refreshToken } = twitchData;
+			const sender = dbUserData.TwitchName ?? dbUserData.twitchName;
+
 			if (sender && message) {
 				try {
 					let UserClient = await getUserClient(refreshToken, sender, twitchName);

@@ -33,6 +33,8 @@
 	"dependencies": {
 		"body-parser": "^1.19.0",
 		"call-bind": "^1.0.2",
+		"cookie": "^0.4.0",
+		"cookie-parser": "^1.4.5",
 		"cors": "^2.8.5",
 		"crypto": "^1.0.1",
 		"date-fns": "^2.14.0",
@@ -58,6 +60,7 @@
 		"mustache": "^4.0.1",
 		"mustache-async": "^0.1.3",
 		"node-fetch": "^2.6.1",
+		"nookies": "^2.5.2",
 		"pretty-ms": "^7.0.0",
 		"sha1": "^1.1.1",
 		"socket.io": "^4.0.1",
