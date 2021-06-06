@@ -30,7 +30,6 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 				socket.disconnect(true);
 			})
 			.then(data => {
-				console.log(data);
 				if (!data) return socket.disconnect(true);
 				socket.data.userData = {
 					token,

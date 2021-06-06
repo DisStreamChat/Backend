@@ -73,7 +73,6 @@ export default async (client: DiscordClient, io) => {
 		});
 
 	for (const { execute, ...command } of slashCommands) {
-		console.log(command)
 		client.registerSlashCommand(command, execute);
 	}
 
