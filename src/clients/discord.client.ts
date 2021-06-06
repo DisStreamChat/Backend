@@ -1,4 +1,4 @@
-import { Client, Collection, MessageEmbed } from "discord.js";
+import { Channel, Client, Collection, Guild, GuildMember, MessageEmbed, User } from "discord.js";
 import { client } from "tmi.js";
 import { Object } from "../models/shared.model";
 import { log } from "../utils/functions/logging";
@@ -13,18 +13,55 @@ interface SlashCommandOptions {
 	};
 }
 
+class SlashCommandInteraction {
+	arguments: Object<string>;
+
+	channel: Channel;
+	guild: Guild;
+	member: GuildMember;
+	user: User;
+	id: string;
+	token: string;
+	name: string;
+	constructor(interaction, public client: DiscordClient) {
+		this.guild = this.client.guilds.resolve(interaction.guild_id);
+		this.channel = this.guild.channels.resolve(interaction.channel_id);
+		this.token = interaction.token;
+		this.id = interaction.id;
+		this.arguments = interaction.data.options?.reduce((acc, cur) => ({ ...acc, [cur.name]: cur.value }), {});
+		this.name = interaction.data.name;
+	}
+
+	async reply(data) {
+		if(data.embed) {
+			data.embeds = [...(data.embeds || []), data.embed]
+			delete data.embed
+		}
+		await this.client._api.interactions(this.id, this.token).callback.post({
+			data: {
+				type: 4,
+				data,
+			},
+		});
+	}
+}
+
+type slashCommandCallback = (interaction: SlashCommandInteraction) => Promise<void>;
+
 export class DiscordClient extends Client {
+	slashCommands: Object<slashCommandCallback>;
+
 	constructor(options) {
 		super(options);
+		this.slashCommands = {};
 	}
 
 	get _api() {
 		// @ts-ignore
-		return this.api;
+		return this.api as any;
 	}
 
 	get application() {
-		//@ts-ignore
 		return this._api.applications(this.user.id);
 	}
 
@@ -36,26 +73,19 @@ export class DiscordClient extends Client {
 		return app;
 	}
 
-	async reply(id: string, token: string, response: { data: Object<any> }) {
-		response.data.type = 4;
-		//@ts-ignore
-		this._api.interactions(id, token).callback.post(response);
-	}
-
 	async getSlashCommands(guildId: string) {
 		return this.getApp(guildId).commands.get();
 	}
 
-	async registerSlashCommand(details: SlashCommandOptions, callback) {
+	async registerSlashCommand(details: SlashCommandOptions, callback: slashCommandCallback) {
 		const guilds = this.guilds.cache.array();
 		for (const guild of guilds) {
 			try {
-				const commands = await this.getSlashCommands(guild.id);
-				// if (commands.find(({ name }) => name === details.data.name)) continue;
-
+				// const commands = await this.getSlashCommands(guild.id);
 				await this.getApp(guild.id).commands.post(details);
+				this.slashCommands[details.data.name] = callback;
 			} catch (err) {
-				log(err, { error: true });
+				log(err, { error: true, writeToConsole: true });
 			}
 		}
 	}
@@ -63,63 +93,14 @@ export class DiscordClient extends Client {
 	slashCommandHandler() {
 		this.ws.on("INTERACTION_CREATE" as any, async interaction => {
 			if (interaction.type !== 2) return;
-			console.log(interaction);
-			const command = interaction.data.name.toLowerCase();
-			const options = interaction.data.options;
-			if (command === "whois") {
-				const guild = await this.guilds.fetch(interaction.guild_id);
-				let member = await resolveUser(null as any, options[0].value, guild);
+			const interactionObject = new SlashCommandInteraction(interaction, this);
 
-				const createdAt = formatFromNow(member.user.createdAt);
-
-				const joinedAt = formatFromNow(member.joinedAt);
-				let roles: string | Collection<string, any> = "This user has no roles";
-				let size = 0;
-
-				if (member.roles.cache.size !== 1) {
-					// don't show the @everyone role
-					roles = member.roles.cache.filter(role => role.name !== "@everyone") as Collection<string, any>;
-					({ size } = roles);
-					if (roles.size !== 1) {
-						roles = `${roles
-							// @ts-ignore
-							.array()
-							.slice(0, -1)
-							.map(r => r)
-							.join(", ")} and ${roles.last()}`;
-					} else {
-						roles = roles.first();
-					}
-				}
-
-				const embed = new MessageEmbed()
-					.setAuthor(member.displayName, member.user.displayAvatarURL())
-					.setThumbnail(member.user.displayAvatarURL())
-					.setTitle(`Information about ${member.displayName}`)
-					.addField("Username", member.user.username, true)
-					.addField("Account created", createdAt, true)
-					.addField("Joined the server", joinedAt, true)
-					.addField(`Roles - ${size}`, `${roles}`)
-					.setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
-					.setFooter(`ID: ${member.id}`)
-					.setTimestamp(new Date());
-
-				this.reply(interaction.id, interaction.token, { data: { type: 4, data: { embeds: [embed] } } });
-			}
-			if (command === "ping") {
-				let pingembed = new MessageEmbed()
-					.setTitle(`🏓 Pong!`)
-					.addFields({ name: `${this.user.username}'s Ping:`, value: `${Math.round(this.ws.ping)}ms` });
-				await this.reply(interaction.id, interaction.token, {
-					data: {
-						type: 4,
-						data: {
-							flags: 64,
-							embeds: [pingembed],
-						},
-					},
-				});
-			}
+			this.slashCommands[interactionObject.name](interactionObject);
+			// if (command === "ping") {
+			// 	let pingembed = new MessageEmbed()
+			// 		.setTitle(`🏓 Pong!`)
+			// 		.addFields({ name: `${this.user.username}'s Ping:`, value: `${Math.round(this.ws.ping)}ms` });
+			// }
 		});
 	}
 }

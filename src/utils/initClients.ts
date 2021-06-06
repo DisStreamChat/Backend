@@ -1,9 +1,9 @@
-import { Client } from "discord.js";
+import { Client, Collection, MessageEmbed } from "discord.js";
 import tmi from "tmi.js";
 import { initializeApp, credential, firestore } from "firebase-admin";
 import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
-import { cycleBotStatus } from "../utils/functions";
+import { cycleBotStatus, formatFromNow, resolveUser } from "../utils/functions";
 import { log } from "./functions/logging";
 import { TwitchClient } from "../clients/twitch.client";
 import { DiscordClient } from "../clients/discord.client";
@@ -25,14 +25,59 @@ discordClient.login(process.env.BOT_TOKEN);
 
 discordClient.on("ready", async () => {
 	log("bot ready", { writeToConsole: true });
-	discordClient.registerSlashCommand({
-		data: {
-			name: "whois",
-			description: "Get Details about a user",
-			options: [{ name: "user", description: "A users Name", type: 3, required: true }],
+	discordClient.registerSlashCommand(
+		{
+			data: {
+				name: "whois",
+				description: "Get Details about a user",
+				options: [{ name: "user", description: "A users Name", type: 3, required: true }],
+			},
 		},
-	});
-	discordClient.slashCommandHandler()
+		async interaction => {
+			const guild = await discordClient.guilds.fetch(interaction.guild.id);
+			let member = await resolveUser(null as any, interaction.arguments.user, guild);
+
+			const createdAt = formatFromNow(member.user.createdAt);
+
+			const joinedAt = formatFromNow(member.joinedAt);
+			let roles: string | Collection<string, any> = "This user has no roles";
+			let size = 0;
+
+			if (member.roles.cache.size !== 1) {
+				// don't show the @everyone role
+				roles = member.roles.cache.filter(role => role.name !== "@everyone") as Collection<string, any>;
+				({ size } = roles);
+				if (roles.size !== 1) {
+					roles = `${roles
+						// @ts-ignore
+						.array()
+						.slice(0, -1)
+						.map(r => r)
+						.join(", ")} and ${roles.last()}`;
+				} else {
+					roles = roles.first();
+				}
+			}
+
+			const embed = new MessageEmbed()
+				.setAuthor(member.displayName, member.user.displayAvatarURL())
+				.setThumbnail(member.user.displayAvatarURL())
+				.setTitle(`Information about ${member.displayName}`)
+				.addField("Username", member.user.username, true)
+				.addField("Account created", createdAt, true)
+				.addField("Joined the server", joinedAt, true)
+				.addField(`Roles - ${size}`, `${roles}`)
+				.setColor(member.displayHexColor === "#000000" ? "#FFFFFF" : member.displayHexColor)
+				.setFooter(`ID: ${member.id}`)
+				.setTimestamp(new Date());
+
+			interaction.reply({
+				embed,
+				flags: 64,
+			});
+		}
+	);
+	discordClient.slashCommandHandler();
 	cycleBotStatus(
 		discordClient,
 		[
