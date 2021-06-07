@@ -16,7 +16,7 @@ export interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap>
 		twitchName: string;
 		guildId: string;
 		liveChatId: string[];
-		userData?: { name: string; uid: string; token: string };
+		userData?: { name: string; uid: string; token: string; sender: string; refreshToken: string };
 	};
 }
 
@@ -30,12 +30,22 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			.catch(() => {
 				socket.disconnect(true);
 			})
-			.then(data => {
+			.then(async data => {
 				if (!data) return socket.disconnect(true);
+
+				const userRef = admin.firestore().collection("Streamers").doc(data.uid);
+				const dbUserData = (await userRef.get()).data();
+				const twitchRef = userRef.collection("twitch").doc("data");
+				const twitchData = (await twitchRef.get()).data();
+				const { refresh_token: refreshToken } = twitchData;
+				const sender = dbUserData.TwitchName ?? dbUserData.twitchName;
+
 				socket.data.userData = {
 					token,
 					name: data.name,
 					uid: data.uid,
+					sender,
+					refreshToken,
 				};
 			});
 
@@ -210,14 +220,11 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		socket.on("sendchat", async data => {
 			log(`send chat: ${JSON.stringify(data, null, 4)}`, { writeToConsole: true });
 			const { message } = data;
-			const { twitchName, userData } = socket.data;
-			const userRef = admin.firestore().collection("Streamers").doc(userData.uid);
-			const dbUserData = (await userRef.get()).data();
-			const twitchRef = userRef.collection("twitch").doc("data");
-			const twitchData = (await twitchRef.get()).data();
+			const {
+				twitchName,
+				userData: { sender, refreshToken },
+			} = socket.data;
 
-			const { refresh_token: refreshToken } = twitchData;
-			const sender = dbUserData.TwitchName ?? dbUserData.twitchName;
 			if (sender && message) {
 				try {
 					let userClient: Client = await getUserClient(refreshToken, sender, twitchName);
