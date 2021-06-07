@@ -14,7 +14,8 @@ interface SlashCommandResponse {
 	embed?: any;
 	embeds?: any[];
 	component?: any;
-	components?: any[]
+	components?: any[];
+	attachments?: any[]
 }
 
 export class SlashCommandInteraction {
@@ -28,7 +29,7 @@ export class SlashCommandInteraction {
 	token: string;
 	name: string;
 	createdAt: number;
-	author: User
+	author: User;
 	constructor(interaction, public client: DiscordClient) {
 		this.createdAt = new Date().getTime();
 		this.guild = this.client.guilds.resolve(interaction.guild_id);
@@ -39,17 +40,18 @@ export class SlashCommandInteraction {
 		this.id = interaction.id;
 		this.arguments = interaction.data.options?.reduce((acc, cur) => ({ ...acc, [cur.name]: cur.value }), {});
 		this.name = interaction.data.name;
-		this.author = this.user
+		this.author = this.user;
 	}
 
 	async reply(data: SlashCommandResponse | string) {
 		if (typeof data === "string") data = { content: data };
 
 		const newData = {
-			embeds: [...(data.embeds || []), data.embed],
+			embeds: data.embeds || data.embed ? [...(data.embeds || []), data.embed] : null,
 			// components: [...(data.components || []), data.component],
 			flags: data.ephemeral ? 64 : null,
 			content: data.content,
+			attachments: data.attachments
 		};
 		await this.client._api.interactions(this.id, this.token).callback.post({
 			data: {
