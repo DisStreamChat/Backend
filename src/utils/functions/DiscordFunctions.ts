@@ -26,8 +26,9 @@ export const resolveUser = async (msg: Message, username: string, guild?: Guild)
 	return null;
 };
 
-export const resolveRole = (msg: Message, role: string) => {
-	const roleCache = msg.guild.roles.cache;
+export const resolveRole = (msg: Message, role: string, guild: Guild) => {
+	const usedGuild = msg ? msg.guild : guild
+	const roleCache = usedGuild.roles.cache;
 	if (/<@&\d+>/g.test(role)) {
 		return roleCache.get(msg.mentions.roles.first().id);
 	}

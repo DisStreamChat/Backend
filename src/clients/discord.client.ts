@@ -15,7 +15,7 @@ interface SlashCommandResponse {
 	embeds?: any[];
 	component?: any;
 	components?: any[];
-	attachments?: any[]
+	attachments?: any[];
 }
 
 export class SlashCommandInteraction {
@@ -30,6 +30,7 @@ export class SlashCommandInteraction {
 	name: string;
 	createdAt: number;
 	author: User;
+	private ephemeralMessage: boolean;
 	constructor(interaction, public client: DiscordClient) {
 		this.createdAt = new Date().getTime();
 		this.guild = this.client.guilds.resolve(interaction.guild_id);
@@ -49,9 +50,9 @@ export class SlashCommandInteraction {
 		const newData = {
 			embeds: data.embeds || data.embed ? [...(data.embeds || []), data.embed] : null,
 			// components: [...(data.components || []), data.component],
-			flags: data.ephemeral ? 64 : null,
+			flags: this.ephemeralMessage || data.ephemeral ? 64 : null,
 			content: data.content,
-			attachments: data.attachments
+			attachments: data.attachments,
 		};
 		await this.client._api.interactions(this.id, this.token).callback.post({
 			data: {
@@ -59,6 +60,11 @@ export class SlashCommandInteraction {
 				data: newData,
 			},
 		});
+	}
+
+	ephemeral() {
+		this.ephemeralMessage = true;
+		return this
 	}
 }
 
