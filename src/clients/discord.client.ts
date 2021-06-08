@@ -64,14 +64,17 @@ export class SlashCommandInteraction {
 
 	ephemeral() {
 		this.ephemeralMessage = true;
-		return this
+		return this;
 	}
 }
 
-export type slashCommandCallback = (interaction: SlashCommandInteraction) => Promise<void>;
+export type slashCommandCallback = (interaction: SlashCommandInteraction) => Promise<void> | void;
+
+type SlashCommandList = Object<slashCommandCallback>;
 
 export class DiscordClient extends Client {
-	slashCommands: Object<slashCommandCallback>;
+	slashCommands: SlashCommandList;
+	customSlashCommands: Object<SlashCommandList>;
 	commands: Object<any>;
 	prefix: string;
 	settings: any;
@@ -80,6 +83,7 @@ export class DiscordClient extends Client {
 	listeners: any;
 	constructor(options) {
 		super(options);
+		this.customSlashCommands = {};
 		this.slashCommands = {};
 	}
 
@@ -104,6 +108,16 @@ export class DiscordClient extends Client {
 		return this.getApp(guildId).commands.get();
 	}
 
+	async registerSlashCommandToGuild(details: SlashCommandOptions, id: string, callback: slashCommandCallback) {
+		if (!this.customSlashCommands[id]) this.customSlashCommands[id] = {};
+		this.customSlashCommands[id][details.name] = callback;
+		try {
+			await this.getApp(id).commands.post({ data: details });
+		} catch (err) {
+			log(err, { error: true, writeToConsole: true });
+		}
+	}
+
 	async registerSlashCommand(details: SlashCommandOptions, callback: slashCommandCallback) {
 		const guilds = this.guilds.cache.array();
 		this.slashCommands[details.name] = callback;
@@ -121,7 +135,13 @@ export class DiscordClient extends Client {
 			if (interaction.type !== 2) return;
 			const interactionObject = new SlashCommandInteraction(interaction, this);
 
+			const {guild} = interactionObject
+			const customCommand = this.customSlashCommands[guild.id]?.[interactionObject.name]
+			if(customCommand){
+				return customCommand(interactionObject)
+			}
 			this.slashCommands[interactionObject.name](interactionObject);
+
 			// if (command === "ping") {
 			// 	let pingembed = new MessageEmbed()
 			// 		.setTitle(`🏓 Pong!`)
