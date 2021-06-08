@@ -8,6 +8,7 @@ import { discordClient, twitchClient, customBots } from "./utils/initClients";
 import { initializeApp, credential } from "firebase-admin";
 import { io, server, app } from "./app";
 import { setCommands } from "./Discord/CommandHandler";
+import { setupCustomSlashCommands } from "./Discord/customSlashCommands";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -38,6 +39,7 @@ TwitchEvents(twitchClient, io, app);
 discordClient.once("ready", () => {
 	DiscordEvents(discordClient, io);
 	setCommands(discordClient)
+	setupCustomSlashCommands()
 });
 if (process.env.BOT_DEV != "true") {
 	customBots.then(bots => {
