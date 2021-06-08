@@ -1,4 +1,4 @@
-import { Channel, Client, Guild, GuildMember, User } from "discord.js";
+import { Channel, Client, Guild, GuildMember, MessageEmbed, User } from "discord.js";
 import { Object } from "../models/shared.model";
 import { log } from "../utils/functions/logging";
 
@@ -44,8 +44,12 @@ export class SlashCommandInteraction {
 		this.author = this.user;
 	}
 
-	async reply(data: SlashCommandResponse | string) {
+	async reply(data: SlashCommandResponse | string | MessageEmbed) {
 		if (typeof data === "string") data = { content: data };
+
+		if (data instanceof MessageEmbed) {
+			data = { embed: data };
+		}
 
 		const newData = {
 			embeds: data.embeds || data.embed ? [...(data.embeds || []), data.embed] : null,
@@ -135,10 +139,10 @@ export class DiscordClient extends Client {
 			if (interaction.type !== 2) return;
 			const interactionObject = new SlashCommandInteraction(interaction, this);
 
-			const {guild} = interactionObject
-			const customCommand = this.customSlashCommands[guild.id]?.[interactionObject.name]
-			if(customCommand){
-				return customCommand(interactionObject)
+			const { guild } = interactionObject;
+			const customCommand = this.customSlashCommands[guild.id]?.[interactionObject.name];
+			if (customCommand) {
+				return customCommand(interactionObject);
 			}
 			this.slashCommands[interactionObject.name](interactionObject);
 

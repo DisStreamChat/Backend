@@ -16,6 +16,11 @@ export default ({ message, args }) => {
 			if (!isNumeric(val)) return "Not a number";
 			return Math.round(Number(val))
 		},
+		randomRound: () => (val, render) => {
+			if (!val) val = 1;
+			if (!isNumeric(val)) val = 1;
+			return Math.round(Random(Number(val)));
+		},
 		member: message.member,
 		user: message.author,
 		author: message.author,
@@ -25,7 +30,7 @@ export default ({ message, args }) => {
 			try {
 				return now.toLocaleTimeString("en-US", { timeZone: val });
 			} catch (err) {
-				return "`Invalid Timezone`";
+				return "Invalid Timezone";
 			}
 		},
 		msg: argObj,
