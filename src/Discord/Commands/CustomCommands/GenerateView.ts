@@ -12,6 +12,10 @@ export default ({ message, args }) => {
 			if (!isNumeric(val)) val = 1;
 			return Random(Number(val));
 		},
+		round: () => (val, render) => {
+			if (!isNumeric(val)) return "Not a number";
+			return Math.round(Number(val))
+		},
 		member: message.member,
 		user: message.author,
 		author: message.author,
