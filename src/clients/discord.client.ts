@@ -123,14 +123,11 @@ export class DiscordClient extends Client {
 	}
 
 	async registerSlashCommand(details: SlashCommandOptions, callback: slashCommandCallback) {
-		const guilds = this.guilds.cache.array();
 		this.slashCommands[details.name] = callback;
-		for (const guild of guilds) {
-			try {
-				await this.getApp(guild.id).commands.post({ data: details });
-			} catch (err) {
-				log(err, { error: true, writeToConsole: true });
-			}
+		try {
+			await this.getApp(null).commands.post({ data: details });
+		} catch (err) {
+			log(err, { error: true, writeToConsole: true });
 		}
 	}
 
