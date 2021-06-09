@@ -1,4 +1,5 @@
 import Discord from "discord.js";
+import { slashCommandCallback } from "../clients/discord.client";
 
 export interface ChannelModel {
 	id: string;
@@ -20,3 +21,10 @@ export interface RoleModel {
 }
 
 export interface CustomClient extends Discord.Client {}
+
+export interface SlashCommand {
+	name: string,
+	description: string,
+	options?: any[],
+	execute: slashCommandCallback
+}

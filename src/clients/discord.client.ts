@@ -1,4 +1,4 @@
-import { Channel, Client, Guild, GuildMember, MessageEmbed, User } from "discord.js";
+import { Channel, Client, Guild, GuildMember, MessageEmbed, TextChannel, User, Webhook, WebhookClient } from "discord.js";
 import { Object } from "../models/shared.model";
 import { log } from "../utils/functions/logging";
 
@@ -21,7 +21,7 @@ interface SlashCommandResponse {
 export class SlashCommandInteraction {
 	arguments: Object<string>;
 
-	channel: Channel;
+	channel: TextChannel;
 	guild: Guild;
 	member: GuildMember;
 	user: User;
@@ -34,7 +34,7 @@ export class SlashCommandInteraction {
 	constructor(interaction, public client: DiscordClient) {
 		this.createdAt = new Date().getTime();
 		this.guild = this.client.guilds.resolve(interaction.guild_id);
-		this.channel = this.guild.channels.resolve(interaction.channel_id);
+		this.channel = this.guild.channels.resolve(interaction.channel_id) as TextChannel;
 		this.user = this.client.users.resolve(interaction.member.user.id);
 		this.member = this.guild.members.resolve(interaction.member.id);
 		this.token = interaction.token;
@@ -64,6 +64,24 @@ export class SlashCommandInteraction {
 				data: newData,
 			},
 		});
+	}
+
+	async edit(data: SlashCommandResponse | string | MessageEmbed) {
+		if (typeof data === "string") data = { content: data };
+
+		if (data instanceof MessageEmbed) {
+			data = { embed: data };
+		}
+
+		const newData = {
+			embeds: data.embeds || data.embed ? [...(data.embeds || []), data.embed] : null,
+			// components: [...(data.components || []), data.component],
+			flags: this.ephemeralMessage || data.ephemeral ? 64 : null,
+			ephemeral: this.ephemeralMessage || data.ephemeral,
+			content: data.content,
+			attachments: data.attachments,
+		};
+		new WebhookClient(this.client.user.id, this.token).send(newData)
 	}
 
 	ephemeral() {
@@ -123,11 +141,14 @@ export class DiscordClient extends Client {
 	}
 
 	async registerSlashCommand(details: SlashCommandOptions, callback: slashCommandCallback) {
+		const guilds = this.guilds.cache.array();
 		this.slashCommands[details.name] = callback;
-		try {
-			await this.getApp(null).commands.post({ data: details });
-		} catch (err) {
-			log(err, { error: true, writeToConsole: true });
+		for (const guild of guilds) {
+			try {
+				await this.getApp(guild.id).commands.post({ data: details });
+			} catch (err) {
+				log(err, { error: true, writeToConsole: true });
+			}
 		}
 	}
 
