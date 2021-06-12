@@ -148,6 +148,6 @@ export const initWebhooks = async () => {
 			setInterval(updateConnections, tenDays);
 		}, timeUntilNextConnection);
 	} catch (err) {
-		log(err);
+		log(err, {error: true, writeToConsole: true});
 	}
 };
