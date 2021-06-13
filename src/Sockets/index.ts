@@ -30,7 +30,9 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 				twitchName = transformTwitchUsername(twitchName.toLowerCase());
 			}
 
-			leaveAllRooms(socket);
+			if (message.leaveAll) {
+				leaveAllRooms(socket);
+			}
 
 			try {
 				const channels = twitchClient.channels;
