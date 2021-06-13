@@ -26,7 +26,6 @@ export async function getBttvEmotes(channelName) {
 	}
 	let regexStr = "";
 	emotes.forEach(({ code, id }, i) => {
-		console.log(code)
 		if (!code) return;
 		bttvEmotes[code] = id;
 		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
