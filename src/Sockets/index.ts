@@ -31,6 +31,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			}
 
 			if (message.leaveAll) {
+				io.to(socket.id).emit("left-all");
 				leaveAllRooms(socket);
 			}
 
