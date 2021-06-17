@@ -20,7 +20,8 @@ export default {
 			dnd: `:red_circle: User doesn't want to be disturbed right now`,
 		};
 
-		const game = member.presence.game ? member.presence.game.name : "Not playing a game";
+		const game = "Not playing a game";
+		// const game = member.presence.game ? member.presence.game.name : "Not playing a game";
 
 		const createdAt = formatFromNow(member.user.createdAt);
 
