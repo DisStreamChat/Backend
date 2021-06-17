@@ -1,5 +1,5 @@
 import { resolveUser, generateRankCard } from "../../../utils/functions";
-import { MessageAttachment } from "discord.js";
+import { Message, MessageAttachment, TextChannel } from "discord.js";
 
 import admin from "firebase-admin";
 
@@ -11,7 +11,8 @@ export default {
 	plugin: "leveling",
 	description: "Get someones experience and level on this server in a rankcard.",
 	usage: ["(user)"],
-	execute: async (message, args, client) => {
+	execute: async (message: Message, args, client) => {
+		(message.channel as TextChannel).startTyping();
 		let user = await resolveUser(message, args.join(" "));
 		let msg = "";
 		if (!user) {
@@ -35,6 +36,8 @@ export default {
 		if (!userData) userData = { xp: 0, level: 0, rank: 100000 };
 		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, user);
 		const attachment = new MessageAttachment(rankCard, "card.png");
-		message.channel.send(msg, attachment);
+		(message.channel as TextChannel).stopTyping();
+
+		await message.channel.send(msg, attachment);
 	},
 };
