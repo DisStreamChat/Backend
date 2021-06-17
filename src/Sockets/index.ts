@@ -9,6 +9,10 @@ import Server from "socket.io";
 
 export const sockets = (io: Server.Server) => {
 	log("setting up sockets", { writeToConsole: true });
+
+	io.origins((_, callback) => {
+		callback(null, true);
+	});
 	io.on("connection", socket => {
 		log("a user connected", { writeToConsole: true });
 		const socketWrapper = new Socket(socket);
