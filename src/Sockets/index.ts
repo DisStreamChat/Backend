@@ -206,11 +206,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 				twitchData: { refreshToken, name },
 			} = socket.data;
 
-			if (!refreshToken) {
-				log("no authed message", { writeToConsole: true });
-				throw new Error("no auth");
-			}
-			if (name && message) {
+			if (message && message.length) {
 				try {
 					let userClient = await getUserClient(refreshToken, name, twitchName);
 					try {
