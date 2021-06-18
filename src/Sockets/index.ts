@@ -1,25 +1,44 @@
 import { log } from "../utils/functions/logging";
 import { getUserClient } from "./userClients";
 
-import { discordClient, twitchClient } from "../utils/initClients";
+import { discordClient, twitchClient, TwitchApiClient } from "../utils/initClients";
 import admin from "firebase-admin";
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { AddEventModel } from "../models/sockets.model";
 import { leaveAllRooms } from "./utils";
 import { transformTwitchUsername } from "../utils/functions/stringManipulation";
-
+import cookie from "cookie";
 export interface CustomSocket extends Socket<DefaultEventsMap, DefaultEventsMap> {
 	data: {
 		twitchName: string;
 		guildId: string;
 		liveChatId: string[];
+		twitchData: {
+			refreshToken: string;
+			userId: string;
+			name: string;
+		};
 	};
 }
 
 export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
-	io.on("connection", (socket: CustomSocket) => {
+	io.on("connection", async (socket: CustomSocket) => {
 		log(`${socket.id} connected`, { writeToConsole: true });
+
+		const token = cookie.parse(socket.handshake.headers.cookie)["auth-token"];
+
+		const verifiedToken = await admin.auth().verifyIdToken(token);
+
+		const userRef = admin.firestore().collection("Streamers").doc(verifiedToken.uid);
+		const twitchRef = userRef.collection("twitch").doc("data");
+		const twitchData = (await twitchRef.get()).data();
+		const twitchUserData = await TwitchApiClient.getUserInfo(twitchData.user_id);
+		socket.data.twitchData = {
+			refreshToken: twitchData.refresh_token,
+			userId: twitchData.user_id,
+			name: twitchUserData.login,
+		};
 
 		socket.on("add", async (message: AddEventModel) => {
 			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
@@ -53,7 +72,8 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 						await socket.join(`channel-${liveChatId}`);
 					}
 				}
-				socket.data = { twitchName, guildId, liveChatId };
+				if (twitchName === "dscnotifications") return;
+				socket.data = { ...socket.data, twitchName, guildId, liveChatId };
 			} catch (err) {
 				log(err, { writeToConsole: true, error: true });
 			}
@@ -111,7 +131,7 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			const { twitchName } = socket.data;
+			const { twitchName, twitchData } = socket.data;
 
 			async function botDelete(id: string) {
 				await twitchClient.deleteMessage(twitchName, id);
@@ -193,26 +213,32 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 		});
 
 		socket.on("sendchat", async data => {
-			log(`send chat: ${JSON.stringify(data, null, 4)}`);
-			const { sender, refreshToken, message } = data;
-			const { twitchName } = socket.data;
+			log(`send chat: ${JSON.stringify(data, null, 4)}`, { writeToConsole: true });
+			const { message } = data;
+			const {
+				twitchName,
+				twitchData: { refreshToken, name },
+			} = socket.data;
+
+			console.log(twitchName);
 
 			if (!refreshToken) {
 				log("no authed message", { writeToConsole: true });
 				throw new Error("no auth");
 			}
-			if (sender && message) {
+			if (name && message) {
 				try {
-					let UserClient = await getUserClient(refreshToken, sender, twitchName);
+					let userClient = await getUserClient(refreshToken, name, twitchName);
 					try {
-						await UserClient.join(twitchName);
-						await UserClient.say(twitchName, message);
+						await userClient.join(twitchName);
+						await userClient.say(twitchName, message);
 					} catch (err) {
-						await UserClient.say(twitchName, message);
+						console.log(err);
+						await userClient.say(twitchName, message);
 					}
-					UserClient = null;
+					userClient = null;
 				} catch (err) {
-					log(err.message, { error: true });
+					log(err, { error: true });
 				}
 			}
 		});
