@@ -363,7 +363,7 @@ router.get("/token", async (req, res, next) => {
 
 			// automatically mod the bot in the users channel on sign in
 			try {
-				const UserClient = new tmi.Client({
+				const userClient = new tmi.Client({
 					options: { debug: false },
 					connection: {
 						secure: true,
@@ -375,9 +375,9 @@ router.get("/token", async (req, res, next) => {
 					},
 					channels: [login],
 				});
-				await UserClient.connect();
-				await UserClient.say(login, "/mod disstreamchat");
-				await UserClient.disconnect();
+				await userClient.connect();
+				await userClient.say(login, "/mod disstreamchat");
+				await userClient.disconnect();
 			} catch (err) {}
 
 			const uid = sha1(user_id);
