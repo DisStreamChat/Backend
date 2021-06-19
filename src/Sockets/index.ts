@@ -44,6 +44,33 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 			socket.disconnect();
 		}
 
+		socket.on("remove", async (message: AddEventModel) => {
+			let { twitchName, guildId, liveChatId } = message;
+
+			if (typeof twitchName === "string") {
+				twitchName = transformTwitchUsername(twitchName.toLowerCase());
+			}
+
+			try {
+				twitchClient.leave(twitchName);
+				log(`left channel: ${twitchName}`, { writeToConsole: true });
+
+				if (twitchName) await socket.leave(`twitch-${twitchName}`);
+				if (guildId) await socket.leave(`guild-${guildId}`);
+				if (liveChatId) {
+					if (liveChatId instanceof Array) {
+						for (const id of liveChatId) {
+							await socket.leave(`channel-${id}`);
+						}
+					} else {
+						await socket.leave(`channel-${liveChatId}`);
+					}
+				}
+			} catch (err) {
+				log(err, { writeToConsole: true, error: true });
+			}
+		});
+
 		socket.on("add", async (message: AddEventModel) => {
 			log(`adding: ${JSON.stringify(message, null, 4)} to: ${socket.id}`, { writeToConsole: true });
 
@@ -51,11 +78,6 @@ export const sockets = (io: Server<DefaultEventsMap, DefaultEventsMap>) => {
 
 			if (typeof twitchName === "string") {
 				twitchName = transformTwitchUsername(twitchName.toLowerCase());
-			}
-
-			if (message.leaveAll) {
-				io.to(socket.id).emit("left-all");
-				leaveAllRooms(socket);
 			}
 
 			try {

@@ -105,26 +105,6 @@ export default (twitchClient: TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
-	// currently doesn't work
-	twitchClient.on("hosted", async (channel, username, viewers, autohost) => {
-		if (autohost) return;
-		const channelName = transformTwitchUsername(channel).toLowerCase();
-		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
-		const messageObject = {
-			displayName: "DisStreamChat",
-			avatar: DisStreamChatProfile,
-			body: theMessage,
-			platform: Platform.TWITCH,
-			type: "raid",
-			uuid: uuidv1(),
-			id: uuidv1(),
-			badges: {},
-			sentAt: Date.now(),
-			userColor: "#ff0029",
-		};
-		if (messageObject.body.length <= 0) return;
-		const _ = [...io[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
-	});
 
 	twitchClient.on("message", async (channel, tags, message, self) => {
 		// Ignore echoed messages and commands.
@@ -169,6 +149,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			replyParentMessageBody: tags["reply-parent-msg-body"] || "",
 			replyParentMessageId: tags["reply-parent-msg-id"] || "",
 			replyParentMessageUserId: tags["reply-parent-user-id"] || "",
+			channel: channelName
 		};
 
 		if (messageObject.body.length <= 0) return;
@@ -277,6 +258,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			id: tags.id,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel: channelName
 		};
 
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
@@ -296,6 +278,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			id: tags.id,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel: channelName
 		};
 
 		io.in(`twitch-${channelName}`).emit("twitchanonupgrade", messageObject);
@@ -323,6 +306,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel: channelName
 		};
 
 		io.in(`twitch-${channelName}`)("chatmessage", messageObject);
@@ -366,6 +350,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 				badges,
 				sentAt: +tags["tmi-sent-ts"],
 				userColor: "#ff0029",
+				channel: channelName
 			};
 
 			io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
@@ -413,6 +398,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			id: tags.id,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel: channelName
 		};
 
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
@@ -443,6 +429,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			id: tags.id,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel: channelName
 		};
 
 		if (messageObject.body.length <= 0) return;
@@ -470,6 +457,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 			badges,
 			sentAt: +tags["tmi-sent-ts"],
 			userColor: "#ff0029",
+			channel
 		};
 
 		if (messageObject.body.length <= 0) return;
@@ -525,6 +513,7 @@ export default (twitchClient: TwitchClient, io, app) => {
 							badges,
 							sentAt: new Date(followedAt).getTime(),
 							userColor: "#ff0029",
+							channel: streamer
 						};
 
 						io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);

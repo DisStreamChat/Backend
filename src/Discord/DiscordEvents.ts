@@ -132,6 +132,7 @@ export default async (client, io) => {
 					badges,
 					sentAt: message.createdAt.getTime(),
 					userColor: userHexColor,
+					channel: "",
 				};
 
 				if (messageObject.body.length <= 0) return;
