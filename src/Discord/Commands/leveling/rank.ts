@@ -32,8 +32,14 @@ export default {
 				await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
 			).docs[0]?.data?.();
 		}
-
+		
 		if (!userData) userData = { xp: 0, level: 0, rank: 100000 };
+		const sorted = (
+			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").orderBy("xp", "desc").get()
+		).docs.map(doc => ({ id: doc.id, ...doc.data() }));
+		let rank = sorted.findIndex(entry => entry.id === user.id) + 1;
+		if (rank === 0) rank = sorted.length + 1;
+		userData.rank = rank;
 		const rankCard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, user);
 		const attachment = new MessageAttachment(rankCard, "card.png");
 		(message.channel as TextChannel).stopTyping();
