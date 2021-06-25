@@ -3,7 +3,7 @@ import tmi from "tmi.js";
 import { initializeApp, credential, firestore } from "firebase-admin";
 import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
-import { cycleBotStatus } from "../utils/functions";
+import { cycleBotStatus, isPremium } from "../utils/functions";
 import { log } from "./functions/logging";
 import { TwitchClient } from "../clients/twitch.client";
 import { DiscordClient } from "../clients/discord.client";
@@ -77,6 +77,11 @@ export const getCustomBots = async (): Promise<Map<string, DiscordClient>> => {
 		const botClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 		await botClient.login(bot.token);
 		botClient.once("ready", async () => {
+			for (const [snowflake, guild] of botClient.guilds.cache) {
+				if (!(await isPremium(guild))) {
+					guild.leave();
+				}
+			}
 			if (bot.status) {
 				botClient.user.setPresence({
 					status: "online",
