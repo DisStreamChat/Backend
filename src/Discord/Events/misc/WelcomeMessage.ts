@@ -1,8 +1,9 @@
-import { formatFromNow, generateWelcomeCard, getDiscordSettings } from "../../../utils/functions";
-import generateView from "../../Commands/CustomCommands/GenerateView";
-import Mustache from "mustache";
-import { Guild, GuildMember, MessageAttachment, TextChannel } from "discord.js";
-import { DiscordClient } from "../../../clients/discord.client";
+import { Guild, GuildMember, MessageAttachment, TextChannel } from 'discord.js';
+import Mustache from 'mustache';
+
+import { DiscordClient } from '../../../clients/discord.client';
+import { generateWelcomeCard, getDiscordSettings } from '../../../utils/functions';
+import generateView from '../../Commands/CustomCommands/GenerateView';
 
 Mustache.tags = ["{", "}"];
 
