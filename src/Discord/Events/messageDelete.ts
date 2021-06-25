@@ -5,9 +5,13 @@ import { sleep } from "../../utils/functions";
 import { Message } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
 
-export default async (message: Partial<Message>, client: DiscordClient) => {
+export default async (message: Message, client: DiscordClient) => {
 	await sleep(2000);
-	message = await message.fetch(true);
+	try {
+		message = await message.fetch(true);
+	} catch (err) {
+		
+	}
 	const guild = message.guild;
 
 	// get the deleter from the guilds audit log

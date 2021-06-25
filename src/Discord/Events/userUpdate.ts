@@ -46,7 +46,7 @@ export default async (oldUser, newUser, DiscordClient) => {
 				await logChannel.send(changeEmbed);
 			}
 			// if(isPremium(guild))
-			writeToAuditLog(guild, "invite created", changeEmbed.toJSON());
+			writeToAuditLog(guild, "user updated", changeEmbed.toJSON());
 		} catch (err) {
 			log(err.message, { error: true });
 		}

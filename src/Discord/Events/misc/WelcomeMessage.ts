@@ -17,8 +17,7 @@ export default async (guild: Guild, member: GuildMember, client: DiscordClient) 
 	if (!channelId) return;
 	const welcomeChannel = guild.channels.resolve(channelId) as TextChannel;
 
-	// TODO: add welcome card functionality
-	// if(!guild.isPremium) return welcomeChannel.send(message)
+	// if(isPremium(guild)) return welcomeChannel.send(message)
 	if (!data.welcomeMessage.welcomeImage) return welcomeChannel.send(message);
 
 	const welcomeImage = await generateWelcomeCard(guild, member, data.welcomeMessage.welcomeImageConfig || {});

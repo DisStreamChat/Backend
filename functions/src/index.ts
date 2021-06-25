@@ -7,7 +7,8 @@ export * from "./servers"
 export * from "./leveling"
 
 admin.initializeApp();
-
+const db = admin.firestore();
+db.settings({ ignoreUndefinedProperties: true })
 
 
 const DiscordClient = new discord.Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });

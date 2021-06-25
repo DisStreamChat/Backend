@@ -26,7 +26,7 @@ export default async (client, io) => {
 				try {
 					await eventHandler(...params, client);
 				} catch (err) {
-					log(`Event Error: ${err.message}`);
+					log(`Event Error: ${err.message}`, {writeToConsole: true});
 				}
 			});
 		}

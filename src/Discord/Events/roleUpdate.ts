@@ -16,8 +16,8 @@ export default async (oldRole, newRole, client) => {
 
 	let executor = deleteAction.executor;
 
-	const [channelId, active] = await setupLogging(guild, "roleUpdate", client);
-	if (!active || !channelId) return;
+	const [channelIds, active] = await setupLogging(guild, "roleUpdate", client);
+	if (!active || !channelIds) return;
 
 	const embed = (
 		await logUpdate(oldRole, newRole, {
@@ -34,7 +34,9 @@ export default async (oldRole, newRole, client) => {
 		})
 	).setAuthor(executor.tag, executor.avatarURL());
 
-	const logChannel = guild.channels.resolve(channelId);
+	for (const channelId of channelIds) {
+		const logChannel = guild.channels.resolve(channelId);
 
-	logChannel.send(embed);
+		logChannel.send(embed);
+	}
 };

@@ -22,5 +22,5 @@ export default async (role: Role, client: DiscordClient) => {
 		logChannel.send(embed);
 	}
 	// if(isPremium(guild))
-	writeToAuditLog(guild, "invite created", { role });
+	writeToAuditLog(guild, "role deleted", { role });
 };

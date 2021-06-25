@@ -39,7 +39,7 @@ export default async (oldMessage: Message, newMessage: Message, client: DiscordC
 			logChannel.send(embed);
 		}
 		// if(isPremium(guild))
-		writeToAuditLog(guild, "invite created", embed.toJSON());
+		writeToAuditLog(guild, "message edited", embed.toJSON());
 	} catch (err) {
 		log(err.message, { error: true });
 	}
