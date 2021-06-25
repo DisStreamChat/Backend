@@ -133,10 +133,18 @@ router.get("/rankcard", async (req, res, next) => {
 
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, reactions, server } = req.body;
-		const guild = await discordClient.guilds.cache.get(server);
+		const { channel, message, reactions, server, embedData } = req.body;
+		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
-		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		let embed: MessageEmbed;
+		// if(isPremium(guild)){
+		if (embedData) {
+			embed = new MessageEmbed(embedData);
+		} else {
+			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		}
+		// }
+		// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
@@ -156,10 +164,18 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, server, messageId } = req.body;
-		const guild = await discordClient.guilds.cache.get(server);
+		const { channel, message, server, messageId, embedData } = req.body;
+		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
-		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		let embed: MessageEmbed;
+		// if(isPremium(guild)){
+		if (embedData) {
+			embed = new MessageEmbed(embedData);
+		} else {
+			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		}
+		// }
+		// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const messageToEdit = await channelObj.messages.fetch(messageId);
 		const edited = await messageToEdit.edit(embed);
 		res.json({ code: 200, message: "success", messageId: edited.id });
