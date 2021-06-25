@@ -1,21 +1,28 @@
-import { formatFromNow, getDiscordSettings } from "../../../utils/functions";
+import { formatFromNow, generateWelcomeCard, getDiscordSettings } from "../../../utils/functions";
 import generateView from "../../Commands/CustomCommands/GenerateView";
 import Mustache from "mustache";
+import { Guild, GuildMember, MessageAttachment, TextChannel } from "discord.js";
+import { DiscordClient } from "../../../clients/discord.client";
 
 Mustache.tags = ["{", "}"];
 
-export default async (guild, member, client) => {
+export default async (guild: Guild, member: GuildMember, client: DiscordClient) => {
 	const data = await getDiscordSettings({ client, guild: guild.id });
 	if (!data) return;
 	if (!data.activePlugins["welcome-message"]) return;
-	if (!data.welcomeMessage) return;
 	const view = generateView({ message: { member: member, author: member }, args: [] });
 	const message = Mustache.render(data.welcomeMessage.message, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
 	const channelId = data.welcomeMessage.channel;
 	if (!channelId) return;
-	const welcomeChannel = guild.channels.resolve(channelId);
+	const welcomeChannel = guild.channels.resolve(channelId) as TextChannel;
 
 	// TODO: add welcome card functionality
+	// if(!guild.isPremium) return welcomeChannel.send(message)
+	if (!data.welcomeMessage.welcomeImage) return welcomeChannel.send(message);
+
+	const welcomeImage = await generateWelcomeCard(guild, member, data.welcomeMessage.welcomeImageConfig || {});
+	const attachment = new MessageAttachment(welcomeImage, "card.png");
 
 	welcomeChannel.send(message);
+	welcomeChannel.send(attachment);
 };
