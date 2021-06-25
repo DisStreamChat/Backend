@@ -1,10 +1,11 @@
+import { sleep } from "../../utils/functions";
 import { logUpdate } from "./utils";
 import setupLogging from "./utils/setupLogging";
 
 const colorString = (color, hash = true) => (hash ? "#" : "") + color.toString(16).padStart(6, "0");
 
 export default async (oldRole, newRole, client) => {
-	await new Promise(res => setTimeout(res, 300));
+	await sleep(2000);
 	const guild = oldRole.guild;
 
 	const auditLog = await guild.fetchAuditLogs();

@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 import { compare } from "../../../utils/functions";
+import { writeToAuditLog } from "./auditLog";
 
 export const logMessageDelete = (message, channelIds, executor, guild) => {
 	checkDeleteReactionMessage(guild.id, message);
@@ -25,6 +26,8 @@ export const logMessageDelete = (message, channelIds, executor, guild) => {
 
 		logChannel.send(embed);
 	}
+	// if(isPremium(guild))
+	writeToAuditLog(guild, "invite created", embed.toJSON())
 };
 
 export const checkDeleteReactionMessage = async (guildId, message) => {

@@ -2,6 +2,7 @@ import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
 import { GuildChannel, TextChannel } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
+import { writeToAuditLog } from "./utils/auditLog";
 
 const ignoredDifferences = ["permissionOverwrites"];
 
@@ -35,4 +36,6 @@ export default async (oldChannel: Partial<GuildChannel>, newChannel: Partial<Gui
 
 		logChannel.send(embed);
 	}
+	// if(isPremium(guild))
+	writeToAuditLog(guild, "channel updated", {oldChannel, newChannel })
 };

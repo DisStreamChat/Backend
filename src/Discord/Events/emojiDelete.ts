@@ -1,5 +1,6 @@
 import { GuildEmoji, MessageEmbed, TextChannel } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
 export default async (emoji: GuildEmoji, client: DiscordClient) => {
@@ -24,4 +25,6 @@ export default async (emoji: GuildEmoji, client: DiscordClient) => {
 
 		logChannel.send(embed);
 	}
+	// if(isPremium(guild))
+	writeToAuditLog(guild, "channel deleted", { emoji });
 };

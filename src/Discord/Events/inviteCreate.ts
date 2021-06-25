@@ -1,7 +1,9 @@
-import { MessageEmbed } from "discord.js";
+import { Invite, MessageEmbed, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
-export default async (invite, client) => {
+export default async (invite: Invite, client: DiscordClient) => {
 	const guild = invite.guild;
 	if (!guild) return;
 
@@ -18,8 +20,10 @@ export default async (invite, client) => {
 	for (const channelId of channelIds) {
 		if (!channelId) return;
 
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
 	}
+	// if(isPremium(guild))
+	writeToAuditLog(guild, "invite created", {invite })
 };

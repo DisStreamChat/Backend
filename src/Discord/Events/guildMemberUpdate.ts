@@ -1,9 +1,11 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import deepEqual from "deep-equal";
+import { DiscordClient } from "../../clients/discord.client";
+import { writeToAuditLog } from "./utils/auditLog";
 
 const changeFuctions = {
-	nickname: (member, newName, oldName) => {
+	nickname: (member: GuildMember, newName: string, oldName: string) => {
 		return new MessageEmbed()
 			.setAuthor(member.user.tag, member.user.displayAvatarURL())
 			.setDescription(`:pencil: ${member} **nickname edited**`)
@@ -15,7 +17,7 @@ const changeFuctions = {
 	},
 };
 
-export default async (oldMember, newMember, client) => {
+export default async (oldMember: GuildMember, newMember: GuildMember, client: DiscordClient) => {
 	const guild = newMember.guild;
 
 	const changes = [];
@@ -36,16 +38,18 @@ export default async (oldMember, newMember, client) => {
 			const [channelIds, active] = await setupLogging(guild, "NicknameChange", client);
 			if (!active || !channelIds) continue;
 
+			const embed: MessageEmbed = changeFuctions[change](
+				newMember,
+				oldMember.nickname ?? oldMember.user.username,
+				newMember.nickname ?? newMember.user.username
+			);
 			for (const channelId of channelIds) {
-				const logChannel = guild.channels.resolve(channelId);
+				const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
-				const embed = changeFuctions[change](
-					newMember,
-					oldMember.nickname ?? oldMember.user.username,
-					newMember.nickname ?? newMember.user.username
-				);
 				logChannel.send(embed);
 			}
+			// if(isPremium(guild))
+			writeToAuditLog(guild, "member updated", { embed: embed.toJSON() });
 		}
 	}
 };

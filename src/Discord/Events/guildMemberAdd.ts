@@ -1,9 +1,11 @@
 import { formatFromNow } from "../../utils/functions";
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import welcomeMessage from "./misc/WelcomeMessage";
+import { writeToAuditLog } from "./utils/auditLog";
+import { DiscordClient } from "../../clients/discord.client";
 
-export default async (member, client) => {
+export default async (member: GuildMember, client: DiscordClient) => {
 	const guild = member.guild;
 	welcomeMessage(guild, member, client);
 	const [channelIds, active] = await setupLogging(guild, "MemberAdd", client);
@@ -20,8 +22,10 @@ export default async (member, client) => {
 
 	for (const channelId of channelIds) {
 		if (!channelId) return;
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
 	}
+	// if(isPremium(guild))
+	writeToAuditLog(guild, "member joined", { member });
 };
