@@ -13,6 +13,7 @@ export const writeToAuditLog = async (guild: Guild, type: string, details) => {
 					type,
 					details,
 					time: `${new Date().toDateString()} ${new Date().toLocaleTimeString()}`,
+					createdAt: new Date().getTime(),
 				})
 			)
 		);
