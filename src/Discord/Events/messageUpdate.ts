@@ -8,8 +8,10 @@ import { writeToAuditLog } from "./utils/auditLog";
 export default async (oldMessage: Message, newMessage: Message, client: DiscordClient) => {
 	const guild = newMessage.guild;
 	try {
-		await oldMessage.fetch(true);
-		await newMessage.fetch(true);
+		try {
+			oldMessage = await oldMessage.fetch(true);
+			newMessage = await newMessage.fetch(true);
+		} catch (err) {}
 		if (newMessage?.author?.bot) return;
 		if (oldMessage.content === newMessage.content) return;
 
