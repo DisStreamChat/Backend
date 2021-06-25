@@ -1,9 +1,9 @@
-import { Guild, GuildMember, MessageAttachment, TextChannel } from 'discord.js';
-import Mustache from 'mustache';
+import { Guild, GuildMember, MessageAttachment, TextChannel } from "discord.js";
+import Mustache from "mustache";
 
-import { DiscordClient } from '../../../clients/discord.client';
-import { generateWelcomeCard, getDiscordSettings, isPremium } from '../../../utils/functions';
-import generateView from '../../Commands/CustomCommands/GenerateView';
+import { DiscordClient } from "../../../clients/discord.client";
+import { generateWelcomeCard, getDiscordSettings, isPremium } from "../../../utils/functions";
+import generateView from "../../Commands/CustomCommands/GenerateView";
 
 Mustache.tags = ["{", "}"];
 
@@ -17,7 +17,7 @@ export default async (guild: Guild, member: GuildMember, client: DiscordClient) 
 	if (!channelId) return;
 	const welcomeChannel = guild.channels.resolve(channelId) as TextChannel;
 
-	if(!await isPremium(guild)) return welcomeChannel.send(message)
+	if (!(await isPremium(guild))) return welcomeChannel.send(message);
 	if (!data.welcomeMessage.welcomeImage) return welcomeChannel.send(message);
 
 	const welcomeImage = await generateWelcomeCard(guild, member, data.welcomeMessage.welcomeImageConfig || {});
