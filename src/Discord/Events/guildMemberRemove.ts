@@ -1,5 +1,6 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
 import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
@@ -23,6 +24,7 @@ export default async (member: GuildMember, client: DiscordClient) => {
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "member left", {member })
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "member left", { member });
+	}
 };

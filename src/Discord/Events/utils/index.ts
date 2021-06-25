@@ -1,9 +1,9 @@
 import { Guild, Message, MessageEmbed, TextChannel, User } from "discord.js";
 import { firestore } from "firebase-admin";
-import { compare } from "../../../utils/functions";
+import { compare, isPremium } from "../../../utils/functions";
 import { writeToAuditLog } from "./auditLog";
 
-export const logMessageDelete = (message: Message, channelIds: string[], executor: User, guild: Guild) => {
+export const logMessageDelete = async (message: Message, channelIds: string[], executor: User, guild: Guild) => {
 	try {
 		checkDeleteReactionMessage(guild.id, message);
 	} catch (err) {}
@@ -28,8 +28,9 @@ export const logMessageDelete = (message: Message, channelIds: string[], executo
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "message deleted", embed.toJSON());
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "message deleted", embed.toJSON());
+	}
 };
 
 export const checkDeleteReactionMessage = async (guildId, message) => {

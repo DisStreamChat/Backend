@@ -3,6 +3,7 @@ import { logUpdate } from "./utils";
 import { writeToAuditLog } from "./utils/auditLog";
 import { GuildEmoji, TextChannel } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
 
 export default async (oldEmoji: GuildEmoji, newEmoji: GuildEmoji, client: DiscordClient) => {
 	const guild = newEmoji.guild;
@@ -23,6 +24,7 @@ export default async (oldEmoji: GuildEmoji, newEmoji: GuildEmoji, client: Discor
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "channel created", { oldEmoji, newEmoji });
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "channel created", { oldEmoji, newEmoji });
+	}
 };

@@ -1,5 +1,6 @@
 import { Invite, MessageEmbed, TextChannel } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
 import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
@@ -24,6 +25,7 @@ export default async (invite: Invite, client: DiscordClient) => {
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "invite created", {invite })
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "invite created", { invite });
+	}
 };

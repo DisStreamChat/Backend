@@ -4,6 +4,7 @@ import setupLogging from "./utils/setupLogging";
 import { log } from "../../utils/functions/logging";
 import { DiscordClient } from "../../clients/discord.client";
 import { writeToAuditLog } from "./utils/auditLog";
+import { isPremium } from "../../utils/functions";
 
 export default async (oldMessage: Message, newMessage: Message, client: DiscordClient) => {
 	const guild = newMessage.guild;
@@ -40,8 +41,9 @@ export default async (oldMessage: Message, newMessage: Message, client: DiscordC
 
 			logChannel.send(embed);
 		}
-		// if(isPremium(guild))
-		writeToAuditLog(guild, "message edited", embed.toJSON());
+		if (await isPremium(guild)) {
+			writeToAuditLog(guild, "message edited", embed.toJSON());
+		}
 	} catch (err) {
 		log(err.message, { error: true });
 	}

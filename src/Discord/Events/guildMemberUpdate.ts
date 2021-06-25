@@ -3,6 +3,7 @@ import setupLogging from "./utils/setupLogging";
 import deepEqual from "deep-equal";
 import { DiscordClient } from "../../clients/discord.client";
 import { writeToAuditLog } from "./utils/auditLog";
+import { isPremium } from "../../utils/functions";
 
 const changeFuctions = {
 	nickname: (member: GuildMember, newName: string, oldName: string) => {
@@ -48,8 +49,9 @@ export default async (oldMember: GuildMember, newMember: GuildMember, client: Di
 
 				logChannel.send(embed);
 			}
-			// if(isPremium(guild))
-			writeToAuditLog(guild, "member updated", { embed: embed.toJSON() });
+			if (await isPremium(guild)) {
+				writeToAuditLog(guild, "member updated", { embed: embed.toJSON() });
+			}
 		}
 	}
 };

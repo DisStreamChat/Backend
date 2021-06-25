@@ -1,4 +1,5 @@
-import { GuildMember, Message } from "discord.js";
+import { Guild, GuildMember, Message } from "discord.js";
+import { firestore } from "firebase-admin";
 
 export const resolveUser = async (msg: Message, username: string) => {
 	if (!username?.length) return null;
@@ -40,3 +41,7 @@ export const resolveRole = (msg: Message, role: string) => {
 };
 
 export const getRoleIds = (user: GuildMember) => user.roles.cache.array().map(role => role.id);
+
+export const isPremium = async (guild: Guild) => {
+	return (await firestore().collection("premiumServers").doc(guild.id).get()).exists;
+};

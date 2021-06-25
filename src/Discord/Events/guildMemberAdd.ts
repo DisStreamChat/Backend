@@ -1,4 +1,4 @@
-import { formatFromNow } from "../../utils/functions";
+import { formatFromNow, isPremium } from "../../utils/functions";
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import welcomeMessage from "./misc/WelcomeMessage";
@@ -26,6 +26,7 @@ export default async (member: GuildMember, client: DiscordClient) => {
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "member joined", { member });
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "member joined", { member });
+	}
 };

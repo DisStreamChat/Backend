@@ -3,6 +3,7 @@ import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
 import { log } from "../../utils/functions/logging";
 import { writeToAuditLog } from "./utils/auditLog";
+import { isPremium } from "../../utils/functions";
 
 export default async (oldUser, newUser, DiscordClient) => {
 	const serversToLog = await firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
@@ -45,8 +46,9 @@ export default async (oldUser, newUser, DiscordClient) => {
 
 				await logChannel.send(changeEmbed);
 			}
-			// if(isPremium(guild))
-			writeToAuditLog(guild, "user updated", changeEmbed.toJSON());
+			if (await isPremium(guild)) {
+				writeToAuditLog(guild, "user updated", changeEmbed.toJSON());
+			}
 		} catch (err) {
 			log(err.message, { error: true });
 		}

@@ -9,7 +9,7 @@ import { Platform } from "../../models/platform.enum";
 import { Object } from "../../models/shared.model";
 import { getUserInfo } from "../../utils/DiscordClasses";
 import { config } from "../../utils/env";
-import { generateRankCard } from "../../utils/functions";
+import { generateRankCard, isPremium } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
 import { discordClient, DiscordOauthClient } from "../../utils/initClients";
@@ -138,14 +138,15 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		let embed: MessageEmbed;
-		// if(isPremium(guild)){
-		if (embedData) {
-			embed = new MessageEmbed(embedData);
+		if (await isPremium(guild)) {
+			if (embedData) {
+				embed = new MessageEmbed(embedData);
+			} else {
+				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			}
 		} else {
 			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		}
-		// }
-		// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
@@ -169,14 +170,15 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		let embed: MessageEmbed;
-		// if(isPremium(guild)){
-		if (embedData) {
-			embed = new MessageEmbed(embedData);
+		if (await isPremium(guild)) {
+			if (embedData) {
+				embed = new MessageEmbed(embedData);
+			} else {
+				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			}
 		} else {
-			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		}
-		// }
-		// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const messageToEdit = await channelObj.messages.fetch(messageId);
 		const edited = await messageToEdit.edit(embed);
 		res.json({ code: 200, message: "success", messageId: edited.id });

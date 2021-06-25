@@ -1,6 +1,6 @@
 import { Guild, MessageEmbed, TextChannel, User } from "discord.js";
 import { DiscordClient } from "../../clients/discord.client";
-import { sleep } from "../../utils/functions";
+import { isPremium, sleep } from "../../utils/functions";
 import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
@@ -33,6 +33,7 @@ export default async (guild: Guild, user: User, client: DiscordClient) => {
 
 		logChannel.send(embed);
 	}
-	// if(isPremium(guild))
-	writeToAuditLog(guild, "user unbanned", { user, executor });
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "user unbanned", { user, executor });
+	}
 };
