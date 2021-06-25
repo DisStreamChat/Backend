@@ -7,6 +7,7 @@ import { sockets } from "./Sockets";
 import { discordClient, twitchClient, customBots } from "./utils/initClients";
 import { initializeApp, credential, firestore } from "firebase-admin";
 import { io, server, app } from "./app";
+import { config } from "./utils/env";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
@@ -14,7 +15,7 @@ import { io, server, app } from "./app";
 
 try {
 	// get the serviceAccount details from the base64 string stored in environment variables
-	const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
+	const serviceAccount = JSON.parse(Buffer.from(config.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
 	initializeApp({
 		credential: credential.cert(serviceAccount),
@@ -35,7 +36,7 @@ TwitchEvents(twitchClient, io, app);
 
 // see ./DiscordEvents.js
 DiscordEvents(discordClient, io);
-if (process.env.BOT_DEV != "true") {
+if (!config.BOT_DEV) {
 	customBots.then(bots => {
 		for (const bot of bots.values()) {
 			DiscordEvents(bot, io);
@@ -46,7 +47,7 @@ if (process.env.BOT_DEV != "true") {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SOCKET CONNECTION HANDLING
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-log(`Bot Dev: ${process.env.BOT_DEV}`, { writeToConsole: true });
+log(`Bot Dev: ${config.BOT_DEV}`, { writeToConsole: true });
 sockets(io);
 
 app.use((req, res) => {
@@ -56,7 +57,7 @@ app.use((req, res) => {
 	});
 });
 
-const port = process.env.PORT || 3200;
+const port = config.PORT || 3200;
 
 server.listen(port, () => {
 	log(`listening on port ${port}`, { writeToConsole: true });

@@ -6,6 +6,7 @@ import { Platform } from '../models/platform.enum';
 import { Object } from '../models/shared.model';
 import { cleanRegex } from '../utils/functions';
 import { getBttvEmotes, getFfzEmotes } from '../utils/functions/TwitchFunctions';
+import { config } from './env';
 import { log } from './functions/logging';
 
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
@@ -13,7 +14,7 @@ const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
 export const getAllEmotes = async () => {
-	if (process.env.BOT_DEV == "true") return;
+	if (config.BOT_DEV) return;
 	const streamersRef = await firestore().collection("Streamers").get();
 	const streamers = streamersRef.docs.map(doc => doc.data());
 	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);

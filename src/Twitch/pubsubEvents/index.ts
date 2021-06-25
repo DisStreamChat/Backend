@@ -15,6 +15,7 @@ import { refreshTwitchToken } from "../../utils/functions/auth";
 import { customBots } from "../../utils/initClients";
 import { log } from "../../utils/functions/logging";
 import { Platform } from "../../models/platform.enum";
+import { config } from "../../utils/env";
 
 const commands = commandFiles.reduce(
 	(acc, cur) => ({
@@ -26,7 +27,7 @@ const commands = commandFiles.reduce(
 
 // TODO: refactor so it doesn't fire on follow
 const pubSub = async io => {
-	if (process.env.BOT_DEV == "true") return;
+	if (config.BOT_DEV) return;
 
 	let pubsubbedChannels = [];
 

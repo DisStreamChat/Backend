@@ -3,6 +3,7 @@ import { TwitchApiClient as Api } from "../initClients";
 import fetch from "fetchio-js";
 import { log } from "./logging";
 import { cloneDeep } from "lodash";
+import { config } from "../env";
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
@@ -65,7 +66,7 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 		"hub.mode": "subscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": config.WEBHOOK_SECRET,
 	};
 	try {
 		const response = await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
@@ -92,7 +93,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 		"hub.mode": "unsubscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": config.WEBHOOK_SECRET,
 	};
 	try {
 		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {

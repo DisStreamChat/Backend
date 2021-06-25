@@ -8,6 +8,7 @@ import { validateRequest } from "../../middleware";
 import { Platform } from "../../models/platform.enum";
 import { Object } from "../../models/shared.model";
 import { getUserInfo } from "../../utils/DiscordClasses";
+import { config } from "../../utils/env";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
@@ -83,15 +84,15 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
-	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+	const redirect_uri = req.query["redirect_uri"] || config.REDIRECT_URI;
 	try {
 		const { token } = req.query;
 		const tokenData = await DiscordOauthClient.tokenRequest({
 			refreshToken: token as string,
 			scope: "identify guilds",
 			grantType: "refresh_token",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: config.DISCORD_CLIENT_ID,
+			clientSecret: config.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
@@ -186,7 +187,7 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/token", async (req, res, next) => {
 	try {
-		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+		const redirect_uri = req.query["redirect_uri"] || config.REDIRECT_URI;
 		log(`redirect uri: ${redirect_uri}/?discord=true`);
 		const { code } = req.query as Object<string>;
 		if (!code) {
@@ -199,8 +200,8 @@ router.get("/token", async (req, res, next) => {
 			code: code,
 			scope: "identify guilds",
 			grantType: "authorization_code" as "refresh_token" | "authorization_code",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: config.DISCORD_CLIENT_ID,
+			clientSecret: config.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
 		const tokenData = await DiscordOauthClient.tokenRequest(body);

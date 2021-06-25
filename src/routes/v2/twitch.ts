@@ -12,6 +12,7 @@ import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
 import { Platform } from "../../models/platform.enum";
 import { Object } from "../../models/shared.model";
+import { config } from "../../utils/env";
 const router = express.Router();
 const sevenDays = 604800000;
 
@@ -22,10 +23,10 @@ const followChannel = async (user, channel, method) => {
 	try {
 		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 		const refreshData = await Api.fetch(
-			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${config.DSC_API_KEY}`
 		);
 		const userApi = new TwitchApi({
-			clientId: process.env.TWITCH_CLIENT_ID,
+			clientId: config.TWITCH_CLIENT_ID,
 			authorizationKey: refreshData.access_token,
 			kraken: true,
 		});
@@ -109,7 +110,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 				.get()
 		).data();
 		const refreshData = await Api.fetch(
-			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${config.DSC_API_KEY}`
 		);
 		const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
 			body: JSON.stringify({ msg_id: req.query.msg_id }),
@@ -117,7 +118,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/vnd.twitchtv.v5+json",
-				"Client-ID": process.env.TWITCH_CLIENT_ID,
+				"Client-ID": config.TWITCH_CLIENT_ID,
 				Authorization: `OAuth ${refreshData?.access_token}`,
 			},
 		});
@@ -150,14 +151,14 @@ router.get("/emotes", async (req, res) => {
 	const userTwitchDataRef = userDataRef.collection("twitch").doc("data");
 	const userTwitchData = (await userTwitchDataRef.get()).data();
 	const refreshToken = userTwitchData?.refresh_token;
-	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`);
+	const response = await fetch(`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${config.DSC_API_KEY}`);
 	const scopes = response.scope;
 	if (!scopes || !scopes.includes("user_subscriptions")) {
 		return res.status(401).json({ message: "missing scopes", code: 401 });
 	}
 	const apiUrl = `https://api.twitch.tv/kraken/users/${id}/emotes`;
 	const userApi = new TwitchApi({
-		clientId: process.env.TWITCH_CLIENT_ID,
+		clientId: config.TWITCH_CLIENT_ID,
 		authorizationKey: response.access_token,
 		kraken: true,
 	});
@@ -273,7 +274,7 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 router.get("/token", async (req, res, next) => {
 	try {
 		const { code } = req.query;
-		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${process.env.TWITCH_APP_CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${process.env.REDIRECT_URI}`;
+		const apiURL = `https://id.twitch.tv/oauth2/token?client_id=${config.TWITCH_APP_CLIENT_ID}&client_secret=${config.CLIENT_SECRET}&code=${code}&grant_type=authorization_code&redirect_uri=${config.REDIRECT_URI}`;
 		const response = await fetch(apiURL, {
 			method: "POST",
 		});
