@@ -1,7 +1,11 @@
 import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
+import { writeToAuditLog } from "./utils/auditLog";
+import { GuildEmoji, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
 
-export default async (oldEmoji, newEmoji, client) => {
+export default async (oldEmoji: GuildEmoji, newEmoji: GuildEmoji, client: DiscordClient) => {
 	const guild = newEmoji.guild;
 
 	const [channelIds, active] = await setupLogging(guild, "emojiUpdate", client);
@@ -16,8 +20,11 @@ export default async (oldEmoji, newEmoji, client) => {
 	for (const channelId of channelIds) {
 		if (!channelId) return;
 
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "channel created", { oldEmoji, newEmoji });
 	}
 };

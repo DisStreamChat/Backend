@@ -1,15 +1,23 @@
 import setupLogging from "./utils/setupLogging";
 import { logMessageDelete } from "./utils";
 import { firestore } from "firebase-admin";
+import { sleep } from "../../utils/functions";
+import { Message } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
 
-export default async (message, DiscordClient) => {
-	await new Promise(res => setTimeout(res, 500));
+export default async (message: Message, client: DiscordClient) => {
+	await sleep(2000);
+	try {
+		message = await message.fetch(true);
+	} catch (err) {
+		
+	}
 	const guild = message.guild;
 
 	// get the deleter from the guilds audit log
 	const auditLog = await guild.fetchAuditLogs();
 
-	const deleteAction = await auditLog.entries.first();
+	const deleteAction = auditLog.entries.first();
 
 	let executor = deleteAction.executor;
 
@@ -17,7 +25,7 @@ export default async (message, DiscordClient) => {
 		executor = message.author;
 	}
 
-	const [channelIds, active] = await setupLogging(guild, "messageDelete", DiscordClient);
+	const [channelIds, active] = await setupLogging(guild, "messageDelete", client);
 
 	const serverRef = await firestore().collection("loggingChannel").doc(guild.id).get();
 	const serverData = serverRef.data();

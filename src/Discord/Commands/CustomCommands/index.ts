@@ -1,10 +1,11 @@
+import { Message, MessageEmbed } from "discord.js";
 // the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
-import path from "path";
-import fs from "fs";
-import { ArrayAny } from "../../../utils/functions";
 import Mustache from "mustache";
 import prettyMilliseconds from "pretty-ms";
+
+import { DiscordClient } from "../../../clients/discord.client";
+import { ArrayAny, isPremium } from "../../../utils/functions";
 import GenerateView from "./GenerateView";
 import handleRoleCommand from "./handleRoleCommand";
 
@@ -17,7 +18,18 @@ export const replaceFunc = text => text.replace(funcRegex, (match, p1, p2, offse
 
 export const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, offset, string) => "" + args[+p1 - 1]);
 
-export default async ({ command, args, message, client }) => {
+const processMustacheText = (text: string, args: string[]): string => {
+	return replaceFunc(replaceArgs(text, args));
+};
+
+interface CustomCommandInputs {
+	command: any;
+	args: string[];
+	message: Message;
+	client: DiscordClient;
+}
+
+export default async ({ command, args, message, client }: CustomCommandInputs) => {
 	const view = GenerateView({ message, args });
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(message.guild.id).get();
@@ -27,7 +39,6 @@ export default async ({ command, args, message, client }) => {
 	if (guildData) {
 		for (const [key, value] of Object.entries({ ...guildData, ...roleCommands } as { [key: string]: any })) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
-				// check if this command is still cooling down
 				if (value.allowedChannels?.length) {
 					if (!value.allowedChannels.includes(message.channel.id)) return;
 				}
@@ -68,21 +79,26 @@ export default async ({ command, args, message, client }) => {
 					}
 				}
 
-				// execute text and role commands differently
-				if (!value.type || value.type === "text") {
-					let text = replaceArgs(value.message, args);
-					text = replaceFunc(text);
+				if (!value.type) value.type = "text";
+				if (value.type === "text") {
+					let text = processMustacheText(value.message, args);
 					await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
+				} else if (value.type === "embed") {
+					if (!(await isPremium(message.guild))) return;
+					let text = processMustacheText(value.embedData.description, args);
+					const description = Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
+					const embed = new MessageEmbed({ ...value.embedData, description });
+					await message.channel.send(embed);
 				} else {
 					await handleRoleCommand(value, message, client);
 				}
 
-				// update the commands last time used
 				await admin
 					.firestore()
 					.collection("customCommands")
 					.doc(message.guild.id)
 					.update({ [`${key}.lastUsed`]: message.createdAt.getTime() });
+				return;
 			}
 		}
 	} else {

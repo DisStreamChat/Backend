@@ -1,7 +1,10 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
-export default async (member, client) => {
+export default async (member: GuildMember, client: DiscordClient) => {
 	const guild = member.guild;
 
 	const [channelIds, active] = await setupLogging(guild, "MemberRemove", client);
@@ -17,8 +20,11 @@ export default async (member, client) => {
 
 	for (const channelId of channelIds) {
 		if (!channelId) return;
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "member left", { member });
 	}
 };

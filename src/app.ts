@@ -8,6 +8,7 @@ import crypto from "crypto";
 
 import root from "./routes/index";
 import v2 from "./routes/v2";
+import { config } from "./utils/env";
 
 export const app = express();
 export const server = new http.Server(app);
@@ -39,7 +40,7 @@ app.use(
 				var xHub = req.headers["x-hub-signature"].split("=");
 
 				// eslint-disable-next-line camelcase
-				req.twitch_hex = crypto.createHmac(xHub[0], process.env.WEBHOOK_SECRET).update(buf).digest("hex");
+				req.twitch_hex = crypto.createHmac(xHub[0], config.WEBHOOK_SECRET).update(buf).digest("hex");
 				// eslint-disable-next-line camelcase
 				req.twitch_signature = xHub[1];
 			}

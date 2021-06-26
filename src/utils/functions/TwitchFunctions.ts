@@ -2,11 +2,20 @@ import { firestore } from "firebase-admin";
 import { TwitchApiClient as Api } from "../initClients";
 import fetch from "fetchio-js";
 import { log } from "./logging";
+import { cloneDeep } from "lodash";
+import { config } from "../env";
 
 export async function getBttvEmotes(channelName) {
 	const bttvEmotes = {};
 	let bttvRegex;
 	let emotes = await fetch("https://api.betterttv.net/3/cached/emotes/global");
+	if (!Array.isArray(emotes)) {
+		let copy = cloneDeep(emotes);
+		emotes = [];
+		for (const value of Object.values(copy)) {
+			emotes.push(value);
+		}
+	}
 	const channelInfo = await Api.getUserInfo(channelName);
 	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
 	const { channelEmotes, sharedEmotes } = bttvChannelResponse;
@@ -18,6 +27,7 @@ export async function getBttvEmotes(channelName) {
 	}
 	let regexStr = "";
 	emotes.forEach(({ code, id }, i) => {
+		if (!code) return;
 		bttvEmotes[code] = id;
 		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
 	});
@@ -33,8 +43,8 @@ export async function getFfzEmotes(channelName) {
 	const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
 	// replace with your channel url
 	const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
-	const { sets } = await ffzResponse.json();
-	const { room, sets: channelSets } = await ffzChannelResponse.json();
+	const { sets } = ffzResponse;
+	const { room, sets: channelSets } = ffzChannelResponse;
 	let regexStr = "";
 	const appendEmotes = ({ name, urls }, i, emotes) => {
 		ffzEmotes[name] = `https:${Object.values(urls).pop()}`;
@@ -56,7 +66,7 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 		"hub.mode": "subscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": config.WEBHOOK_SECRET,
 	};
 	try {
 		const response = await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
@@ -83,7 +93,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 		"hub.mode": "unsubscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": config.WEBHOOK_SECRET,
 	};
 	try {
 		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
@@ -138,6 +148,6 @@ export const initWebhooks = async () => {
 			setInterval(updateConnections, tenDays);
 		}, timeUntilNextConnection);
 	} catch (err) {
-		log(err);
+		log(err, {error: true, writeToConsole: true});
 	}
 };

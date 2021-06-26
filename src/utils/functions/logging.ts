@@ -13,7 +13,7 @@ export interface logOptions {
 }
 
 export const log = async (loggingString: any, { file, writeToConsole, error, DM }: logOptions = {}) => {
-	if (error) loggingString = loggingString.message || loggingString;
+	if (error) loggingString = loggingString?.message || loggingString;
 	const loggingFilePath = join(loggingPath, file || `${new Date().toLocaleDateString().replace(/\//g, "-")}.log`);
 	if (!fs.existsSync(loggingPath)) {
 		console.log("creating directory");

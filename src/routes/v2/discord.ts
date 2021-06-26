@@ -8,7 +8,8 @@ import { validateRequest } from "../../middleware";
 import { Platform } from "../../models/platform.enum";
 import { Object } from "../../models/shared.model";
 import { getUserInfo } from "../../utils/DiscordClasses";
-import { generateRankCard } from "../../utils/functions";
+import { config } from "../../utils/env";
+import { generateRankCard, isPremium } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
 import { discordClient, DiscordOauthClient } from "../../utils/initClients";
@@ -83,15 +84,15 @@ router.get("/resolveuser", async (req, res, next) => {
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
-	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+	const redirect_uri = req.query["redirect_uri"] || config.REDIRECT_URI;
 	try {
 		const { token } = req.query;
 		const tokenData = await DiscordOauthClient.tokenRequest({
 			refreshToken: token as string,
 			scope: "identify guilds",
 			grantType: "refresh_token",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: config.DISCORD_CLIENT_ID,
+			clientSecret: config.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
@@ -133,10 +134,19 @@ router.get("/rankcard", async (req, res, next) => {
 
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, reactions, server } = req.body;
-		const guild = await discordClient.guilds.cache.get(server);
+		const { channel, message, reactions, server, embedData } = req.body;
+		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
-		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		let embed: MessageEmbed;
+		if (await isPremium(guild)) {
+			if (embedData) {
+				embed = new MessageEmbed(embedData);
+			} else {
+				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			}
+		} else {
+			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		}
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
@@ -156,10 +166,19 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, server, messageId } = req.body;
-		const guild = await discordClient.guilds.cache.get(server);
+		const { channel, message, server, messageId, embedData } = req.body;
+		const guild = discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
-		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		let embed: MessageEmbed;
+		if (await isPremium(guild)) {
+			if (embedData) {
+				embed = new MessageEmbed(embedData);
+			} else {
+				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			}
+		} else {
+			// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+		}
 		const messageToEdit = await channelObj.messages.fetch(messageId);
 		const edited = await messageToEdit.edit(embed);
 		res.json({ code: 200, message: "success", messageId: edited.id });
@@ -170,7 +189,7 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/token", async (req, res, next) => {
 	try {
-		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+		const redirect_uri = req.query["redirect_uri"] || config.REDIRECT_URI;
 		log(`redirect uri: ${redirect_uri}/?discord=true`);
 		const { code } = req.query as Object<string>;
 		if (!code) {
@@ -183,8 +202,8 @@ router.get("/token", async (req, res, next) => {
 			code: code,
 			scope: "identify guilds",
 			grantType: "authorization_code" as "refresh_token" | "authorization_code",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: config.DISCORD_CLIENT_ID,
+			clientSecret: config.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
 		const tokenData = await DiscordOauthClient.tokenRequest(body);

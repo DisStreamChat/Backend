@@ -6,7 +6,7 @@ import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation
 
 Mustache.tags = ["{", "}"];
 
-import { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } from "../utils/functions";
+import { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling, isPremium } from "../utils/functions";
 import { log } from "../utils/functions/logging";
 
 const generateView = (message, levelingData) => {
@@ -73,7 +73,7 @@ export const handleLeveling = async (message, client) => {
 
 					try {
 						const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
-						if (levelingSettings?.general?.sendEmbed) {
+						if (levelingSettings?.general?.sendEmbed && (await isPremium(message.guild))) {
 							const levelEmbed = new MessageEmbed()
 								.setAuthor(client.user.username, client.user.displayAvatarURL())
 								.setTitle("🎉 Level up!")

@@ -1,5 +1,6 @@
 import { getXp } from "./levelingFunctions";
 import svg2img from "svg2img";
+import { Guild, GuildMember } from "discord.js";
 
 const bufferifySVG = (svg: string, opts?: any): Promise<Buffer> => {
 	return new Promise((res, rej) =>
@@ -79,7 +80,7 @@ export const generateRankCard = async (userData, user, buffer = true) => {
 				width="180"
 				height="180"
 				clip-path="url(#clipCircle)"
-				xlink:href="${profileUrl}"
+				href="${profileUrl}"
 			></image>
 
 			<image x="155" y="155" width="60" height="60" xlink:href="${statuses["online"]}"></image>
@@ -163,7 +164,6 @@ export const generateRankCard = async (userData, user, buffer = true) => {
 					: ""
 			}
 		</svg>
-	
 	`;
 
 	if (!buffer) return svgString;
@@ -171,6 +171,108 @@ export const generateRankCard = async (userData, user, buffer = true) => {
 	return svgBuffer;
 };
 
+interface CustomizationDataModel {
+	backgroundImage?: string;
+	backgroundColor?: string;
+	borderColor?: string;
+	bottomTextColor?: string;
+}
+
+export const generateWelcomeCard = async (guild: Guild, member: GuildMember, customizationData: CustomizationDataModel) => {
+	const backgroundColor = customizationData.backgroundColor || "#4b7bec";
+	const avatarBackground = customizationData.borderColor || "#20bf6b"
+	const svgString = `
+	<svg
+		version="1.1"
+		xmlns="http://www.w3.org/2000/svg"
+		xmlns:xlink="http://www.w3.org/1999/xlink"
+		width="700px"
+		height="400px"
+	>
+	<defs>
+				<pattern id="bgImage" patternUnits="userSpaceOnUse" width="700" height="400">
+						<image href="${customizationData.backgroundImage}" x="0" y="0" width="700" height="400" />
+				</pattern>
+				<style>
+					@import(https://api.disstreamchat.com/fonts);
+				</style>
+				</defs>
+	<rect
+			id="rect"
+			width="100%"
+			height="100%"
+			rx="25px"
+			ry="25px"
+			style="fill: ${backgroundColor}"
+		></rect>
+	<rect
+			id="rect"
+			width="100%"
+			height="100%"
+			rx="25px"
+			ry="25px"
+			style="fill: ${customizationData.backgroundImage ? "url(#bgImage)" : backgroundColor}"
+		>
+		</rect>
+		<circle r="90" cx="50%" cy="35%" style="fill: ${avatarBackground}"></circle>
+		<clipPath id="clipCircle">
+				<circle r="83" cx="50%" cy="35%"></circle>
+		</clipPath>
+		<image
+			x="260"
+			y="50"
+			width="180"
+			height="180"
+			clip-path="url(#clipCircle)"
+			href="${member.user.displayAvatarURL({ format: "png" })}"
+		></image>
+		<text
+				dominant-baseline="middle" text-anchor="middle"		
+				x="50%"
+				y="272"
+				font-family="sans-serif"
+				font-size="48"
+				font-weight="800"
+				text-align="center"
+			>
+				<tspan fill="white">
+					WELCOME
+				</tspan>
+			</text>
+		<text
+				dominant-baseline="middle" text-anchor="middle"		
+				x="50%"
+				y="315"
+				font-family="sans-serif"
+				font-size="48"
+				font-weight="800"
+				text-align="center"
+			>
+				<tspan fill="white">
+					${member.user.tag.toUpperCase()}
+				</tspan>
+			</text>
+		<text
+				dominant-baseline="middle" text-anchor="middle"		
+				x="50%"
+				y="355"
+				font-family="sans-serif"
+				font-size="24"
+				font-weight="800"
+				text-align="center"
+			>
+				<tspan fill="white">
+					YOU ARE OUR ${guild.members.cache.size}TH MEMBER!
+				</tspan>
+			</text>
+</svg>
+	`;
+
+	const svgBuffer = await bufferifySVG(svgString);
+	return svgBuffer;
+};
+
 export default {
 	generateRankCard,
+	generateWelcomeCard,
 };

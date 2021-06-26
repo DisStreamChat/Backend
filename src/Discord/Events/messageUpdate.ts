@@ -1,13 +1,18 @@
 import { firestore } from "firebase-admin";
-import { MessageEmbed } from "discord.js";
+import { Message, MessageEmbed, TextChannel } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import { log } from "../../utils/functions/logging";
+import { DiscordClient } from "../../clients/discord.client";
+import { writeToAuditLog } from "./utils/auditLog";
+import { isPremium } from "../../utils/functions";
 
-export default async (oldMessage, newMessage, client) => {
+export default async (oldMessage: Message, newMessage: Message, client: DiscordClient) => {
 	const guild = newMessage.guild;
 	try {
-		await oldMessage.fetch(true);
-		await newMessage.fetch(true);
+		try {
+			oldMessage = await oldMessage.fetch(true);
+			newMessage = await newMessage.fetch(true);
+		} catch (err) {}
 		if (newMessage?.author?.bot) return;
 		if (oldMessage.content === newMessage.content) return;
 
@@ -32,9 +37,12 @@ export default async (oldMessage, newMessage, client) => {
 			.setTimestamp(new Date());
 
 		for (const channelId of channelIds) {
-			const logChannel = guild.channels.resolve(channelId);
+			const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 			logChannel.send(embed);
+		}
+		if (await isPremium(guild)) {
+			writeToAuditLog(guild, "message edited", embed.toJSON());
 		}
 	} catch (err) {
 		log(err.message, { error: true });

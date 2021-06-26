@@ -8,10 +8,10 @@
 // 	try {
 // 		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
 // 		const refreshData = await Api.fetch(
-// 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
+// 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${config.DSC_API_KEY}`
 // 		);
 // 		const userApi = new TwitchApi({
-// 			clientId: process.env.TWITCH_CLIENT_ID,
+// 			clientId: config.TWITCH_CLIENT_ID,
 // 			authorizationKey: refreshData.access_token,
 // 			kraken: true,
 // 		});

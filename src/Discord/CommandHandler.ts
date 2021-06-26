@@ -1,7 +1,5 @@
 import path from "path";
 import fs from "fs";
-import customCommandHandler from "./Commands/CustomCommands";
-import { Command } from "../utils/classes";
 import { getDiscordSettings, walkSync } from "../utils/functions";
 import { DiscordClient } from "../clients/discord.client";
 
@@ -11,6 +9,9 @@ const commandPath = path.join(__dirname, "Commands");
 
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath).filter(commandFilter);
 const commands = {};
+import customCommandHandler from "./Commands/CustomCommands";
+import { Command } from "../utils/classes";
+import { config } from "../utils/env";
 
 commandFiles.forEach(async command => {
 	let { default: commandObj } = require(command.path);
@@ -34,7 +35,7 @@ export default async (message, client: DiscordClient) => {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		prefix = settings?.prefix || "!";
 	} catch (err) {}
-	if (process.env.BOT_DEV == "true") prefix = ".";
+	if (config.BOT_DEV) prefix = "?";
 	client.prefix = prefix;
 	const isMention = message?.mentions?.users?.has(client.user.id);
 	let isCommand = message.content.startsWith(prefix) || isMention;

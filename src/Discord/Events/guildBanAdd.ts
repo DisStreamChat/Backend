@@ -1,31 +1,39 @@
-import { MessageEmbed } from "discord.js";
-import { sleep } from "../../utils/functions";
+import { Guild, MessageEmbed, TextChannel, User } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
+import { isPremium, sleep } from "../../utils/functions";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
-export default async (guild, user, client) => {
-	await sleep(1000);
+export default async (guild: Guild, user: User, client: DiscordClient) => {
+	await sleep(2000);
 	const auditLog = await guild.fetchAuditLogs();
 
-	const deleteAction = await auditLog.entries.first();
+	const banAction = auditLog.entries.first();
 
-	const executor = deleteAction.executor;
+	let executor: User = null;
+	if (banAction.action === "MEMBER_BAN_ADD") {
+		executor = banAction.executor;
+	}
 
 	const [channelIds, active] = await setupLogging(guild, "MemberBanned", client);
 	if (!active) return;
 
 	const embed = new MessageEmbed()
-		.setAuthor(executor.tag, executor.avatarURL())
+		.setAuthor(executor?.tag, executor?.avatarURL())
 		.setThumbnail(user.displayAvatarURL())
 		.setTitle("Member Banned")
-		.setDescription(`:outbox_tray: ${user} **Was Banned** by ${executor}`)
+		.setDescription(`:outbox_tray: ${user} **Was Banned** by ${executor || "unknown"}`)
 		.setFooter(`ID: ${user.id}`)
 		.setTimestamp(new Date())
 		.setColor("#ee1111");
 
 	for (const channelId of channelIds) {
 		if (!channelId) return;
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "user banned", { user, executor });
 	}
 };

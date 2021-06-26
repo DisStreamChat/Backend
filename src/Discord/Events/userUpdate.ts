@@ -2,6 +2,8 @@ import { firestore } from "firebase-admin";
 import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
 import { log } from "../../utils/functions/logging";
+import { writeToAuditLog } from "./utils/auditLog";
+import { isPremium } from "../../utils/functions";
 
 export default async (oldUser, newUser, DiscordClient) => {
 	const serversToLog = await firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
@@ -9,7 +11,7 @@ export default async (oldUser, newUser, DiscordClient) => {
 	const guilds = await Promise.all(
 		serversData.map(async doc => await DiscordClient.guilds.fetch(doc.id)).map(promise => promise.catch(log))
 	);
-	const channelsInfo = (
+	const guildsInfo = (
 		await Promise.all(
 			serversData.map(async doc => ({ id: doc.id, info: await setupLogging({ id: doc.id }, "userUpdate", DiscordClient) }))
 		)
@@ -35,14 +37,17 @@ export default async (oldUser, newUser, DiscordClient) => {
 		.setDescription(`${newUser} **has updated their profile**`)
 		.setAuthor(newUser.tag, oldUser.displayAvatarURL())
 		.setThumbnail(newUser.displayAvatarURL());
-	for (const channel of channelsInfo) {
+	for (const guildInfo of guildsInfo) {
 		try {
-			const channelIds = channel.info[0];
-			const guild = await DiscordClient.guilds.fetch(channel.id);
+			const channelIds = guildInfo.info[0];
+			const guild = await DiscordClient.guilds.fetch(guildInfo.id);
 			for (const channelId of channelIds) {
 				const logChannel = guild.channels.resolve(channelId);
 
 				await logChannel.send(changeEmbed);
+			}
+			if (await isPremium(guild)) {
+				writeToAuditLog(guild, "user updated", changeEmbed.toJSON());
 			}
 		} catch (err) {
 			log(err.message, { error: true });

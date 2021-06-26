@@ -13,6 +13,7 @@ export interface BaseMessageModel {
 	sentAt: number;
 	userColor: string;
 	type: string;
+	channel: string;
 }
 
 export interface DiscordMessageModel extends BaseMessageModel {
