@@ -3,67 +3,72 @@ import tmi from "tmi.js";
 import { initializeApp, credential, firestore } from "firebase-admin";
 import TwitchApi from "twitchio-js";
 import DiscordOauth2 from "discord-oauth2";
-import { cycleBotStatus, formatFromNow, resolveUser } from "../utils/functions";
+import { cycleBotStatus, isPremium } from "../utils/functions";
 import { log } from "./functions/logging";
 import { TwitchClient } from "../clients/twitch.client";
 import { DiscordClient } from "../clients/discord.client";
-import DiscordButtons from "discord-buttons";
+import { config } from "./env";
+// import { AutoPoster } from "topgg-autoposter";
 
-// get the serviceAccount details from the base64 string stored in environment variables
-const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
+try {
+	const serviceAccount = JSON.parse(Buffer.from(config.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
 
-initializeApp({
-	credential: credential.cert(serviceAccount),
-});
+	initializeApp({
+		credential: credential.cert(serviceAccount),
+	});
+	firestore().settings({ ignoreUndefinedProperties: true });
+} catch (err) {}
 
 export const discordClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
-DiscordButtons(discordClient);
-discordClient.login(process.env.BOT_TOKEN);
+discordClient.login(config.PREMIUM_BOT ? config.PREMIUM_BOT_TOKEN : config.BOT_TOKEN);
 
-// import DBL "dblapi.js";
-// const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
+// const ap = AutoPoster(config.TOP_GG_TOKEN, discordClient);
 
-discordClient.on("ready", async () => {
-	log("bot ready", { writeToConsole: true });
-	discordClient.slashCommandHandler();
-	cycleBotStatus(
-		discordClient,
-		[
-			{
-				status: "online",
-				activity: (client: Client) => ({
-					type: "WATCHING",
-					name: `🔴 Live Chat in ${client.guilds.cache.array().length} servers`,
-				}),
-			},
-			{
-				status: "online",
-				activity: (client: Client) => ({ type: "WATCHING", name: `@${client.user.username} help` }),
-			},
-		],
-		30000
-	);
-});
+// ap.on("posted", () => {
+// 	console.log("Posted stats to Top.gg!")
+// });
+
+if (!config.PREMIUM_BOT) {
+	discordClient.on("ready", async () => {
+		log("bot ready", { writeToConsole: true });
+		cycleBotStatus(
+			discordClient,
+			[
+				{
+					status: "online",
+					activity: (client: Client) => ({
+						type: "WATCHING",
+						name: `🔴 Live Chat in ${client.guilds.cache.array().length} servers`,
+					}),
+				},
+				{
+					status: "online",
+					activity: (client: Client) => ({ type: "WATCHING", name: `@${client.user.username} help` }),
+				},
+			],
+			30000
+		);
+	});
+}
 
 export const twitchClient = new TwitchClient(
 	new tmi.Client({
-		options: { debug: process.env.TWITCH_DEBUG == "true" },
+		options: { debug: config.TWITCH_DEBUG == "true" },
 		connection: {
-			// server: "irc.fdgt.dev",
 			secure: true,
 			reconnect: true,
 		},
 		identity: {
 			username: "disstreamchat",
-			password: process.env.TWITH_OAUTH_TOKEN,
+			password: config.TWITH_OAUTH_TOKEN,
 		},
-		channels: [process.env.DEBUG_CHANNEL || ""],
+		channels: [config.DEBUG_CHANNEL || ""],
 	})
 );
 twitchClient.connect();
 
 export const getCustomBots = async (): Promise<Map<string, DiscordClient>> => {
-	if (process.env.BOT_DEV == "true") return new Map();
+	if (config.BOT_DEV || config.PREMIUM_BOT) return new Map();
 	const botQuery = firestore().collection("customBot");
 	const botRef = await botQuery.get();
 	const bots: any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -72,6 +77,11 @@ export const getCustomBots = async (): Promise<Map<string, DiscordClient>> => {
 		const botClient = new DiscordClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 		await botClient.login(bot.token);
 		botClient.once("ready", async () => {
+			for (const [snowflake, guild] of botClient.guilds.cache) {
+				if (!(await isPremium(guild))) {
+					guild.leave();
+				}
+			}
 			if (bot.status) {
 				botClient.user.setPresence({
 					status: "online",
@@ -90,19 +100,19 @@ export const getCustomBots = async (): Promise<Map<string, DiscordClient>> => {
 };
 
 export const TwitchApiClient = new TwitchApi({
-	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
+	clientId: config.TWITCH_CLIENT_ID,
+	authorizationKey: config.TWITCH_ACCESS_TOKEN,
 });
 
 export const DiscordOauthClient = new DiscordOauth2({
-	clientId: process.env.DISCORD_CLIENT_ID,
-	clientSecret: process.env.DISCORD_CLIENT_SECRET,
-	redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+	clientId: config.DISCORD_CLIENT_ID,
+	clientSecret: config.DISCORD_CLIENT_SECRET,
+	redirectUri: config.REDIRECT_URI + "/?discord=true",
 });
 
 export const KrakenApiClient = new TwitchApi({
-	clientId: process.env.TWITCH_CLIENT_ID,
-	authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
+	clientId: config.TWITCH_CLIENT_ID,
+	authorizationKey: config.TWITCH_ACCESS_TOKEN,
 	kraken: true,
 });
 

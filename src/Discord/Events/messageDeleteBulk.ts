@@ -2,8 +2,10 @@ import { firestore } from "firebase-admin";
 import { MessageEmbed } from "discord.js";
 import setupLogging from "./utils/setupLogging";
 import { logMessageDelete } from "./utils";
+import { sleep } from "../../utils/functions";
 
 export default async (messages, client) => {
+	await sleep(2000);
 	const first = messages.first();
 	const guild = first.guild;
 	const channel = first.channel;

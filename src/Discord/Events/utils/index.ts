@@ -1,9 +1,12 @@
-import { MessageEmbed } from "discord.js";
+import { Guild, Message, MessageEmbed, TextChannel, User } from "discord.js";
 import { firestore } from "firebase-admin";
-import { compare } from "../../../utils/functions";
+import { compare, isPremium } from "../../../utils/functions";
+import { writeToAuditLog } from "./auditLog";
 
-export const logMessageDelete = (message, channelIds, executor, guild) => {
-	checkDeleteReactionMessage(guild.id, message);
+export const logMessageDelete = async (message: Message, channelIds: string[], executor: User, guild: Guild) => {
+	try {
+		checkDeleteReactionMessage(guild.id, message);
+	} catch (err) {}
 	const { channel, content, author, id } = message;
 
 	const embed = new MessageEmbed()
@@ -21,9 +24,12 @@ export const logMessageDelete = (message, channelIds, executor, guild) => {
 	for (const channelId of channelIds) {
 		if (!channelId) return;
 
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "message deleted", embed.toJSON());
 	}
 };
 
@@ -31,7 +37,7 @@ export const checkDeleteReactionMessage = async (guildId, message) => {
 	const reactionRoleMessages = firestore().collection("reactions").doc(guildId);
 	const reactionRoleMessagesRef = await reactionRoleMessages.get();
 	const reactionRoleMessagesData = reactionRoleMessagesRef.data();
-	if (reactionRoleMessagesData[message.id]) {
+	if (reactionRoleMessagesData?.[message.id]) {
 		reactionRoleMessages.update({ [message.id]: firestore.FieldValue.delete() });
 	}
 };

@@ -1,4 +1,6 @@
 import { MessageEmbed } from "discord.js";
+import { isPremium } from "../../utils/functions";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
 export default async (invite, client) => {
@@ -21,5 +23,8 @@ export default async (invite, client) => {
 		const logChannel = guild.channels.resolve(channelId);
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "invite deleted", { invite });
 	}
 };

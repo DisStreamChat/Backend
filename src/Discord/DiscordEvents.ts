@@ -41,7 +41,7 @@ export default async (client: DiscordClient, io) => {
 				try {
 					await eventHandler(...params, client);
 				} catch (err) {
-					log(`Event Error: ${err.message}`);
+					log(`Event Error: ${err.message}`, {writeToConsole: true});
 				}
 			});
 		}
@@ -172,6 +172,7 @@ export default async (client: DiscordClient, io) => {
 					badges,
 					sentAt: message.createdAt.getTime(),
 					userColor: userHexColor,
+					channel: "",
 				};
 
 				if (messageObject.body.length <= 0) return;

@@ -1,7 +1,10 @@
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, Role, TextChannel } from "discord.js";
+import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
-export default async (role, client) => {
+export default async (role: Role, client: DiscordClient) => {
 	const guild = role.guild;
 	if (!guild) return;
 
@@ -15,8 +18,11 @@ export default async (role, client) => {
 		.setColor("#11ee11");
 
 	for (const channelId of channelIds) {
-		const logChannel = guild.channels.resolve(channelId);
+		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "role created", { role });
 	}
 };

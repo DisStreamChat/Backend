@@ -1,6 +1,8 @@
 import { GuildChannel, MessageEmbed, TextChannel } from "discord.js";
 
 import { DiscordClient } from "../../clients/discord.client";
+import { isPremium } from "../../utils/functions";
+import { writeToAuditLog } from "./utils/auditLog";
 import setupLogging from "./utils/setupLogging";
 
 export default async (channel: GuildChannel, client: DiscordClient) => {
@@ -25,5 +27,8 @@ export default async (channel: GuildChannel, client: DiscordClient) => {
 		const logChannel = guild.channels.resolve(channelId) as TextChannel;
 
 		logChannel.send(embed);
+	}
+	if (await isPremium(guild)) {
+		writeToAuditLog(guild, "channel created", { channel });
 	}
 };
