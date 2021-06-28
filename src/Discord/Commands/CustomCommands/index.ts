@@ -80,10 +80,10 @@ export default async ({ command, args, message, client }: CustomCommandInputs) =
 				}
 
 				if (!value.type) value.type = "text";
-				if (value.type === "text" && !value.embedMessage) {
+				if (value.type === "text") {
 					let text = processMustacheText(value.message, args);
 					await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
-				} else if (value.type === "embed" || value.embedMessage) {
+				} else if (value.type === "embed") {
 					if (!(await isPremium(message.guild))) return;
 					console.log(value)
 					let text = processMustacheText(value.embedMessageData.description, args);
