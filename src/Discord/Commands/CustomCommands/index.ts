@@ -80,14 +80,15 @@ export default async ({ command, args, message, client }: CustomCommandInputs) =
 				}
 
 				if (!value.type) value.type = "text";
-				if (value.type === "text") {
+				if (value.type === "text" && !value.embedMessage) {
 					let text = processMustacheText(value.message, args);
 					await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
-				} else if (value.type === "embed") {
+				} else if (value.type === "embed" || value.embedMessage) {
 					if (!(await isPremium(message.guild))) return;
-					let text = processMustacheText(value.embedData.description, args);
+					console.log(value)
+					let text = processMustacheText(value.embedMessageData.description, args);
 					const description = Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
-					const embed = new MessageEmbed({ ...value.embedData, description });
+					const embed = new MessageEmbed({ ...value.embedMessageData, description });
 					await message.channel.send(embed);
 				} else {
 					await handleRoleCommand(value, message, client);
