@@ -33,14 +33,16 @@ router.get("/invite", (req, res) => {
 	}
 });
 
-router.get("/ismember", (req, res) => {
-	res.json({ result: !!discordClient.guilds.resolve(req.query.guild as string) });
+router.get("/ismember",async (req, res) => {
+	const client = (await customBots).get(req.query.guild as string as string) || discordClient;
+	res.json({ result: !!client.guilds.resolve(req.query.guild as string) });
 });
 
 router.get("/getchannels", async (req, res) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await discordClient.guilds.resolve(id as string);
+		const client = (await customBots).get(id as string) || discordClient;
+		const selectedGuild = await client.guilds.fetch(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -71,7 +73,8 @@ router.get("/resolvechannel", async (req, res) => {
 
 router.get("/resolveguild", async (req, res) => {
 	const { id } = req.query;
-	const selectedGuild = await discordClient.guilds.resolve(id as string);
+	const client = (await customBots).get(id as string) || discordClient;
+	const selectedGuild = await client.guilds.fetch(id as string);
 	res.json(selectedGuild);
 });
 
@@ -104,7 +107,8 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server, customMessageId } = req.body;
-		const guild = discordClient.guilds.cache.get(server);
+		const client = (await customBots).get(server) || discordClient;
+		const guild = client.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const messageToDelete =
 			(await isPremium(guild)) && customMessageId
