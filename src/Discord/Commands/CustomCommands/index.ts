@@ -1,5 +1,4 @@
 import { Message, MessageEmbed } from "discord.js";
-// the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
 import Mustache from "mustache";
 import prettyMilliseconds from "pretty-ms";
@@ -10,7 +9,6 @@ import GenerateView from "./GenerateView";
 import handleRoleCommand from "./handleRoleCommand";
 
 Mustache.tags = ["{", "}"];
-// Mustache.escape = text => text
 
 const funcRegex = /\((\w+)\s?([\w\s+-/<>]*)\)/gi;
 
