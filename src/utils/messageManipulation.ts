@@ -131,7 +131,7 @@ export const parseEmotes = (message, emotes) => {
 		emotes[id].forEach(startEnd => {
 			const [start, end] = startEnd.split("-").map(Number);
 			starts[start] = {
-				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/3.0" class="emote"`,
+				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0" class="emote"`,
 				end: end,
 			};
 		});

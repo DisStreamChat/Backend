@@ -1,12 +1,11 @@
 // the admin app has already been initialized in routes/index.js
-import admin from "firebase-admin";
-import path from "path";
-import fs from "fs";
-import { ArrayAny } from "../../../utils/functions";
-import Mustache from "mustache";
-import  prettyMilliseconds from "pretty-ms";
-import GenerateView from "./GenerateView";
-import handleRoleCommand from "./handleRoleCommand";
+import admin from 'firebase-admin';
+import Mustache from 'mustache';
+import prettyMilliseconds from 'pretty-ms';
+
+import { ArrayAny } from '../../../utils/functions';
+import GenerateView from './GenerateView';
+import handleRoleCommand from './handleRoleCommand';
 
 Mustache.tags = ["{", "}"];
 // Mustache.escape = text => text
