@@ -12,7 +12,7 @@ import { config } from "../../utils/env";
 import { generateRankCard, isPremium } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
-import { discordClient, DiscordOauthClient } from "../../utils/initClients";
+import { customBots, discordClient, DiscordOauthClient } from "../../utils/initClients";
 
 const router = express.Router();
 
@@ -33,14 +33,16 @@ router.get("/invite", (req, res) => {
 	}
 });
 
-router.get("/ismember", (req, res) => {
-	res.json({ result: !!discordClient.guilds.resolve(req.query.guild as string) });
+router.get("/ismember",async (req, res) => {
+	const client = (await customBots).get(req.query.guild as string as string) || discordClient;
+	res.json({ result: !!client.guilds.resolve(req.query.guild as string) });
 });
 
 router.get("/getchannels", async (req, res) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await discordClient.guilds.resolve(id as string);
+		const client = (await customBots).get(id as string) || discordClient;
+		const selectedGuild = await client.guilds.fetch(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -71,7 +73,8 @@ router.get("/resolvechannel", async (req, res) => {
 
 router.get("/resolveguild", async (req, res) => {
 	const { id } = req.query;
-	const selectedGuild = await discordClient.guilds.resolve(id as string);
+	const client = (await customBots).get(id as string) || discordClient;
+	const selectedGuild = await client.guilds.fetch(id as string);
 	res.json(selectedGuild);
 });
 
@@ -103,10 +106,15 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 
 router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, server } = req.body;
-		const guild = await discordClient.guilds.cache.get(server);
+		const { channel, message, server, customMessageId } = req.body;
+		const client = (await customBots).get(server) || discordClient;
+		const guild = client.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
-		const messageToDelete = await channelObj.messages.fetch(message);
+		const messageToDelete =
+			(await isPremium(guild)) && customMessageId
+				? await channelObj.messages.fetch(customMessageId)
+				: await channelObj.messages.fetch(message);
+		await messageToDelete.reactions.removeAll();
 		await messageToDelete.delete();
 		res.json({ code: 200, message: "success" });
 	} catch (err) {
@@ -134,28 +142,26 @@ router.get("/rankcard", async (req, res, next) => {
 
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, reactions, server, embedData } = req.body;
-		const guild = discordClient.guilds.cache.get(server);
+		const { channel, message, reactions, server, embedMessageData, customMessageId } = req.body;
+		const client = (await customBots).get(server) || discordClient;
+		const guild = client.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		let embed: MessageEmbed;
-		if (await isPremium(guild)) {
-			if (embedData) {
-				embed = new MessageEmbed(embedData);
-			} else {
-				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
-			}
+		if ((await isPremium(guild)) && embedMessageData) {
+			embed = new MessageEmbed(embedMessageData);
 		} else {
 			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		}
-		const sentMessage = await channelObj.send(embed);
+		const sentMessage =
+			(await isPremium(guild)) && customMessageId ? await channelObj.messages.fetch(customMessageId) : await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
-					reaction = discordClient.emojis.cache.get(reaction);
+					reaction = client.emojis.cache.get(reaction);
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
-				log(`error in reacting to message: ${err.message}`);
+				log(`error in reacting to message: ${err.message}`, { writeToConsole: true });
 			}
 		}
 		res.json({ code: 200, message: "success", messageId: sentMessage.id });
@@ -166,18 +172,15 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
-		const { channel, message, server, messageId, embedData } = req.body;
-		const guild = discordClient.guilds.cache.get(server);
+		const { channel, message, server, messageId, embedMessageData, customMessageId } = req.body;
+		const client = (await customBots).get(server) || discordClient;
+		const guild = client.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		let embed: MessageEmbed;
-		if (await isPremium(guild)) {
-			if (embedData) {
-				embed = new MessageEmbed(embedData);
-			} else {
-				embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
-			}
+		if ((await isPremium(guild)) && embedMessageData) {
+			embed = new MessageEmbed(embedMessageData);
 		} else {
-			// embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
+			embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		}
 		const messageToEdit = await channelObj.messages.fetch(messageId);
 		const edited = await messageToEdit.edit(embed);
