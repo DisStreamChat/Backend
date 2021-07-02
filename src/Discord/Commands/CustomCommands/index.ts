@@ -1,5 +1,4 @@
 import { Message, MessageEmbed } from "discord.js";
-// the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
 import Mustache from "mustache";
 import prettyMilliseconds from "pretty-ms";
@@ -10,7 +9,6 @@ import GenerateView from "./GenerateView";
 import handleRoleCommand from "./handleRoleCommand";
 
 Mustache.tags = ["{", "}"];
-// Mustache.escape = text => text
 
 const funcRegex = /\((\w+)\s?([\w\s+-/<>]*)\)/gi;
 
@@ -85,9 +83,9 @@ export default async ({ command, args, message, client }: CustomCommandInputs) =
 					await message.channel.send(Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">"));
 				} else if (value.type === "embed") {
 					if (!(await isPremium(message.guild))) return;
-					let text = processMustacheText(value.embedData.description, args);
+					let text = processMustacheText(value.embedMessageData.description, args);
 					const description = Mustache.render(text, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
-					const embed = new MessageEmbed({ ...value.embedData, description });
+					const embed = new MessageEmbed({ ...value.embedMessageData, description });
 					await message.channel.send(embed);
 				} else {
 					await handleRoleCommand(value, message, client);
