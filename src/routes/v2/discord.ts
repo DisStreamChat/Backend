@@ -33,7 +33,7 @@ router.get("/invite", (req, res) => {
 	}
 });
 
-router.get("/ismember",async (req, res) => {
+router.get("/ismember", async (req, res) => {
 	const client = (await customBots).get(req.query.guild as string as string) || discordClient;
 	res.json({ result: !!client.guilds.resolve(req.query.guild as string) });
 });
@@ -72,10 +72,14 @@ router.get("/resolvechannel", async (req, res) => {
 });
 
 router.get("/resolveguild", async (req, res) => {
-	const { id } = req.query;
-	const client = (await customBots).get(id as string) || discordClient;
-	const selectedGuild = await client.guilds.fetch(id as string);
-	res.json(selectedGuild);
+	try {
+		const { id } = req.query;
+		const client = (await customBots).get(id as string) || discordClient;
+		const selectedGuild = await client.guilds.fetch(id as string);
+		res.json(selectedGuild);
+	} catch (err) {
+		
+	}
 });
 
 router.get("/resolveuser", async (req, res, next) => {
