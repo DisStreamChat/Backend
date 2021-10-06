@@ -63,7 +63,7 @@
 		"tmi.js": "^1.5.0",
 		"twitchio-js": "^1.0.5",
 		"twitchps": "github:DisStreamChat/twitchPS",
-		"url-parse": "^1.5.1",
+		"url-parse": "^1.5.2",
 		"uuidv1": "^1.6.14"
 	},
 	"devDependencies": {
