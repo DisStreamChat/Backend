@@ -22,7 +22,7 @@
     "discord.js": "^12.3.0",
     "firebase-admin": "^8.9.0",
     "firebase-functions": "^3.13.2",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "url-polyfill": "^1.1.12"
   },
   "devDependencies": {
