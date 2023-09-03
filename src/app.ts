@@ -9,7 +9,7 @@ import Server from "socket.io";
 import root from "./routes/index";
 import v2 from "./routes/v2";
 
-export const app = express();
+export const app: express = express();
 export const server = new http.Server(app);
 export const io = new Server(server);
 

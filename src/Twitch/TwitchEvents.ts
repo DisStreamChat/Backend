@@ -1,6 +1,9 @@
+import express from "express";
 // the admin app has already been initialized in routes/index.js
 import admin from "firebase-admin";
 import sha1 from "sha1";
+import Server from "socket.io";
+import tmi from "tmi.js";
 import uuidv1 from "uuidv1";
 
 import { TwitchMessageModel } from "../models/message.model";
@@ -8,7 +11,7 @@ import { TwitchMessageModel } from "../models/message.model";
 import ranks from "../ranks.json";
 import { Duration, setDurationInterval, setDurationTimeout } from "../utils/duration.util";
 import { log } from "../utils/functions/logging";
-import { TwitchApiClient as Api } from "../utils/initClients";
+import { clientManager } from "../utils/initClients";
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
 import { sendMessage } from "../utils/sendMessage";
@@ -21,8 +24,8 @@ const DisStreamChatProfile =
 const getBadges = async (channelName, tags) => {
 	const badges = {};
 	if (tags.badges) {
-		const channelBadgeJSON = await Api.getBadgesByUsername(channelName);
-		const globalBadges = await Api.getGlobalBadges();
+		const channelBadgeJSON = await clientManager.twitchClient.getBadgesByUsername(channelName);
+		const globalBadges = await clientManager.twitchClient.getGlobalBadges();
 
 		// TODO: improve by doing channel badges first
 
@@ -61,7 +64,7 @@ const getBadges = async (channelName, tags) => {
 	return badges;
 };
 
-export default (TwitchClient, io, app) => {
+export default (TwitchClient: tmi.Client, io: Server.Server, app: express) => {
 	TwitchClient.on("messagedeleted", (channel, username, deletedMessage, tags) => {
 		// remove the "#" form the begginning of the channel name
 		const channelName = channel.slice(1).toLowerCase();
@@ -127,7 +130,7 @@ export default (TwitchClient, io, app) => {
 		let messageId = tags["msg-id"] || "";
 
 		// ping the twitch api for user data, currently only used for profile picture
-		const userData = await Api.getUserInfo(tags.username);
+		const userData = await clientManager.twitchClient.getUserInfo(tags.username);
 
 		const messageObject: TwitchMessageModel = {
 			displayName: tags["display-name"],
@@ -153,7 +156,7 @@ export default (TwitchClient, io, app) => {
 
 	let globalCheerMotes = [];
 	const getGlobalCheerMotes = async () => {
-		globalCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
+		globalCheerMotes = (await clientManager.twitchClient.fetch(`https://api.twitch.tv/helix/bits/cheermotes`)).data;
 	};
 
 	const CustomCheerMotes = {};
@@ -163,10 +166,11 @@ export default (TwitchClient, io, app) => {
 		const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
 		for (const name of twitchNames) {
 			try {
-				const userInfo = await Api.getUserInfo(name);
+				const userInfo = await clientManager.twitchClient.getUserInfo(name);
 				if (userInfo && userInfo.id) {
-					const userCheerMotes = (await Api.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`))
-						.data;
+					const userCheerMotes = (
+						await clientManager.twitchClient.fetch(`https://api.twitch.tv/helix/bits/cheermotes?broadcaster_id=${userInfo.id}`)
+					).data;
 					const userCustomEmotes = userCheerMotes.filter(
 						cheerMote => !globalCheerMotes.find(globalCheerMote => cheerMote.prefix === globalCheerMote.prefix)
 					);
@@ -317,7 +321,7 @@ export default (TwitchClient, io, app) => {
 			userColor: "#ff0029",
 		};
 
-		io.in(`twitch-${channelName}`)("chatmessage", messageObject);
+		io.in(`twitch-${channelName}`).send("chatmessage", messageObject);
 	});
 
 	let giftTimeout: NodeJS.Timeout = null;

@@ -6,7 +6,7 @@ import DiscordEvents from "./Discord/DiscordEvents";
 import { sockets } from "./Sockets";
 import TwitchEvents from "./Twitch/TwitchEvents";
 import { log } from "./utils/functions/logging";
-import { customBots, DiscordClient, TwitchClient } from "./utils/initClients";
+import { clientManager } from "./utils/initClients";
 
 dotenv.config();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -28,19 +28,17 @@ try {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./TwitchEvents.js
-TwitchEvents(TwitchClient, io, app);
+TwitchEvents(clientManager.twitchClient, io, app);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // DISCORD
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // see ./DiscordEvents.js
-DiscordEvents(DiscordClient, io);
+DiscordEvents(clientManager.discordClient, io);
 if (process.env.BOT_DEV != "true") {
-	customBots.then(bots => {
-		for (const bot of bots.values()) {
-			DiscordEvents(bot, io);
-		}
+	clientManager.customBots.forEach(bot => {
+		DiscordEvents(bot, io);
 	});
 }
 

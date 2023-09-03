@@ -1,7 +1,7 @@
 import Mustache from "mustache";
 
 import { getDiscordSettings } from "../../../utils/functions";
-import generateView from "../../Commands/CustomCommands/GenerateView";
+import { generateMustacheView } from "../../Commands/CustomCommands/generateMustacheView";
 
 Mustache.tags = ["{", "}"];
 
@@ -10,7 +10,7 @@ export default async (guild, member, client) => {
 	if (!data) return;
 	if (!data.activePlugins["welcome-message"]) return;
 	if (!data.welcomeMessage) return;
-	const view = generateView({ message: { member: member, author: member }, args: [] });
+	const view = generateMustacheView({ message: { member: member, author: member } });
 	const message = Mustache.render(data.welcomeMessage.message, view).replace(/&lt;/gim, "<").replace(/&gt;/gim, ">");
 	const channelId = data.welcomeMessage.channel;
 	if (!channelId) return;

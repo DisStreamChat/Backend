@@ -1,10 +1,10 @@
 import { MessageEmbed } from "discord.js";
 
-import { sleep } from "../../utils/functions";
+import { Duration, sleep } from "../../utils/duration.util";
 import setupLogging from "./utils/setupLogging";
 
 export default async (guild, user, client) => {
-	await sleep(1000);
+	await sleep(Duration.fromSeconds(1));
 	const auditLog = await guild.fetchAuditLogs();
 
 	const deleteAction = await auditLog.entries.first();

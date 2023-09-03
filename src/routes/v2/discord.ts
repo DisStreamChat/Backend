@@ -4,12 +4,12 @@ import admin, { auth, firestore } from "firebase-admin";
 import fetch from "node-fetch";
 import sha1 from "sha1";
 
+import { getUserInfo } from "../../Discord/DiscordClasses";
 import { validateRequest } from "../../middleware";
-import { getUserInfo } from "../../utils/DiscordClasses";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
-import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
+import { clientManager } from "../../utils/initClients";
 
 const router = express.Router();
 
@@ -31,13 +31,13 @@ router.get("/invite", (req, res) => {
 });
 
 router.get("/ismember", (req, res, next) => {
-	res.json({ result: !!DiscordClient.guilds.resolve(req.query.guild) });
+	res.json({ result: !!clientManager.discordClient.guilds.resolve(req.query.guild) });
 });
 
 router.get("/getchannels", async (req, res, next) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await DiscordClient.guilds.resolve(id);
+		const selectedGuild = await clientManager.discordClient.guilds.resolve(id);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -69,13 +69,13 @@ router.get("/resolvechannel", async (req, res, next) => {
 
 router.get("/resolveguild", async (req, res, next) => {
 	const { id } = req.query;
-	const selectedGuild = await DiscordClient.guilds.resolve(id);
+	const selectedGuild = await clientManager.discordClient.guilds.resolve(id);
 	res.json(selectedGuild);
 });
 
 router.get("/resolveuser", async (req, res, next) => {
 	try {
-		res.json(await DiscordClient.users.fetch(req.query.user));
+		res.json(await clientManager.discordClient.users.fetch(req.query.user));
 	} catch (err) {
 		next(err);
 	}
@@ -85,7 +85,7 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
 	try {
 		const token = req.query.token;
-		const tokenData = await DiscordOauthClient.tokenRequest({
+		const tokenData = await clientManager.discordOauthClient.tokenRequest({
 			refreshToken: token,
 			scope: "identify guilds",
 			grantType: "refresh_token",
@@ -102,7 +102,7 @@ router.get("/token/refresh", validateRequest, async (req, res, next) => {
 router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await clientManager.discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const messageToDelete = await channelObj.messages.fetch(message);
 		await messageToDelete.delete();
@@ -114,7 +114,7 @@ router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/rankcard", async (req, res, next) => {
 	const { user, guild } = req.query;
-	const guildObj = DiscordClient.guilds.cache.get(guild);
+	const guildObj = clientManager.discordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
 	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
 	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
@@ -126,14 +126,14 @@ router.get("/rankcard", async (req, res, next) => {
 router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, reactions, server } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await clientManager.discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const sentMessage = await channelObj.send(embed);
 		for (let reaction of reactions) {
 			try {
 				if (reaction.length > 5) {
-					reaction = DiscordClient.emojis.cache.get(reaction);
+					reaction = clientManager.discordClient.emojis.cache.get(reaction);
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
@@ -149,7 +149,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 	try {
 		const { channel, message, server, messageId } = req.body;
-		const guild = await DiscordClient.guilds.cache.get(server);
+		const guild = await clientManager.discordClient.guilds.cache.get(server);
 		const channelObj = guild.channels.resolve(channel) as TextChannel;
 		const embed = new MessageEmbed().setDescription(message).setColor("#2d688d");
 		const messageToEdit = await channelObj.messages.fetch(messageId);
@@ -244,7 +244,7 @@ router.get("/token", async (req, res, next) => {
 });
 
 router.get("/guildcount", async (req, res, next) => {
-	res.json(DiscordClient.guilds.cache.array().length);
+	res.json(clientManager.discordClient.guilds.cache.array().length);
 });
 
 router.get("/profilepicture", async (req, res, next) => {
@@ -260,7 +260,7 @@ router.get("/profilepicture", async (req, res, next) => {
 router.get("/resolveemote", async (req, res, next) => {
 	try {
 		const { emote, guild } = req.query;
-		const emoteObject = DiscordClient.emojis.resolve(emote);
+		const emoteObject = clientManager.discordClient.emojis.resolve(emote);
 		res.json(emoteObject);
 	} catch (err) {
 		next(err);
@@ -268,14 +268,14 @@ router.get("/resolveemote", async (req, res, next) => {
 });
 
 router.get("/emotes", async (req, res, next) => {
-	res.json(DiscordClient.emojis.cache.array());
+	res.json(clientManager.discordClient.emojis.cache.array());
 });
 
 router.get("/position", async (req, res, next) => {
 	try {
 		const { server } = req.query;
-		const guild = await DiscordClient.guilds.fetch(server);
-		const member = guild.member(DiscordClient.user);
+		const guild = await clientManager.discordClient.guilds.fetch(server);
+		const member = guild.member(clientManager.discordClient.user);
 		const highestRole = member.roles.highest;
 		res.json({ position: highestRole.position, rawPosition: highestRole.rawPosition });
 	} catch (err) {

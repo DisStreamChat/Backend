@@ -8,31 +8,22 @@ import TwitchApi from "twitchio-js";
 import { validateRequest } from "../../middleware";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
-import {
-    getBttvEmotes, getFfzEmotes, subscribeToFollowers
-} from "../../utils/functions/TwitchFunctions";
+import { getBttvEmotes, getFfzEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";
 import { getProfilePicture } from "../../utils/functions/users";
-import {
-    KrakenApiClient as KrakenApi, TwitchApiClient as Api, TwitchClient
-} from "../../utils/initClients";
+import { clientManager } from "../../utils/initClients";
 
 const router = express.Router();
 const sevenDays = 604800000;
 
-const followChannel = async (user, channel, method) => {
-	const userInfo = await Api.getUserInfo(user);
-	const channelInfo = await Api.getUserInfo(channel);
+const followChannel = async (user, channel, method: "DELETE" | "PUT") => {
+	const userInfo = await clientManager.twitchApiClient.getUserInfo(user);
+	const channelInfo = await clientManager.twitchApiClient.getUserInfo(channel);
 	const firebaseId = sha1(userInfo.id);
 	try {
 		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
-		const refreshData = await Api.fetch(
+		const refreshData = await clientManager.twitchApiClient.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
-		const userApi = new TwitchApi({
-			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationKey: refreshData.access_token,
-			kraken: true,
-		});
 		await fetch(`https://api.twitch.tv/kraken/users/${userInfo.id}/follows/channels/${channelInfo.id}`, {
 			method,
 			headers: {
@@ -75,13 +66,16 @@ router.get("/following", async (req, res, next) => {
 	if (!user) {
 		res.status(400).json({ messages: "missing user", code: 400 });
 	}
-	const userData = await Api.getUserInfo(user);
+	const userData = await clientManager.twitchApiClient.getUserInfo(user);
 	const id = userData.id;
-	const json = await KrakenApi.fetch(`https://api.twitch.tv/kraken/users/${id}/follows/channels?limit=${req.query.limit || 100}`, {
-		headers: {
-			Accept: "application/vnd.twitchtv.v5+json",
-		},
-	});
+	const json = await clientManager.krakenApiClient.fetch(
+		`https://api.twitch.tv/kraken/users/${id}/follows/channels?limit=${req.query.limit || 100}`,
+		{
+			headers: {
+				Accept: "application/vnd.twitchtv.v5+json",
+			},
+		}
+	);
 	try {
 		let followedChannels = [];
 		const key = req.query.key;
@@ -101,10 +95,10 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 	const firebaseId = req.query.id || " ";
 	try {
 		const userFirebaseData = (await firestore().collection("Streamers").doc(firebaseId).collection("twitch").doc("data").get()).data();
-		const refreshData = await Api.fetch(
+		const refreshData = await clientManager.twitchApiClient.fetch(
 			`https://api.disstreamchat.com/twitch/token/refresh?token=${userFirebaseData.refresh_token}&key=${process.env.DSC_API_KEY}`
 		);
-		const response = await Api.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
+		const response = await clientManager.twitchApiClient.fetch(`https://api.twitch.tv/kraken/chat/twitchbot/${action}`, {
 			body: JSON.stringify({ msg_id: req.query.msg_id }),
 			method: "POST",
 			headers: {
@@ -121,7 +115,7 @@ router.post("/automod/:action", validateRequest, async (req, res, next) => {
 });
 
 router.get("/activechannels", async (req, res, next) => {
-	res.json(await TwitchClient.getChannels());
+	res.json(await clientManager.twitchClient.getChannels());
 });
 
 router.get("/customemotes", async (req, res, next) => {
@@ -136,7 +130,7 @@ router.get("/emotes", async (req, res, next) => {
 	if (!user) {
 		return res.status(400).json({ message: "missing user", code: 400 });
 	}
-	const userInfo = await Api.getUserInfo(user);
+	const userInfo = await clientManager.twitchApiClient.getUserInfo(user);
 	const id = userInfo.id;
 	const firebaseId = sha1(id);
 	const userDataRef = firestore().collection("Streamers").doc(firebaseId);
@@ -170,7 +164,7 @@ router.get("/exists", async (req, res, next) => {
 		return res.status(400).json({ message: "missing channel name", code: 400 });
 	}
 
-	const userData = await Api.getUserInfo(channel);
+	const userData = await clientManager.twitchApiClient.getUserInfo(channel);
 	res.json({ exists: !!userData, data: userData });
 });
 
@@ -186,37 +180,39 @@ router.get("/checkmod", async (req, res, next) => {
 
 	const userName = req.query.user;
 	try {
-		const inChannels = await TwitchClient.getChannels();
+		const inChannels = await clientManager.twitchClient.getChannels();
 		const alreadyJoined = inChannels.includes(channelName);
 
 		if (!alreadyJoined) {
-			const userData = await Api.getUserInfo(channelName.substring(1));
+			const userData = await clientManager.twitchApiClient.getUserInfo(channelName.substring(1));
 			if (userData) {
-				await TwitchClient.join(channelName);
+				await clientManager.twitchClient.join(channelName);
 			} else {
 				return res.status(400).json({ message: "invalid channel name, it seems like that isn't a twitch channel", code: 400 });
 			}
 		}
-		const results = await TwitchClient.mods(channelName);
+		const results = await clientManager.twitchClient.mods(channelName);
 
 		const isMod = !!userName && results.includes(userName.toLowerCase());
 		if (isMod) {
-			return res.json(await Api.getUserInfo(channelName.substring(1)));
+			return res.json(await clientManager.twitchApiClient.getUserInfo(channelName.substring(1)));
 		} else {
 			return res.json(null);
 		}
 	} catch (err) {
 		try {
 			log(`failed to join channel: ${err.message}`);
-			let isMod = TwitchClient.isMod(channelName, userName);
-			const chatters = await Api.fetch(`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`);
+			let isMod = clientManager.twitchClient.isMod(channelName, userName);
+			const chatters = await clientManager.twitchApiClient.fetch(
+				`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`
+			);
 			isMod = chatters?.moderators?.includes?.(userName) || isMod;
-			TwitchClient.part(channelName);
+			clientManager.twitchClient.part(channelName);
 			if (isMod) {
-				return res.json(await Api.getUserInfo(channelName.substring(1)));
+				return res.json(await clientManager.twitchApiClient.getUserInfo(channelName.substring(1)));
 			}
 		} catch (err) {
-			TwitchClient.part(channelName);
+			clientManager.twitchClient.part(channelName);
 			return res.status(500).json(null);
 		}
 	}
@@ -267,7 +263,7 @@ router.get("/token", async (req, res, next) => {
 			});
 		} else {
 			const { login, user_id } = validationJson;
-			const ModChannels = await Api.getUserModerationChannels(login);
+			const ModChannels = await clientManager.twitchApiClient.getUserModerationChannels(login);
 
 			// automatically mod the bot in the users channel on sign in
 			try {
@@ -290,7 +286,7 @@ router.get("/token", async (req, res, next) => {
 
 			const uid = sha1(user_id);
 			const token = await auth().createCustomToken(uid);
-			const userInfo = await Api.getUserInfo(login);
+			const userInfo = await clientManager.twitchApiClient.getUserInfo(login);
 			const displayName = userInfo.display_name;
 			const profilePicture = userInfo.profile_image_url;
 

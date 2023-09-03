@@ -2,15 +2,14 @@ import { firestore } from "firebase-admin";
 import fetch from "node-fetch";
 
 import { Duration, setDurationInterval } from "../duration.util";
-import { TwitchApiClient as Api } from "../initClients";
+import { clientManager } from "../initClients";
 import { log } from "./logging";
 
-export async function getBttvEmotes(channelName) {
+export async function getBttvEmotes(channelName: string) {
 	const bttvEmotes = {};
-	let bttvRegex;
 	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	let emotes = await bttvResponse.json();
-	const channelInfo = await Api.getUserInfo(channelName);
+	const channelInfo = await clientManager.twitchApiClient.getUserInfo(channelName);
 	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
 	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
 	if (channelEmotes) {
@@ -24,17 +23,15 @@ export async function getBttvEmotes(channelName) {
 		bttvEmotes[code] = id;
 		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
 	});
-	bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	const bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
 
-	return { bttvEmotes, bttvRegex };
+	return { emotes: bttvEmotes, regex: bttvRegex };
 }
 
-export async function getFfzEmotes(channelName) {
+export async function getFfzEmotes(channelName: string) {
 	const ffzEmotes = {};
-	let ffzRegex;
 
 	const ffzResponse = await fetch("https://api.frankerfacez.com/v1/set/global");
-	// replace with your channel url
 	const ffzChannelResponse = await fetch(`https://api.frankerfacez.com/v1/room/${channelName}`);
 	const { sets } = await ffzResponse.json();
 	const { room, sets: channelSets } = await ffzChannelResponse.json();
@@ -48,8 +45,8 @@ export async function getFfzEmotes(channelName) {
 		const setnum = room.set;
 		channelSets[setnum].emoticons.forEach(appendEmotes);
 	}
-	ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
-	return { ffzEmotes, ffzRegex };
+	const ffzRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
+	return { emotes: ffzEmotes, regex: ffzRegex };
 }
 
 export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => {
@@ -62,7 +59,7 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 		"hub.secret": process.env.WEBHOOK_SECRET,
 	};
 	try {
-		const response = await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+		const response = await clientManager.twitchApiClient.fetch("https://api.twitch.tv/helix/webhooks/hub", {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: {
@@ -89,7 +86,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 		"hub.secret": process.env.WEBHOOK_SECRET,
 	};
 	try {
-		await Api.fetch("https://api.twitch.tv/helix/webhooks/hub", {
+		await clientManager.twitchApiClient.fetch("https://api.twitch.tv/helix/webhooks/hub", {
 			method: "POST",
 			body: JSON.stringify(body),
 			headers: {

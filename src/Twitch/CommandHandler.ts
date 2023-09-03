@@ -18,7 +18,7 @@ commandFiles.forEach(command => {
 
 const prefix = "!";
 
-export default async (message, client, streamerName) => {
+export default async (message: string, client, streamerName: string) => {
 	if (!message.startsWith(prefix)) return;
 	const args = message.split(" ");
 	const command = args.shift().slice(1);

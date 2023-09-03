@@ -7,7 +7,7 @@ import uuidv1 from "uuidv1";
 import { walkSync } from "../../utils/functions";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
-import { customBots, TwitchApiClient as Api } from "../../utils/initClients";
+import { clientManager } from "../../utils/initClients";
 import { formatMessage } from "../../utils/messageManipulation";
 
 const commandPath = __dirname;
@@ -27,8 +27,6 @@ const runIo = async io => {
 
 	let pubsubbedChannels = [];
 
-	const bots = await customBots;
-
 	admin
 		.firestore()
 		.collection("live-notify")
@@ -41,7 +39,7 @@ const runIo = async io => {
 			].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
 
 			for (const channel of allNotifyingChannels) {
-				const streamerData = await Api.getUserInfo(channel as string);
+				const streamerData = await clientManager.twitchApiClient.getUserInfo(channel as string);
 
 				const init_topics = [
 					{
@@ -60,7 +58,7 @@ const runIo = async io => {
 				pubsubbedChannels.push({ listener: pubSub, id: channel });
 
 				pubSub.on("stream-up", data =>
-					commands["stream-up"].exec({ ...data, id: channel, ...streamerData }, streamerData.login, io, bots)
+					commands["stream-up"].exec({ ...data, id: channel, ...streamerData }, streamerData.login, io, clientManager.customBots)
 				);
 			}
 		});
@@ -89,7 +87,7 @@ const runIo = async io => {
 			authorizedStreamers.forEach(async streamer => {
 				if (!streamer.user_id) return;
 
-				const streamerData = await Api.getUserInfo(streamer.user_id);
+				const streamerData = await clientManager.twitchApiClient.getUserInfo(streamer.user_id);
 
 				const { access_token, scope } = await refreshTwitchToken(streamer.refresh_token);
 
@@ -120,7 +118,7 @@ const runIo = async io => {
 					try {
 						console.log(data);
 						const { redemption, channel_id } = data;
-						const user = await Api.getUserInfo(channel_id);
+						const user = await clientManager.twitchApiClient.getUserInfo(channel_id);
 						const channelName = user.login;
 						let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
 						if (redemption.reward.prompt.length > 0) {

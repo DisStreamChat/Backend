@@ -5,7 +5,7 @@ import prettyMilliseconds from "pretty-ms";
 
 import { Duration, setDurationTimeout } from "../../../utils/duration.util";
 import { ArrayAny } from "../../../utils/functions";
-import GenerateView from "./GenerateView";
+import { generateMustacheView } from "./generateMustacheView";
 import handleRoleCommand from "./handleRoleCommand";
 
 Mustache.tags = ["{", "}"];
@@ -18,7 +18,7 @@ const replaceFunc = text => text.replace(funcRegex, (match, p1, p2, offset, stri
 const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, offset, string) => "" + args[+p1 - 1]);
 
 export default async ({ command, args, message, client }) => {
-	const view = GenerateView({ message, args });
+	const view = generateMustacheView({ message, args });
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
 	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(message.guild.id).get();
 	const guildData = guildRef.data();

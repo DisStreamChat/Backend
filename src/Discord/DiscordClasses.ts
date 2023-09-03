@@ -1,7 +1,7 @@
 import DiscordOauth2 from "discord-oauth2";
 import Discord from "discord.js";
 
-import { DiscordClient } from "../utils/initClients";
+import { clientManager } from "../utils/initClients";
 
 const oauth = new DiscordOauth2();
 
@@ -22,7 +22,7 @@ export class DiscordServer {
 		this.permissions = new Discord.Permissions(serverObject.permissions).toArray();
 
 		try {
-			const guild = DiscordClient.guilds.resolve(this.id);
+			const guild = clientManager.discordClient.guilds.resolve(this.id);
 			this.roles = guild.members
 				.resolve(this.member)
 				?.roles?.cache?.array()

@@ -1,4 +1,4 @@
-import { adminWare, modWare, setArray } from "./functions";
+import { adminWare, modWare, setArray } from "../utils/functions";
 
 export class Command {
 	name: string;

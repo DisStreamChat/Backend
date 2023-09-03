@@ -3,9 +3,7 @@ import { MessageEmbed } from "discord.js";
 import admin from "firebase-admin";
 import Mustache from "mustache";
 
-import {
-    ArrayAny, getDiscordSettings, getLevelSettings, getRoleScaling, getXp, Random
-} from "../utils/functions";
+import { ArrayAny, getDiscordSettings, getLevelSettings, getRoleScaling, getXp, random } from "../utils/functions";
 import { log } from "../utils/functions/logging";
 import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation";
 
@@ -62,7 +60,7 @@ export const handleLeveling = async (message, client) => {
 		const expireTime = userLevelingData.cooldown + cooldownTime;
 		if (now > expireTime) {
 			userLevelingData.cooldown = now;
-			userLevelingData.xp += Random(10, 20) * finalScaling;
+			userLevelingData.xp += random(10, 20) * finalScaling;
 			userLevelingData.xp = Math.floor(userLevelingData.xp);
 			let xpToNextLevel = getXp(userLevelingData.level + 1);
 			if (userLevelingData.xp >= xpToNextLevel) {

@@ -1,7 +1,7 @@
 import fs, { promises } from "fs";
 import { join } from "path";
 
-import { DiscordClient } from "../initClients";
+import { clientManager } from "../initClients";
 
 const loggingPath = join(__dirname, "../../", "logging");
 
@@ -29,8 +29,7 @@ export const log = async (loggingString, { file, writeToConsole, error, DM }: lo
 		console.log(loggingString);
 	}
 	if (DM) {
-		const david = await DiscordClient.users.fetch("193826355266191372");
-		const message = await david.send(loggingString);
-		console.log();
+		const david = await clientManager.discordClient.users.fetch("193826355266191372");
+		await david.send(loggingString);
 	}
 };

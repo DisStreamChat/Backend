@@ -1,15 +1,11 @@
-import { DiscordClient, TwitchApiClient } from "../initClients";
+import { clientManager } from "../initClients";
 
-export const getProfilePicture = async (platform, username) => {
-	let profilePicture;
+export const getProfilePicture = async (platform: "twitch" | "discord", username: string): Promise<string | undefined> => {
 	if (platform === "twitch") {
-		profilePicture = (await TwitchApiClient.getUserInfo(username))["profile_image_url"];
+		return (await clientManager.twitchClient.getUserInfo(username)).profile_image_url;
 	} else if (platform === "discord") {
-		const userObj = await DiscordClient.users.fetch(username);
-		profilePicture = userObj.displayAvatarURL({ format: "png" });
+		const userObj = await clientManager.discordClient.users.fetch(username);
+		return userObj.displayAvatarURL({ format: "png" });
 	}
-	if (!profilePicture) {
-		throw new Error("invalid profile picture or platform");
-	}
-	return profilePicture;
+	throw new Error("invalid profile picture or platform");
 };

@@ -1,7 +1,7 @@
 import getUrls from "extract-urls";
 
-import { Duration, setDurationTimeout } from "../../../utils/duration.util";
-import { hasDiscordInviteLink, sleep } from "../../../utils/functions";
+import { Duration, setDurationTimeout, sleep } from "../../../utils/duration.util";
+import { hasDiscordInviteLink } from "../../../utils/functions";
 
 const fetchAmountfromId = async (message, id) => {
 	let after;
@@ -120,7 +120,7 @@ const purgeMessages = async (messages, message) => {
 		try {
 			for (const msg of messages) {
 				await msg.delete();
-				await sleep(350);
+				await sleep(Duration.fromMilliseconds(350));
 			}
 		} catch (err) {}
 	} else {

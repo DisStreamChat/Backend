@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-import { Command } from "../utils/classes";
 import { getDiscordSettings, walkSync } from "../utils/functions";
+import { Command } from "./command";
 import customCommandHandler from "./Commands/CustomCommands";
 
 const commandPath = path.join(__dirname, "Commands");

@@ -1,124 +1,100 @@
-import { firestore } from "firebase-admin";
 import linkifyUrls from "linkify-urls";
-import cache from "memory-cache";
 
-import { cleanRegex } from "../utils/functions";
-import { getBttvEmotes, getFfzEmotes } from "../utils/functions/TwitchFunctions";
-import { Duration, setDurationInterval, setDurationTimeout } from "./duration.util";
-import { log } from "./functions/logging";
+import { emoteCacher } from "../Twitch/emoteCacher";
+import { escapeRegexSpecialCharacters } from "../utils/functions";
 
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
 
-export const getAllEmotes = async () => {
-	if (process.env.BOT_DEV == "true") return;
-	const streamersRef = await firestore().collection("Streamers").get();
-	const streamers = streamersRef.docs.map(doc => doc.data());
-	const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);
-	for (const name of twitchNames) {
-		try {
-			const cachedBTTVEmotes = cache.get("bttv " + name);
-			const cachedFFZEmotes = cache.get("ffz " + name);
-			if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.messageSent)) {
-				log("refreshing bttv, " + name, { writeToConsole: true });
-				cache.put("bttv " + name, { ...(await getBttvEmotes(name)), messageSent: false });
-			}
-			if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.messageSent)) {
-				log("refreshing ffz, " + name, { writeToConsole: true });
-				cache.put("ffz " + name, { ...(await getFfzEmotes(name)), messageSent: false });
-			}
-		} catch (err) {
-			log(err.message);
-		}
-	}
-};
-const emoteRefresh = Duration.fromMinutes(10);
-setDurationTimeout(() => {
-	console.log("starting emote fetch");
-	getAllEmotes()
-		.then(() => {
-			setDurationInterval(getAllEmotes, emoteRefresh);
-		})
-		.catch(err => {
-			log("error getting emotes " + err.message);
-			setDurationInterval(getAllEmotes, emoteRefresh);
-		});
-}, Duration.fromSeconds(10));
+function getBttvUrl(emoteSet: Record<string, string>, name: string): string {
+	return `<img src="https://cdn.betterttv.net/emote/${emoteSet[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`;
+}
 
-export const formatMessage = async (message, platform, tags, { HTMLClean, channelName }: any = {}) => {
+function getFfzUrl(emoteSet: Record<string, string>, name: string): string {
+	return `<img src="${emoteSet[name]}#emote" class="emote" title=${name}>`;
+}
+
+function getDiscordEmoteUrl(part1: string, part2: string, part3: string) {
+	return `<img alt="${part2 ? part1.slice(1) : part1}" title="${
+		part2 ? part1.slice(1) : part1
+	}" class="emote" src="https://cdn.discordapp.com/emojis/${part3}.${part2 ? "gif" : "png"}?v=1">`;
+}
+
+function getTwitchEmoteUrl(id: string) {
+	return `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0`;
+}
+
+function escapeHtml(dirty: string): string {
+	return dirty
+		.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
+		.replace(/<([a-z])/gi, "&lt;$1")
+		.replace(/([a-z])>/gi, "$1&gt;");
+}
+
+export const formatMessage = async (
+	message: string,
+	platform: "discord" | "twitch",
+	tags,
+	{ HTMLClean, channelName }: { HTMLClean?: boolean; channelName?: string } = {}
+) => {
 	let dirty = message.slice();
-	if (HTMLClean)
-		dirty = linkifyUrls(
-			dirty
-				.replace(/(<)([^<]*)(>)/g, "&lt;$2&gt;")
-				.replace(/<([a-z])/gi, "&lt;$1")
-				.replace(/([a-z])>/gi, "$1&gt;")
-		);
-	// .replace(urlRegex, `<a href="$&">$&</a>`);
-	if (tags.emotes) {
+	if (HTMLClean) dirty = linkifyUrls(escapeHtml(dirty));
+	if (tags.emotes && platform === "twitch") {
 		dirty = replaceTwitchEmotes(dirty, message, tags.emotes);
 	}
+
 	// TODO: allow twitch emotes on discord and discord emotes on twitch
-	const cachedBTTVEmotes = cache.get("bttv " + channelName);
-	const cachedFFZEmotes = cache.get("ffz " + channelName);
+	const cachedBTTVEmotes = emoteCacher.bttv.get(channelName);
+	const cachedFFZEmotes = emoteCacher.ffz.get(channelName);
 	if (platform === "twitch" && channelName && cachedBTTVEmotes && cachedFFZEmotes) {
-		const { bttvEmotes, bttvRegex } = cachedBTTVEmotes;
-		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;
-		cachedBTTVEmotes.messageSent = true;
-		cachedFFZEmotes.messageSent = true;
-		setDurationTimeout(() => {
-			cachedBTTVEmotes.messageSent = false;
-			cachedFFZEmotes.messageSent = false;
-		}, emoteRefresh.multiply(1.5));
-		dirty = dirty.replace(
-			bttvRegex,
-			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
-		);
-		dirty = dirty.replace(ffzRegex, name => `<img src="${ffzEmotes[name]}#emote" class="emote" title=${name}>`);
+		const { emotes: bttvEmotes, regex: bttvRegex } = cachedBTTVEmotes;
+		const { emotes: ffzEmotes, regex: ffzRegex } = cachedFFZEmotes;
+		emoteCacher.invalidate("bttv", channelName);
+		emoteCacher.invalidate("ffz", channelName);
+		dirty = dirty.replace(bttvRegex, (name: string) => getBttvUrl(bttvEmotes, name));
+		dirty = dirty.replace(ffzRegex, (name: string) => getFfzUrl(ffzEmotes, name));
 	} else if (platform === "discord") {
-		dirty = dirty.replace(customEmojiRegex, (match, p1, p2, p3) => {
-			return `<img alt="${p2 ? p1.slice(1) : p1}" title="${
-				p2 ? p1.slice(1) : p1
-			}" class="emote" src="https://cdn.discordapp.com/emojis/${p3}.${p2 ? "gif" : "png"}?v=1">`;
-		});
+		dirty = dirty.replace(customEmojiRegex, (match, part1, part2, part3) => getDiscordEmoteUrl(part1, part2, part3));
 	}
 	return dirty;
 };
 
-export const parseEmotes = (message, emotes) => {
-	const emoteIds = Object.keys(emotes);
-	const emoteStart = emoteIds.reduce((starts, id) => {
-		emotes[id].forEach(startEnd => {
+export const parseEmotes = (message: string, emotes: Record<string, string[]>) => {
+	const emoteEntries = Object.entries(emotes);
+	const emoteStartPositionToData = emoteEntries.reduce((starts, [id, emotePositions]) => {
+		emotePositions.forEach(startEnd => {
 			const [start, end] = startEnd.split("-").map(Number);
 			starts[start] = {
-				emoteUrl: `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/3.0" class="emote"`,
+				emoteUrl: getTwitchEmoteUrl(id),
 				end: end,
 			};
 		});
 		return starts;
-	}, {});
-	const parts = Array.from(message);
-	const emoteNames = {};
-	let emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/gi;
-	let emojiDetected = 0;
-	for (let i = 0; i < parts.length; i++) {
-		const emoteInfo = emoteStart[i];
-		emojiDetected += (parts[i] as any).length - 1;
-		if (emoteInfo) {
-			emoteNames[message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)] =
-				emoteInfo.emoteUrl + ` title="${message.slice(i + emojiDetected, emoteInfo.end + 1 + emojiDetected)}">`;
-		}
+	}, {} as Record<number, { emoteUrl: string; end: number }>);
+
+	const messageChars = Array.from(message);
+	const emoteImageTags = {};
+	let multiUnicodeSymbolsDetected = 0;
+	for (let i = 0; i < messageChars.length; i++) {
+		// the way array.from works for a string can result in certain characters having a length greater than 1 if they are composed of more than one unicode codepoint.
+		// this is relevant because of emojis
+		multiUnicodeSymbolsDetected += messageChars[i].length - 1;
+
+		const emoteInfo = emoteStartPositionToData[i];
+		if (!emoteInfo) continue;
+
+		const emoteName = message.slice(i + multiUnicodeSymbolsDetected, emoteInfo.end + 1 + multiUnicodeSymbolsDetected);
+		emoteImageTags[emoteName] = `<img src="${emoteInfo.emoteUrl}" class="emote" title="${emoteName}">`;
 	}
-	return emoteNames;
+	return emoteImageTags;
 };
 
-// TODO: fix bugs
 export const replaceTwitchEmotes = (message, original, emotes) => {
 	const emoteNames = parseEmotes(original, emotes);
-	for (let name in emoteNames) {
-		message = message.replace(new RegExp(`(?<=\\W|^)(${cleanRegex(name)})(?=\\W|$)`, "gm"), emoteNames[name]);
+	for (const name in emoteNames) {
+		message = message.replace(new RegExp(`(?<=\\W|^)(${escapeRegexSpecialCharacters(name)})(?=\\W|$)`, "gm"), emoteNames[name]);
 	}
 	return message;
 };

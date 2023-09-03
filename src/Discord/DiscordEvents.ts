@@ -1,6 +1,8 @@
+import { Client } from "discord.js";
 import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
+import Server from "socket.io";
 
 import { DiscordMessageModel } from "../models/message.model";
 // TODO: move to firebase db
@@ -16,7 +18,7 @@ import ReactionRoles from "./Reaction Manager";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
-export default async (client, io) => {
+export default async (client: Client & any, io: Server.Server) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {

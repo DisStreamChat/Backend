@@ -10,7 +10,7 @@ export * from "./settingFunctions";
 export * from "./moderationFuntions";
 export * from "./levelingFunctions";
 export * from "./permissionFunctions";
-export * from "./DiscordFunctions";
+export * from "../../Discord/DiscordFunctions";
 
 //@ts-ignore
 String.prototype.capitalize = function () {
@@ -30,21 +30,19 @@ export const walkSync = (files, fileDir, fileList = []) => {
 	return fileList;
 };
 
-export const cleanRegex = function (str) {
+export const escapeRegexSpecialCharacters = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-export const Random = (min, max?: number) => {
+export function random(min, max?: number) {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
 	}
 	if (!max && min) {
-		return Random(0, min);
+		return random(0, min);
 	}
 	return Math.random() * (max - min) + min;
-};
-
-export const hoursToMillis = hrs => hrs * 3600000;
+}
 
 export const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
 

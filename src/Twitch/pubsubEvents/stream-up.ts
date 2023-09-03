@@ -3,7 +3,7 @@ import { firestore } from "firebase-admin";
 
 import { Duration, setDurationInterval, setDurationTimeout } from "../../utils/duration.util";
 import { log } from "../../utils/functions/logging";
-import { DiscordClient, TwitchApiClient as Api } from "../../utils/initClients";
+import { clientManager } from "../../utils/initClients";
 
 interface StreamModel {
 	user_name: string;
@@ -21,7 +21,7 @@ const getStream = (channel_name): Promise<StreamModel> => {
 		const intervalId = setDurationInterval(async () => {
 			log("fetching stream");
 			const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${channel_name}`;
-			const streamDataResponse = await Api.fetch(apiUrl);
+			const streamDataResponse = await clientManager.twitchApiClient.fetch(apiUrl);
 			const streamData = streamDataResponse.data;
 			const stream = streamData[0];
 			if (stream) {
@@ -55,7 +55,7 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 
 	for (const server of serversToNofiyData) {
 		try {
-			const notifyBot = bots.get(server.docId) || DiscordClient;
+			const notifyBot = bots.get(server.docId) || clientManager.discordClient;
 
 			const notifyChannelId = server["notification-channels"][data.id];
 
