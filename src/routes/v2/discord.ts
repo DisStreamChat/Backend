@@ -1,16 +1,17 @@
-import express from "express";
-import { validateRequest } from "../../middleware";
-import { getProfilePicture } from "../../utils/functions/users";
-const router = express.Router();
-
-import sha1 from "sha1";
-import fetch from "node-fetch";
-import admin, { auth, firestore } from "firebase-admin";
-import { getUserInfo } from "../../utils/DiscordClasses";
-import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
 import { MessageEmbed, TextChannel } from "discord.js";
+import express from "express";
+import admin, { auth, firestore } from "firebase-admin";
+import fetch from "node-fetch";
+import sha1 from "sha1";
+
+import { validateRequest } from "../../middleware";
+import { getUserInfo } from "../../utils/DiscordClasses";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
+import { getProfilePicture } from "../../utils/functions/users";
+import { DiscordClient, DiscordOauthClient } from "../../utils/initClients";
+
+const router = express.Router();
 
 // get invite link to our discord
 router.get("/", (req, res) => {

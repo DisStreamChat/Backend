@@ -1,5 +1,6 @@
-import { resolveUser, formatFromNow } from "../../../utils/functions";
-import { MessageEmbed, Collection } from "discord.js";
+import { Collection, MessageEmbed } from "discord.js";
+
+import { formatFromNow, resolveUser } from "../../../utils/functions";
 
 export default {
 	name: "userinfo",

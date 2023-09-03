@@ -1,6 +1,7 @@
-import { abs, floor, getXp } from "./levelingFunctions";
-import svg2img from "svg2img";
 import { GuildMember } from "discord.js";
+import svg2img from "svg2img";
+
+import { abs, floor, getXp } from "./levelingFunctions";
 
 const bufferifySVG = (svg: string, opts?: any): Promise<Buffer> => {
 	return new Promise((res, rej) =>

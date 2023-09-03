@@ -1,5 +1,5 @@
-import setupLogging from "./utils/setupLogging";
 import { logUpdate } from "./utils";
+import setupLogging from "./utils/setupLogging";
 
 const ignoredDifferences = ["permissionOverwrites"];
 

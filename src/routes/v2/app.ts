@@ -1,5 +1,5 @@
-;
 import express from "express";
+
 const router = express.Router();
 
 router.get("/download", async (req, res) => {
@@ -13,5 +13,4 @@ router.get("/download", async (req, res) => {
 	res.redirect(json[0].assets[0].browser_download_url);
 });
 
-
-export default router
+export default router;

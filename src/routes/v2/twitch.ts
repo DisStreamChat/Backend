@@ -1,15 +1,21 @@
 import express from "express";
-import { validateRequest } from "../../middleware";
-import { getProfilePicture } from "../../utils/functions/users";
-import sha1 from "sha1";
+import { auth, firestore } from "firebase-admin";
 import fetch from "node-fetch";
-import { firestore, auth } from "firebase-admin";
-import TwitchApi from "twitchio-js";
+import sha1 from "sha1";
 import tmi from "tmi.js";
-import { TwitchClient, TwitchApiClient as Api, KrakenApiClient as KrakenApi } from "../../utils/initClients";
-import { getFfzEmotes, getBttvEmotes, subscribeToFollowers } from "../../utils/functions/TwitchFunctions";
+import TwitchApi from "twitchio-js";
+
+import { validateRequest } from "../../middleware";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
+import {
+    getBttvEmotes, getFfzEmotes, subscribeToFollowers
+} from "../../utils/functions/TwitchFunctions";
+import { getProfilePicture } from "../../utils/functions/users";
+import {
+    KrakenApiClient as KrakenApi, TwitchApiClient as Api, TwitchClient
+} from "../../utils/initClients";
+
 const router = express.Router();
 const sevenDays = 604800000;
 

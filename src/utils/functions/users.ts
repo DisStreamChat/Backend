@@ -1,5 +1,3 @@
-;
-
 import { DiscordClient, TwitchApiClient } from "../initClients";
 
 export const getProfilePicture = async (platform, username) => {
@@ -13,5 +11,5 @@ export const getProfilePicture = async (platform, username) => {
 	if (!profilePicture) {
 		throw new Error("invalid profile picture or platform");
 	}
-	return profilePicture
+	return profilePicture;
 };

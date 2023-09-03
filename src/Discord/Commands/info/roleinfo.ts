@@ -1,6 +1,9 @@
-import { resolveRole, convertDiscordRoleColor, formatFromNow, getDiscordSettings } from "../../../utils/functions";
 import { MessageEmbed } from "discord.js";
 import admin from "firebase-admin";
+
+import {
+    convertDiscordRoleColor, formatFromNow, getDiscordSettings, resolveRole
+} from "../../../utils/functions";
 
 export default {
 	name: "roleinfo",
@@ -14,9 +17,9 @@ export default {
 		if (!role) return msg.channel.send(":x: Invalid Role");
 
 		const settings = await getDiscordSettings({ guild: msg.guild.id, client: bot });
-		const roleGuildRef = await admin.firestore().collection("roleManagement").doc(msg.guild.id).get()
-		const roleData = roleGuildRef.data()
-		const descriptions = roleData?.descriptions?.roles
+		const roleGuildRef = await admin.firestore().collection("roleManagement").doc(msg.guild.id).get();
+		const roleData = roleGuildRef.data();
+		const descriptions = roleData?.descriptions?.roles;
 		const description = descriptions?.[`${role.id}=${JSON.stringify(role)}`] || "This Role has no description";
 
 		const createdAt = formatFromNow(role.createdAt);

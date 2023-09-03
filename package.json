@@ -33,6 +33,7 @@
 	"dependencies": {
 		"body-parser": "^1.19.0",
 		"call-bind": "^1.0.2",
+		"concurrently": "^8.2.1",
 		"cors": "^2.8.5",
 		"crypto": "^1.0.1",
 		"date-fns": "^2.14.0",

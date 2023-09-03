@@ -1,10 +1,7 @@
-import {firestore} from "firebase-admin";
-import { getDiscordSettings, 
-	// informMods, 
-	// warn, 
-	// hasDiscordInviteLink 
-} from "../../../utils/functions";
 import getUrls from "extract-urls";
+import { firestore } from "firebase-admin";
+
+import { getDiscordSettings } from "../../../utils/functions";
 
 export default async (message, client) => {
 	const settings = await getDiscordSettings({ client, guild: message.guild.id });

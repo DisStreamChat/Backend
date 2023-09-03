@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
-dotenv.config();
-import TwitchEvents from "./Twitch/TwitchEvents";
-import DiscordEvents from "./Discord/DiscordEvents";
-import { log } from "./utils/functions/logging";
-import { sockets } from "./Sockets";
-import { DiscordClient, TwitchClient, customBots } from "./utils/initClients";
-import { initializeApp, credential } from "firebase-admin";
-import { io, server, app } from "./app";
+import { credential, initializeApp } from "firebase-admin";
 
+import { app, io, server } from "./app";
+import DiscordEvents from "./Discord/DiscordEvents";
+import { sockets } from "./Sockets";
+import TwitchEvents from "./Twitch/TwitchEvents";
+import { log } from "./utils/functions/logging";
+import { customBots, DiscordClient, TwitchClient } from "./utils/initClients";
+
+dotenv.config();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SETUP
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

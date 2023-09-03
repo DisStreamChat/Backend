@@ -1,23 +1,19 @@
+// the admin app has already been initialized in routes/index.js
+import admin from "firebase-admin";
 import sha1 from "sha1";
 import uuidv1 from "uuidv1";
 
-// get functions used to do things like strip html and replace custom discord emojis with the url to the image
-import { formatMessage } from "../utils/messageManipulation";
-
-// the admin app has already been initialized in routes/index.js
-import admin from "firebase-admin";
-
+import { TwitchMessageModel } from "../models/message.model";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
-
-import CommandHandler from "./CommandHandler";
-import { hoursToMillis } from "../utils/functions";
-
-import { TwitchApiClient as Api } from "../utils/initClients";
-import pubSub from "./pubsubEvents";
-import { TwitchMessageModel } from "../models/message.model";
-import { sendMessage } from "../utils/sendMessage";
+import { Duration, setDurationInterval, setDurationTimeout } from "../utils/duration.util";
 import { log } from "../utils/functions/logging";
+import { TwitchApiClient as Api } from "../utils/initClients";
+// get functions used to do things like strip html and replace custom discord emojis with the url to the image
+import { formatMessage } from "../utils/messageManipulation";
+import { sendMessage } from "../utils/sendMessage";
+import CommandHandler from "./CommandHandler";
+import pubSub from "./pubsubEvents";
 
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
@@ -103,28 +99,6 @@ export default (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`).emit("chatmessage", messageObject);
 	});
 
-	// currently doesn't work
-	TwitchClient.on("hosted", async (channel, username, viewers, autohost) => {
-		if (autohost) return;
-		const channelName = channel.slice(1).toLowerCase();
-		// if (!io.hasOwnProperty(channelName)) return;
-		const theMessage = `${username} is hosting with ${viewers} viewer${viewers > 1 ? "s" : ""}`;
-		const messageObject = {
-			displayName: "DisStreamChat",
-			avatar: DisStreamChatProfile,
-			body: theMessage,
-			platform: "twitch",
-			messageId: "raid",
-			uuid: uuidv1(),
-			id: uuidv1(),
-			badges: {},
-			sentAt: Date.now(),
-			userColor: "#ff0029",
-		};
-		if (messageObject.body.length <= 0) return;
-		const _ = [...io[channelName]].forEach(async s => await s.emit("chatmessage", messageObject));
-	});
-
 	TwitchClient.on("message", async (channel, tags, message, self) => {
 		// Ignore echoed messages and commands.
 		if (!["chat", "action"].includes(tags["message-type"])) return;
@@ -136,11 +110,7 @@ export default (TwitchClient, io, app) => {
 			CommandHandler(message, TwitchClient, channelName);
 		}
 
-		// get all possible versions of the message with all variations of the message filters
-		// const plainMessage = await formatMessage(message, "twitch", tags);
 		let HTMLCleanMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, channelName });
-		// const censoredMessage = await formatMessage(message, "twitch", tags, { censor: true });
-		// const HTMLCensoredMessage = await formatMessage(message, "twitch", tags, { HTMLClean: true, censor: true });
 
 		// get all badges for the user that sent the messages put them in an object
 		const badges = await getBadges(channelName, tags);
@@ -218,8 +188,8 @@ export default (TwitchClient, io, app) => {
 		await getCustomCheerMotes();
 		clearInterval(customCheerMoteID);
 		clearInterval(globalCheerMoteID);
-		customCheerMoteID = setInterval(getCustomCheerMotes, hoursToMillis(4));
-		globalCheerMoteID = setInterval(getGlobalCheerMotes, hoursToMillis(24));
+		customCheerMoteID = setDurationInterval(getCustomCheerMotes, Duration.fromHours(4));
+		globalCheerMoteID = setDurationInterval(getGlobalCheerMotes, Duration.fromHours(24));
 	};
 	getAllCheerMotes();
 
@@ -350,7 +320,7 @@ export default (TwitchClient, io, app) => {
 		io.in(`twitch-${channelName}`)("chatmessage", messageObject);
 	});
 
-	let giftTimeout = null;
+	let giftTimeout: NodeJS.Timeout = null;
 	let lastGifter = "";
 	let lastGiftAmount = 0;
 	let allRecipients = ``;
@@ -370,7 +340,7 @@ export default (TwitchClient, io, app) => {
 			lastGiftAmount = 1;
 			allRecipients = `@${recipient}`;
 		}
-		giftTimeout = setTimeout(async () => {
+		giftTimeout = setDurationTimeout(async () => {
 			let theMessage = ``;
 
 			if (subTypes[plan]) {
@@ -396,7 +366,7 @@ export default (TwitchClient, io, app) => {
 
 			lastGiftAmount = 0;
 			allRecipients = ``;
-		}, 1500);
+		}, Duration.fromSeconds(1.5));
 	});
 
 	TwitchClient.on("resub", async (channel, username, months, message, tags, { prime, plan, planName }) => {
@@ -570,9 +540,9 @@ export default (TwitchClient, io, app) => {
 						};
 
 						io.in(`twitch-${streamer}`).emit("chatmessage", messageObject);
-						setTimeout(() => {
+						setDurationTimeout(() => {
 							TwitchClient.join(streamer).catch();
-						}, 1000);
+						}, Duration.fromSeconds(1));
 					}
 					res.json("success");
 				}

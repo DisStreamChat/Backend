@@ -1,4 +1,5 @@
 import { MessageEmbed } from "discord.js";
+
 import setupLogging from "./utils/setupLogging";
 
 export default async (channel, client) => {

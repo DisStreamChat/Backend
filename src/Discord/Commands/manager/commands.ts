@@ -68,10 +68,12 @@ export default {
 					.setColor("#ee1111")
 					.setTitle("Invalid Param")
 					.setAuthor(client.user.tag, client.user.displayAvatarURL())
-					.setDescription(":x: Invalid parameter specified, use !help commands to get help on commands. \nManage commands at: https://www.disstreamchat.com/#/dashboard/discord/customcommands")
+					.setDescription(
+						":x: Invalid parameter specified, use !help commands to get help on commands. \nManage commands at: https://www.disstreamchat.com/#/dashboard/discord/customcommands"
+					)
 					.addField("Valid Params", "`add`, `delete`")
 					.setFooter(`DisStreamChat Custom Commands`)
-					.setTimestamp(new Date())
+					.setTimestamp(new Date());
 				await message.channel.send(errorEmbed);
 		}
 	},

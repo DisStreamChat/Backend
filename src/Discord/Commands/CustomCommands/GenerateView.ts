@@ -1,4 +1,4 @@
-import { Random, isNumeric } from "../../../utils/functions";
+import { isNumeric, Random } from "../../../utils/functions";
 
 export default ({ message, args }) => {
 	const fullArgs = args.join(" ");

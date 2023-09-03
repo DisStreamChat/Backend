@@ -1,7 +1,8 @@
 import { firestore } from "firebase-admin";
-import setupLogging from "./utils/setupLogging";
-import { logUpdate } from "./utils";
+
 import { log } from "../../utils/functions/logging";
+import { logUpdate } from "./utils";
+import setupLogging from "./utils/setupLogging";
 
 export default async (oldUser, newUser, DiscordClient) => {
 	const serversToLog = await firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();

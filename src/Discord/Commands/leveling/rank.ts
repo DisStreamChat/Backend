@@ -1,7 +1,7 @@
-import { resolveUser, generateRankCard } from "../../../utils/functions";
 import { Message, MessageAttachment, TextChannel } from "discord.js";
-
 import admin from "firebase-admin";
+
+import { generateRankCard, resolveUser } from "../../../utils/functions";
 
 export default {
 	name: "rank",
@@ -32,7 +32,7 @@ export default {
 				await admin.firestore().collection("Streamers").where("discordId", "==", user.id).get()
 			).docs[0]?.data?.();
 		}
-		
+
 		if (!userData) userData = { xp: 0, level: 0, rank: 100000 };
 		const sorted = (
 			await admin.firestore().collection("Leveling").doc(message.guild.id).collection("users").orderBy("xp", "desc").get()

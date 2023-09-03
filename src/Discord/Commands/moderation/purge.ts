@@ -1,8 +1,7 @@
-import {
-	sleep,
-	hasDiscordInviteLink
-} from "../../../utils/functions";
 import getUrls from "extract-urls";
+
+import { Duration, setDurationTimeout } from "../../../utils/duration.util";
+import { hasDiscordInviteLink, sleep } from "../../../utils/functions";
 
 const fetchAmountfromId = async (message, id) => {
 	let after;
@@ -22,9 +21,9 @@ const fetchAmountfromId = async (message, id) => {
 		amount = messages.findIndex(msg => msg.id === messageToDelete.id) + 1;
 	} else {
 		const res = await message.channel.send(":x: message not found or is more than 1000 messages away");
-		setTimeout(() => {
+		setDurationTimeout(() => {
 			res.delete();
-		}, 300);
+		}, Duration.fromMilliseconds(300));
 	}
 	return amount;
 };
@@ -171,10 +170,10 @@ export default {
 		const messages = await fetchMessages(message, amount, filter);
 		await purgeMessages(messages, message);
 		const msg = await message.channel.send(`Deleted ${messages.length - 1} message(s)`);
-		setTimeout(() => {
+		setDurationTimeout(() => {
 			msg.delete().then(() => {
 				client.deleter = null;
 			});
-		}, 3000);
+		}, Duration.fromSeconds(3));
 	},
 };

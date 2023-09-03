@@ -1,5 +1,6 @@
 import { MessageEmbed } from "discord.js";
-import { resolveUser, formatFromNow } from "../../../utils/functions";
+
+import { resolveUser } from "../../../utils/functions";
 
 export default {
 	name: "ban",
@@ -12,8 +13,8 @@ export default {
 	execute: async (message, args, client) => {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
-        }
-        let member = await resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
+		}
+		let member = await resolveUser(message, args.join(" ").replace(/[\\<>@#&!]/g, ""));
 		if (!member?.bannable) {
 			return await message.channel.send(new MessageEmbed().setDescription(`:x: Unable to ban ${member}`));
 		}

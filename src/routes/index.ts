@@ -1,25 +1,26 @@
-import express from "express";
-const router = express.Router();
-import sha1 from "sha1";
-import fetch from "node-fetch";
-import TwitchApi from "twitchio-js";
-import { firestore, auth } from "firebase-admin";
-import { getUserInfo } from "../utils/DiscordClasses";
-import {
-	DiscordClient,
-	TwitchClient,
-	TwitchApiClient as Api,
-	KrakenApiClient as KrakenApi,
-	DiscordOauthClient,
-} from "../utils/initClients";
-import { join } from "path";
 import { MessageEmbed, TextChannel } from "discord.js";
-import { generateRankCard } from "../utils/functions";
-import { validateRequest } from "../middleware";
-import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
+import express from "express";
+import { auth, firestore } from "firebase-admin";
+import fetch from "node-fetch";
+import { join } from "path";
+import sha1 from "sha1";
 import tmi from "tmi.js";
-import { log } from "../utils/functions/logging";
+import TwitchApi from "twitchio-js";
 
+import { validateRequest } from "../middleware";
+import { getUserInfo } from "../utils/DiscordClasses";
+import { Duration, setDurationTimeout } from "../utils/duration.util";
+import { generateRankCard } from "../utils/functions";
+import { log } from "../utils/functions/logging";
+import {
+    getBttvEmotes, getFfzEmotes, initWebhooks, subscribeToFollowers
+} from "../utils/functions/TwitchFunctions";
+import {
+    DiscordClient, DiscordOauthClient, KrakenApiClient as KrakenApi, TwitchApiClient as Api,
+    TwitchClient
+} from "../utils/initClients";
+
+const router = express.Router();
 const sevenDays = 604800000;
 
 initWebhooks();
@@ -509,13 +510,13 @@ router.get("/chatters", async (req, res, next) => {
 		json.chatter_count = count;
 		res.json(json);
 	} catch (err) {
-		setTimeout(() => {
+		setDurationTimeout(() => {
 			try {
 				TwitchClient.join(req.query.user);
 			} catch (err) {
 				log(`Error getting channels: ${err}`);
 			}
-		}, 1000);
+		}, Duration.fromSeconds(1));
 		res.json({ message: err.message, status: 500 });
 	}
 });

@@ -1,6 +1,6 @@
-;
 import express from "express";
 import { join } from "path";
+
 const router = express.Router();
 
 router.get("/twitch", async (req, res, next) => {

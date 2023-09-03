@@ -1,5 +1,7 @@
 import { MessageEmbed } from "discord.js";
 
+import { Duration, setDurationTimeout } from "../../../utils/duration.util";
+
 export default async (command, message, client) => {
 	const member = message.member;
 	const author = message.author;
@@ -28,10 +30,10 @@ export default async (command, message, client) => {
 		}
 		const notification = await message.channel.send(embed);
 		if (command.deleteUsage) {
-			setTimeout(() => {
+			setDurationTimeout(() => {
 				notification.delete();
 				message.delete();
-			}, 2500);
+			}, Duration.fromMinutes(4));
 		}
 	}
 };

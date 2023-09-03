@@ -1,19 +1,19 @@
 import { firestore } from "firebase-admin";
+
+import { Duration, setDurationTimeout } from "../../../utils/duration.util";
 import { getDiscordSettings, getLoggingSettings } from "../../../utils/functions";
 
 let defaultLogging;
-setTimeout(() => {
+setDurationTimeout(() => {
 	(async () => {
 		firestore()
 			.collection("defaults")
 			.doc("loggingEvents")
 			.onSnapshot(snapshot => {
-				const data = snapshot.data();
-				
-				defaultLogging = data;
+				const data = (defaultLogging = snapshot.data());
 			});
 	})();
-}, 1000);
+}, Duration.fromSeconds(1));
 
 export default async (guild, id, client): Promise<[any[], boolean]> => {
 	let channelIds = [];

@@ -12,8 +12,8 @@ export default {
 	execute: async (message, args, client) => {
 		if (args.length === 0) {
 			return await message.channel.send(":x: Missing User");
-        }
-        let user
+		}
+		let user;
 		try {
 			user = (await message.guild.fetchBan(args[0].replace(/[\\<>@#&!]/g, "")))?.user;
 			if (!user) {
@@ -21,7 +21,7 @@ export default {
 			}
 		} catch (err) {
 			return await message.channel.send(":x: User was not banned or doesn't exist");
-        }
+		}
 		const nickname = user.username;
 		await message.guild.members.unban(user.id);
 		const embed = new MessageEmbed()

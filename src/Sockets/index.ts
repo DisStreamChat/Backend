@@ -1,11 +1,11 @@
-import Socket from "socketio-promises";
-import { log } from "../utils/functions/logging";
-import { getUserClient } from "./userClients";
-
-// get the initialized clients from another file
-import { DiscordClient, TwitchClient } from "../utils/initClients";
 import admin from "firebase-admin";
 import Server from "socket.io";
+import Socket from "socketio-promises";
+
+import { log } from "../utils/functions/logging";
+// get the initialized clients from another file
+import { DiscordClient, TwitchClient } from "../utils/initClients";
+import { getUserClient } from "./userClients";
 
 export const sockets = (io: Server.Server) => {
 	log("setting up sockets", { writeToConsole: true });

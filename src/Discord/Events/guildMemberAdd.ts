@@ -1,7 +1,8 @@
-import { formatFromNow } from "../../utils/functions";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
+
+import { formatFromNow } from "../../utils/functions";
 import welcomeMessage from "./misc/WelcomeMessage";
+import setupLogging from "./utils/setupLogging";
 
 export default async (member, client) => {
 	const guild = member.guild;

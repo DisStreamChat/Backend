@@ -33,21 +33,27 @@ module.exports = {
 				);
 			}
 
-			let member = await resolveUser(message, args.slice(0, -1).join(" ").replace(/[\\<>@#&!]/g, ""));
+			let member = await resolveUser(
+				message,
+				args
+					.slice(0, -1)
+					.join(" ")
+					.replace(/[\\<>@#&!]/g, "")
+			);
 			if (!member) {
 				return await message.channel.send(":x: Invalid User");
 			}
 			const nickname = member.user.username;
 			const settings = await getDiscordSettings({ guild: message.guild.id, client });
-			const mutedRole = await message.guild.roles.fetch(settings.mutedRole)
+			const mutedRole = await message.guild.roles.fetch(settings.mutedRole);
 			await member.roles.add(mutedRole);
-			console.log(member.roles.cache.array().map(role => role.name))
+			console.log(member.roles.cache.array().map(role => role.name));
 
-			const muteTime = args[args.length-1];
+			const muteTime = args[args.length - 1];
 			const unit = muteTime.slice(-1);
 			const duration = +muteTime.slice(0, -1);
 			const muteTimeMillis = duration * timeMap[unit];
-			console.log(muteTimeMillis, duration, timeMap[unit], unit)
+			console.log(muteTimeMillis, duration, timeMap[unit], unit);
 
 			setTimeout(() => {
 				member.roles.remove(mutedRole);

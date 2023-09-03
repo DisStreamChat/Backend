@@ -1,6 +1,7 @@
 import { JSDOM } from "jsdom";
-import URL from "url-parse";
 import nodeFetch from "node-fetch";
+import URL from "url-parse";
+
 import { log } from "./logging";
 
 export const warn = (member, guild, client, message) => {};

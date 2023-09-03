@@ -1,11 +1,13 @@
-import { Client } from "discord.js";
-import tmi from "tmi.js";
-import { initializeApp, credential, firestore } from "firebase-admin";
-//@ts-ignore
-import TwitchApi from "twitchio-js";
 //@ts-ignore
 import DiscordOauth2 from "discord-oauth2";
+import { Client } from "discord.js";
+import { credential, firestore, initializeApp } from "firebase-admin";
+import tmi from "tmi.js";
+//@ts-ignore
+import TwitchApi from "twitchio-js";
+
 import { cycleBotStatus } from "../utils/functions";
+import { Duration } from "./duration.util";
 import { log } from "./functions/logging";
 
 // get the serviceAccount details from the base64 string stored in environment variables
@@ -16,12 +18,8 @@ initializeApp({
 	credential: credential.cert(serviceAccount),
 });
 
-// initialize the discord client
 export const DiscordClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 DiscordClient.login(process.env.BOT_TOKEN);
-
-// import DBL "dblapi.js";
-// const dbl = new DBL(process.env.TOP_GG_TOKEN, DiscordClient);
 
 let serverLength = 0;
 
@@ -40,11 +38,10 @@ DiscordClient.on("ready", async () => {
 				activity: { type: "WATCHING", name: `@${DiscordClient.user.username} help` },
 			},
 		],
-		30000
+		Duration.fromMinutes(0.5)
 	);
 });
 
-// initialize the twitch client
 export const TwitchClient = new tmi.Client({
 	options: { debug: process.env.TWITCH_DEBUG == "true" },
 	connection: {
@@ -84,7 +81,6 @@ export const getCustomBots = async () => {
 		});
 		customBots.set(bot.id, botClient);
 	}
-	// exports.customBots = customBots
 	return customBots;
 };
 

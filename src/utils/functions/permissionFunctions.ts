@@ -1,6 +1,7 @@
+import { Permissions } from "discord.js";
+
 // @ts-ignore
 import adminIds from "../../ranks.json";
-import { Permissions } from "discord.js";
 
 export const ArrayAny = (arr1, arr2) => arr1.some(v => arr2.indexOf(v) >= 0);
 
