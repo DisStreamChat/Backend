@@ -1,6 +1,8 @@
 import { firestore } from "firebase-admin";
-import { TwitchApiClient as Api } from "../initClients";
 import fetch from "node-fetch";
+
+import { Duration, setDurationInterval } from "../duration.util";
+import { TwitchApiClient as Api } from "../initClients";
 import { log } from "./logging";
 
 export async function getBttvEmotes(channelName) {
@@ -111,24 +113,24 @@ export const initWebhooks = async () => {
 			allConnections = docs.filter(doc => (doc as any).channelId != undefined);
 		});
 
-	const sevenDays = 604800000;
-	const tenDays = 8.64e8;
+	const sevenDays = Duration.fromDays(7);
+	const tenDays = Duration.fromDays(10);
 
 	await new Promise(resolve => setTimeout(resolve, 1000));
 	try {
-		const lastConnection = (await firestore().collection("webhookConnections").get()).docs
+		const lastConnection: number = (await firestore().collection("webhookConnections").get()).docs
 			.find(doc => doc.id === "lastConnection")
 			.data().value;
 
 		const now = new Date().getTime();
-		const nextConnectionTime = lastConnection + sevenDays;
+		const nextConnectionTime = lastConnection + sevenDays.toMilliseconds();
 		const timeUntilNextConnection = Math.max(nextConnectionTime - now, 0);
 		const updateConnections = () => {
 			const value = new Date().getTime();
 			allConnections.forEach(async data => {
 				const id = data.channelId;
-				await unsubscribeFromFollowers(id, tenDays);
-				await subscribeToFollowers(id, tenDays);
+				await unsubscribeFromFollowers(id, tenDays.toMilliseconds());
+				await subscribeToFollowers(id, tenDays.toMilliseconds());
 			});
 			firestore().collection("webhookConnections").doc("lastConnection").update({
 				value,
@@ -136,7 +138,7 @@ export const initWebhooks = async () => {
 		};
 		setTimeout(() => {
 			updateConnections();
-			setInterval(updateConnections, tenDays);
+			setDurationInterval(updateConnections, tenDays);
 		}, timeUntilNextConnection);
 	} catch (err) {
 		log(err);

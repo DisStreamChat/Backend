@@ -1,4 +1,5 @@
 import { firestore } from "firebase-admin";
+
 import { log } from "./logging";
 
 export const getDiscordSettings = async ({ guild, client }) => {

@@ -1,7 +1,8 @@
-import setup from "./setup";
-import { addRole, removeRole } from "./misc";
 import admin from "firebase-admin";
+
 import { log } from "../../utils/functions/logging";
+import { addRole } from "./misc";
+import setup from "./setup";
 
 export default async (member, DiscordClient) => {
 	let { rolesToGive, DMuser } = await setup({ message: { guild: member.guild, id: "member-join" } }, member, true);
@@ -10,10 +11,10 @@ export default async (member, DiscordClient) => {
 	rolesToGive = [...(rolesToGive || []), ...(roleData?.join?.roles || [])];
 	if (!rolesToGive) return;
 	for (const roleToGive of rolesToGive) {
-		try{
+		try {
 			await addRole({ member, role: roleToGive.id || roleToGive, DMuser, DiscordClient });
-		}catch(err){
-			log(err.message, {error: true})
+		} catch (err) {
+			log(err.message, { error: true });
 		}
 	}
 };

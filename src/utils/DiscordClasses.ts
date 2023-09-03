@@ -1,17 +1,18 @@
-import Discord from "discord.js";
 import DiscordOauth2 from "discord-oauth2";
-import fetch from "node-fetch";
+import Discord from "discord.js";
+
 import { DiscordClient } from "../utils/initClients";
+
 const oauth = new DiscordOauth2();
 
 export class DiscordServer {
-	member: string
-	id: string
-	name:string
-	icon: string
-	owner: string
-	permissions: string[]
-	roles: any[]
+	member: string;
+	id: string;
+	name: string;
+	icon: string;
+	owner: string;
+	permissions: string[];
+	roles: any[];
 	constructor(serverObject, user) {
 		this.member = user.id;
 		this.id = serverObject.id;
@@ -33,14 +34,13 @@ export class DiscordServer {
 }
 
 export class DiscordUser {
-
-	refreshToken: string
-	name: string
-	id: string
-	avatar: string
-	profilePicture: string
-	MFA: boolean
-	guilds: any[]
+	refreshToken: string;
+	name: string;
+	id: string;
+	avatar: string;
+	profilePicture: string;
+	MFA: boolean;
+	guilds: any[];
 
 	constructor(userObject, servers, refreshToken) {
 		this.refreshToken = refreshToken;

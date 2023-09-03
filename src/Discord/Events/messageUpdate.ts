@@ -1,7 +1,8 @@
-import { firestore } from "firebase-admin";
 import { MessageEmbed } from "discord.js";
-import setupLogging from "./utils/setupLogging";
+import { firestore } from "firebase-admin";
+
 import { log } from "../../utils/functions/logging";
+import setupLogging from "./utils/setupLogging";
 
 export default async (oldMessage, newMessage, client) => {
 	const guild = newMessage.guild;

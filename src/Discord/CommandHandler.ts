@@ -1,12 +1,13 @@
-import path from "path";
 import fs from "fs";
+import path from "path";
+
+import { Command } from "../utils/classes";
 import { getDiscordSettings, walkSync } from "../utils/functions";
+import customCommandHandler from "./Commands/CustomCommands";
+
 const commandPath = path.join(__dirname, "Commands");
 const commandFiles = walkSync(fs.readdirSync(commandPath), commandPath);
 const commands = {};
-import customCommandHandler from "./Commands/CustomCommands";
-import { Command } from "../utils/classes";
-
 commandFiles.forEach(async command => {
 	if (command.name.endsWith(".js")) {
 		let { default: commandObj } = require(command.path);

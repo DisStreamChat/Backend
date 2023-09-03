@@ -1,7 +1,10 @@
 import { MessageEmbed } from "discord.js";
-import { TwitchApiClient as Api, DiscordClient } from "../../utils/initClients";
 import { firestore } from "firebase-admin";
+
+import { Duration, setDurationInterval, setDurationTimeout } from "../../utils/duration.util";
 import { log } from "../../utils/functions/logging";
+import { DiscordClient, TwitchApiClient as Api } from "../../utils/initClients";
+
 interface StreamModel {
 	user_name: string;
 	title: string;
@@ -12,10 +15,10 @@ interface StreamModel {
 
 const getStream = (channel_name): Promise<StreamModel> => {
 	return new Promise((res, rej) => {
-		setTimeout(() => {
+		setDurationTimeout(() => {
 			rej("Stream Took Too long");
-		}, 30000 * 5);
-		const intervalId = setInterval(async () => {
+		}, Duration.fromMinutes(3));
+		const intervalId = setDurationInterval(async () => {
 			log("fetching stream");
 			const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${channel_name}`;
 			const streamDataResponse = await Api.fetch(apiUrl);
@@ -25,7 +28,7 @@ const getStream = (channel_name): Promise<StreamModel> => {
 				clearInterval(intervalId);
 				res(stream);
 			}
-		}, 30000);
+		}, Duration.fromSeconds(30));
 	});
 };
 

@@ -1,54 +1,16 @@
 import { firestore } from "firebase-admin";
-import { cleanRegex } from "../utils/functions";
+import linkifyUrls from "linkify-urls";
 import cache from "memory-cache";
+
+import { cleanRegex } from "../utils/functions";
+import { getBttvEmotes, getFfzEmotes } from "../utils/functions/TwitchFunctions";
+import { Duration, setDurationInterval, setDurationTimeout } from "./duration.util";
+import { log } from "./functions/logging";
 
 const customEmojiRegex = /&lt;(([a-z])?:[\w]+:)([\d]+)&gt;/gim;
 const channelMentionRegex = /<#(\d+)>/gm;
 const mentionRegex = /<@([\W\S])([\d]+)>/gm;
 const HTMLStripRegex = /<[^:>]*>/gm;
-import linkifyUrls from "linkify-urls";
-import { getFfzEmotes, getBttvEmotes, subscribeToFollowers, initWebhooks } from "../utils/functions/TwitchFunctions";
-import { log } from "./functions/logging";
-
-// unused, currently
-export const replaceMentions = async msg => {
-	const guild = msg.guild;
-	const { members, roles } = guild;
-	const mentions = [...msg.content.matchAll(mentionRegex)].map(match => ({ prefix: match[1], id: match[2] }));
-	for (const { prefix, id } of mentions) {
-		if (prefix === "!") {
-			const username = (await members.fetch(id)).user.username;
-			msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@" + username);
-		} else if (prefix === "&") {
-			const name = (await roles.fetch(id)).name;
-			msg.content = msg.content.replace(new RegExp(`<@${prefix}${id}>`, "g"), "@" + name);
-		}
-	}
-	return msg;
-};
-
-// unused, currently
-export const replaceChannelMentions = async msg => {
-	const guild = msg.guild;
-	const { channels } = guild;
-	const mentions = [...msg.content.matchAll(channelMentionRegex)].map(match => match[1]);
-	for (const id of mentions) {
-		const name = (await channels.resolve(id)).name;
-		msg.content = msg.content.replace(new RegExp(`<#${id}>`, "g"), "#" + name);
-	}
-	return msg;
-};
-
-// unused, currently
-// export const checkForClash = message => {
-// 	const urlCheck = [...message.matchAll(urlRegex)][0];
-// 	const hasUrl = urlCheck != undefined;
-// 	if (!hasUrl) return;
-// 	const fullUrl = urlCheck[0];
-// 	const codingGameMatch = [...fullUrl.matchAll(/codingame.com\/clashofcode\/clash/g)][0];
-// 	if (codingGameMatch == undefined) return;
-// 	return fullUrl;
-// };
 
 export const getAllEmotes = async () => {
 	if (process.env.BOT_DEV == "true") return;
@@ -72,18 +34,18 @@ export const getAllEmotes = async () => {
 		}
 	}
 };
-const emoteRefresh = 60000 * 10;
-setTimeout(() => {
+const emoteRefresh = Duration.fromMinutes(10);
+setDurationTimeout(() => {
 	console.log("starting emote fetch");
 	getAllEmotes()
 		.then(() => {
-			setInterval(getAllEmotes, emoteRefresh);
+			setDurationInterval(getAllEmotes, emoteRefresh);
 		})
 		.catch(err => {
 			log("error getting emotes " + err.message);
-			setInterval(getAllEmotes, emoteRefresh);
+			setDurationInterval(getAllEmotes, emoteRefresh);
 		});
-}, emoteRefresh / 50);
+}, Duration.fromSeconds(10));
 
 export const formatMessage = async (message, platform, tags, { HTMLClean, channelName }: any = {}) => {
 	let dirty = message.slice();
@@ -106,10 +68,10 @@ export const formatMessage = async (message, platform, tags, { HTMLClean, channe
 		const { ffzEmotes, ffzRegex } = cachedFFZEmotes;
 		cachedBTTVEmotes.messageSent = true;
 		cachedFFZEmotes.messageSent = true;
-		setTimeout(() => {
+		setDurationTimeout(() => {
 			cachedBTTVEmotes.messageSent = false;
 			cachedFFZEmotes.messageSent = false;
-		}, emoteRefresh * 1.5);
+		}, emoteRefresh.multiply(1.5));
 		dirty = dirty.replace(
 			bttvRegex,
 			name => `<img src="https://cdn.betterttv.net/emote/${bttvEmotes[name]}/2x#emote" class="emote" alt="${name}" title=${name}>`
@@ -162,8 +124,6 @@ export const replaceTwitchEmotes = (message, original, emotes) => {
 };
 
 export default {
-	replaceMentions,
-	replaceChannelMentions,
 	formatMessage,
 	replaceTwitchEmotes,
 	customEmojiRegex,

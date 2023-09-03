@@ -1,7 +1,8 @@
-import { GenericMessageType, MessageMap } from "../models/message.model";
-import { io } from "../app";
-import cache from "memory-cache";
 import { firestore } from "firebase-admin";
+import cache from "memory-cache";
+
+import { io } from "../app";
+import { GenericMessageType, MessageMap } from "../models/message.model";
 import { log } from "./functions/logging";
 
 interface SendMessageOptions {

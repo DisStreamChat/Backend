@@ -1,6 +1,6 @@
-import fs from "fs";
-import { promises } from "fs";
+import fs, { promises } from "fs";
 import { join } from "path";
+
 import { DiscordClient } from "../initClients";
 
 const loggingPath = join(__dirname, "../../", "logging");

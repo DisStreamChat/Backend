@@ -1,5 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
+
 import { compare } from "../../../utils/functions";
 
 export const logMessageDelete = (message, channelIds, executor, guild) => {

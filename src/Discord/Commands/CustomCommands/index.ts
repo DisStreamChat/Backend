@@ -1,11 +1,12 @@
 // the admin app has already been initialized in routes/index.js
-import admin from 'firebase-admin';
-import Mustache from 'mustache';
-import prettyMilliseconds from 'pretty-ms';
+import admin from "firebase-admin";
+import Mustache from "mustache";
+import prettyMilliseconds from "pretty-ms";
 
-import { ArrayAny } from '../../../utils/functions';
-import GenerateView from './GenerateView';
-import handleRoleCommand from './handleRoleCommand';
+import { Duration, setDurationTimeout } from "../../../utils/duration.util";
+import { ArrayAny } from "../../../utils/functions";
+import GenerateView from "./GenerateView";
+import handleRoleCommand from "./handleRoleCommand";
 
 Mustache.tags = ["{", "}"];
 // Mustache.escape = text => text
@@ -19,12 +20,12 @@ const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, of
 export default async ({ command, args, message, client }) => {
 	const view = GenerateView({ message, args });
 	const guildRef = await admin.firestore().collection("customCommands").doc(message.guild.id).get();
-	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(message.guild.id).get()
+	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(message.guild.id).get();
 	const guildData = guildRef.data();
-	const roleData = roleGuildRef.data()
-	const roleCommands = roleData?.commands?.commands || {}
+	const roleData = roleGuildRef.data();
+	const roleCommands = roleData?.commands?.commands || {};
 	if (guildData) {
-		for (const [key, value] of Object.entries(({...guildData, ...roleCommands}) as { [key: string]: any })) {
+		for (const [key, value] of Object.entries({ ...guildData, ...roleCommands } as { [key: string]: any })) {
 			if (key === command || command === value.name || value?.aliases?.includes?.(command)) {
 				// check if this command is still cooling down
 				if (value.allowedChannels?.length) {
@@ -49,20 +50,20 @@ export default async ({ command, args, message, client }) => {
 				if (value.permittedRoles) {
 					if (!ArrayAny(value.permittedRoles, roleIds)) {
 						const res = await message.channel.send(":x: You don't have permission to use this command");
-						setTimeout(() => {
+						setDurationTimeout(() => {
 							res.delete();
 							message.delete();
-						}, 2500);
+						}, Duration.fromMinutes(4));
 						return;
 					}
 				}
 				if (value.bannedRoles) {
 					if (ArrayAny(value.bannedRoles, roleIds)) {
 						const res = await message.channel.send(":x: You don't have permission to use this command");
-						setTimeout(() => {
+						setDurationTimeout(() => {
 							res.delete();
 							message.delete();
-						}, 2500);
+						}, Duration.fromMinutes(4));
 						return;
 					}
 				}

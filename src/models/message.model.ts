@@ -28,6 +28,6 @@ export interface TwitchMessageModel extends BaseMessageModel {
 	replyParentMessageUserId: string;
 }
 
-export type GenericMessageType = DiscordMessageModel | TwitchMessageModel
+export type GenericMessageType = DiscordMessageModel | TwitchMessageModel;
 
-export type MessageMap = Map<string, GenericMessageType>
+export type MessageMap = Map<string, GenericMessageType>;

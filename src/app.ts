@@ -1,11 +1,10 @@
+import bodyParser from "body-parser";
+import cors from "cors";
+import crypto from "crypto";
 import express from "express";
+import helmet from "helmet";
 import http from "http";
 import Server from "socket.io";
-
-import cors from "cors";
-import bodyParser from "body-parser";
-import helmet from "helmet";
-import crypto from "crypto";
 
 import root from "./routes/index";
 import v2 from "./routes/v2";

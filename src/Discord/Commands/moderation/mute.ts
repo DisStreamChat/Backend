@@ -1,6 +1,7 @@
 import { MessageEmbed } from "discord.js";
-import { resolveUser } from "../../../utils/functions";
-import { getDiscordSettings } from "../../../utils/functions";
+
+import { Duration, setDurationTimeout } from "../../../utils/duration.util";
+import { getDiscordSettings, resolveUser } from "../../../utils/functions";
 import { log } from "../../../utils/functions/logging";
 
 const timeMap = {
@@ -46,12 +47,12 @@ export default {
 			const mutedRole = await message.guild.roles.fetch(settings.mutedRole);
 			await member.roles.add(mutedRole);
 
-			const muteTime = args[args.length - 1];
+			const muteTime: string = args[args.length - 1];
 			const unit = muteTime.slice(-1);
 			const duration = +muteTime.slice(0, -1);
-			const muteTimeMillis = duration * timeMap[unit];
+			const muteTimeMillis = Duration.fromMilliseconds(duration).multiply(timeMap[unit]);
 
-			setTimeout(() => {
+			setDurationTimeout(() => {
 				member.roles.remove(mutedRole);
 			}, muteTimeMillis);
 

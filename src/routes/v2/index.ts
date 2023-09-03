@@ -1,12 +1,11 @@
-;
 import express from "express";
+
+import appRoutes from "./app";
+import authRoutes from "./auth";
+import discordRoutes from "./discord";
+import twitchRoutes from "./twitch";
+
 const router = express.Router();
-import discordRoutes from "./discord" 
-import twitchRoutes from "./twitch"
-import authRoutes from "./auth"
-import appRoutes from "./app"
-
-
 // default endpoint
 router.get("/", (req, res) => {
 	res.json({
@@ -21,9 +20,9 @@ router.get("/makecoffee", (req, res) => {
 	});
 });
 
-router.use("/discord", discordRoutes)
-router.use("/twitch", twitchRoutes)
-router.use("/auth", authRoutes)
-router.use("/app", appRoutes)
+router.use("/discord", discordRoutes);
+router.use("/twitch", twitchRoutes);
+router.use("/auth", authRoutes);
+router.use("/app", appRoutes);
 
-export default router
+export default router;

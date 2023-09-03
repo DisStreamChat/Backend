@@ -1,5 +1,5 @@
-import prettyMs from "pretty-ms";
 import fetch from "node-fetch";
+import prettyMs from "pretty-ms";
 
 export default {
 	name: "uptime",

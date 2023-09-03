@@ -1,5 +1,5 @@
-import setup from "./setup";
 import { addRole, removeRole } from "./misc";
+import setup from "./setup";
 
 export default async (reaction, user, DiscordClient) => {
 	try {

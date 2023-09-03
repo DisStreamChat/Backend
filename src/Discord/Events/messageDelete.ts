@@ -1,9 +1,11 @@
-import setupLogging from "./utils/setupLogging";
+import { firestore } from "firebase-admin";
+
+import { Duration, sleep } from "../../utils/duration.util";
 import { logMessageDelete } from "./utils";
-import {firestore} from "firebase-admin";
+import setupLogging from "./utils/setupLogging";
 
 export default async (message, DiscordClient) => {
-	await new Promise(res => setTimeout(res, 500));
+	await sleep(Duration.fromSeconds(0.5));
 	const guild = message.guild;
 
 	// get the deleter from the guilds audit log
@@ -15,7 +17,7 @@ export default async (message, DiscordClient) => {
 
 	if (deleteAction.action !== "MESSAGE_DELETE") {
 		executor = message.author;
-	} 
+	}
 
 	const [channelIds, active] = await setupLogging(guild, "messageDelete", DiscordClient);
 

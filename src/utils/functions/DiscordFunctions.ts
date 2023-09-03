@@ -1,7 +1,7 @@
 import { GuildMember } from "discord.js";
 
 export const resolveUser = async (msg, username): Promise<GuildMember> => {
-	if(!username?.length) return null
+	if (!username?.length) return null;
 	const memberCache = msg.guild.members.cache;
 	if (/<@!?\d+>/g.test(username)) {
 		return memberCache.get(msg.mentions.users.first().id);
@@ -18,9 +18,9 @@ export const resolveUser = async (msg, username): Promise<GuildMember> => {
 	if (memberCache.find(member => member.user.username === username)) {
 		return memberCache.find(member => member.user.username === username);
 	}
-	const userFromId = await msg.guild.members.fetch(username)
+	const userFromId = await msg.guild.members.fetch(username);
 	if (userFromId) {
-		return userFromId
+		return userFromId;
 	}
 	return null;
 };

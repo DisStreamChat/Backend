@@ -1,8 +1,9 @@
 //@ts-ignore
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
-
-import { statSync, readdirSync } from "fs";
+import { readdirSync, statSync } from "fs";
 import { join } from "path";
+
+import { Duration, setDurationInterval } from "../duration.util";
 
 export * from "./canvasFunctions";
 export * from "./settingFunctions";
@@ -45,8 +46,6 @@ export const Random = (min, max?: number) => {
 
 export const hoursToMillis = hrs => hrs * 3600000;
 
-export const sleep = async millis => new Promise(resolve => setTimeout(resolve, millis));
-
 export const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
 
 export const isNumeric = value => {
@@ -57,7 +56,7 @@ export const convertDiscordRoleColor = color => (color === "#000000" ? "#FFFFFF"
 
 export const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
 
-export const cycleBotStatus = (bot, statuses, timeout) => {
+export const cycleBotStatus = (bot, statuses, timeout: Duration) => {
 	const setStatus = status => {
 		if (typeof status === "function") {
 			return bot.user.setPresence(status());
@@ -68,7 +67,7 @@ export const cycleBotStatus = (bot, statuses, timeout) => {
 	let currentStatus = 0;
 	setStatus(statuses[currentStatus]);
 
-	setInterval(() => {
+	setDurationInterval(() => {
 		currentStatus += 1;
 		currentStatus = currentStatus % statuses.length;
 		setStatus(statuses[currentStatus]);

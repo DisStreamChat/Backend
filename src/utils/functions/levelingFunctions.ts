@@ -7,17 +7,16 @@ export const getRoleScaling = (roles, scaling) => {
 };
 
 export const max = (...args: number[]): number => {
-	return args.reduce((a, b) => a > b ? a : b)
+	return args.reduce((a, b) => (a > b ? a : b));
 };
 
 export const floor = (number: number): number => {
-	return number | 0
-}
+	return number | 0;
+};
 
 export const abs = (number: number): number => {
-	return number < 0 ? -number : number
-}
-
+	return number < 0 ? -number : number;
+};
 
 export const getLevel = xp => max(0, floor(Math.log(xp - 100)));
 

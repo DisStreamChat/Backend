@@ -1,20 +1,19 @@
-import fs from "fs";
-import { formatMessage } from "../../utils/messageManipulation";
-
-import { walkSync } from "../../utils/functions";
-const commandPath = __dirname;
-const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
 import admin from "firebase-admin";
+import fs from "fs";
 //@ts-ignore
 import TPS from "twitchps";
 import uuidv1 from "uuidv1";
+
+import { walkSync } from "../../utils/functions";
+import { refreshTwitchToken } from "../../utils/functions/auth";
+import { log } from "../../utils/functions/logging";
+import { customBots, TwitchApiClient as Api } from "../../utils/initClients";
+import { formatMessage } from "../../utils/messageManipulation";
+
+const commandPath = __dirname;
+const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
-import { TwitchApiClient as Api } from "../../utils/initClients";
-import { refreshTwitchToken } from "../../utils/functions/auth";
-import { customBots } from "../../utils/initClients";
-import { log } from "../../utils/functions/logging";
-
 const commands = commandFiles.reduce(
 	(acc, cur) => ({
 		...acc,
@@ -119,7 +118,7 @@ const runIo = async io => {
 
 				pubSub.on("channel-points", async data => {
 					try {
-						console.log(data)
+						console.log(data);
 						const { redemption, channel_id } = data;
 						const user = await Api.getUserInfo(channel_id);
 						const channelName = user.login;

@@ -1,11 +1,12 @@
 import { MessageEmbed } from "discord.js";
+
 import { resolveUser } from "../../../utils/functions";
 
 export default {
 	name: "kick",
 	id: "kick",
 	category: "moderation",
-	
+
 	aliases: [],
 	description: "kick a user",
 	usage: ["<user>"],

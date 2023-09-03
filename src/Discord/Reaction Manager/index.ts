@@ -1,7 +1,7 @@
+import MemberAdd from "./GuildMemberAdd";
 //@ts-nocheck
 import ReactionAdd from "./ReactionAdd";
 import ReactionRemove from "./ReactionRemove";
-import MemberAdd from "./GuildMemberAdd";
 
 export default client => {
 	client.on("messageReactionAdd", (...params) => ReactionAdd(...params, client));

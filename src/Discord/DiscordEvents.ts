@@ -1,16 +1,18 @@
-// get functions used to do things like strip html and replace custom discord emojis with the url to the image
-import { formatMessage } from "../utils/messageManipulation";
-import CommandHandler from "./CommandHandler";
-import ReactionRoles from "./Reaction Manager";
+import admin from "firebase-admin";
+import fs from "fs";
+import path from "path";
+
+import { DiscordMessageModel } from "../models/message.model";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
 import { log } from "../utils/functions/logging";
-import { handleLeveling } from "./Leveling";
-import path from "path";
-import fs from "fs";
-import admin from "firebase-admin";
-import { DiscordMessageModel } from "../models/message.model";
+// get functions used to do things like strip html and replace custom discord emojis with the url to the image
+import { formatMessage } from "../utils/messageManipulation";
 import { sendMessage } from "../utils/sendMessage";
+import CommandHandler from "./CommandHandler";
+import { handleLeveling } from "./Leveling";
+import ReactionRoles from "./Reaction Manager";
+
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 

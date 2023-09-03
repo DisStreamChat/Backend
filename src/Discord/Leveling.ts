@@ -2,12 +2,14 @@
 import { MessageEmbed } from "discord.js";
 import admin from "firebase-admin";
 import Mustache from "mustache";
+
+import {
+    ArrayAny, getDiscordSettings, getLevelSettings, getRoleScaling, getXp, Random
+} from "../utils/functions";
+import { log } from "../utils/functions/logging";
 import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation";
 
 Mustache.tags = ["{", "}"];
-
-import { Random, ArrayAny, getXp, getDiscordSettings, getLevelSettings, getRoleScaling } from "../utils/functions";
-import { log } from "../utils/functions/logging";
 
 const generateView = (message, levelingData) => {
 	return {
