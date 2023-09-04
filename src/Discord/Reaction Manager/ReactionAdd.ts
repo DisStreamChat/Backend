@@ -1,3 +1,4 @@
+import { Logger } from "../../utils/functions/logging";
 import { addRole, removeRole } from "./misc";
 import setup from "./setup";
 
@@ -27,6 +28,6 @@ export default async (reaction, user, DiscordClient) => {
 			}
 		}
 	} catch (err) {
-		console.log(err.message);
+		Logger.error(err.message);
 	}
 };

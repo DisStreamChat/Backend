@@ -1,10 +1,12 @@
 import { firestore } from "firebase-admin";
 
-import { log } from "./logging";
+import { Logger } from "./logging";
 
 export const getDiscordSettings = async ({ guild, client }) => {
 	if (client?.settings?.[guild]) return client.settings[guild];
-	log("getting settings from the database for " + guild + " the client exists: " + !!client);
+	Logger.log(
+		"getting settings from the database for " + guild + " the client exists: " + !!client
+	);
 	let settings = (await firestore().collection("DiscordSettings").doc(guild).get()).data();
 	if (!settings) {
 		settings = {};
@@ -21,7 +23,12 @@ export const getDiscordSettings = async ({ guild, client }) => {
 
 export const getLoggingSettings = async ({ guild, client }) => {
 	if (client?.logging?.[guild]) return client.logging[guild];
-	log("getting logging settings from the database for " + guild + " the client exists: " + !!client);
+	Logger.log(
+		"getting logging settings from the database for " +
+			guild +
+			" the client exists: " +
+			!!client
+	);
 	let logging = (await firestore().collection("logging").doc(guild).get()).data();
 	if (!logging) {
 		logging = {};
@@ -43,14 +50,20 @@ export const getLevelSettings = async (client, guild) => {
 
 	const levelingSettingsRef = await collectionRef.get();
 
-	const levelingSettings = levelingSettingsRef.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+	const levelingSettings = levelingSettingsRef.docs.reduce(
+		(acc, cur) => ({ ...acc, [cur.id]: cur.data() }),
+		{}
+	);
 	if (client.listeners[guild]) return levelingSettings;
-	log(`creating leveling listener for ${guild}`);
+	Logger.log(`creating leveling listener for ${guild}`);
 	client.listeners[guild] = collectionRef.onSnapshot(
 		snapshot => {
-			client.leveling[guild] = snapshot.docs.reduce((acc, cur) => ({ ...acc, [cur.id]: cur.data() }), {});
+			client.leveling[guild] = snapshot.docs.reduce(
+				(acc, cur) => ({ ...acc, [cur.id]: cur.data() }),
+				{}
+			);
 		},
-		err => log(`snapshot error: ${err.message}`)
+		err => Logger.error(`snapshot error: ${err.message}`)
 	);
 
 	return levelingSettings;

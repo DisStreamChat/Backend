@@ -2,7 +2,7 @@ import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 
 import { Duration, setDurationInterval, setDurationTimeout } from "../../utils/duration.util";
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import { clientManager } from "../../utils/initClients";
 
 interface StreamModel {
@@ -19,7 +19,7 @@ const getStream = (channel_name): Promise<StreamModel> => {
 			rej("Stream Took Too long");
 		}, Duration.fromMinutes(3));
 		const intervalId = setDurationInterval(async () => {
-			log("fetching stream");
+			Logger.log("fetching stream");
 			const apiUrl = `https://api.twitch.tv/helix/streams?user_login=${channel_name}`;
 			const streamDataResponse = await clientManager.twitchApiClient.fetch(apiUrl);
 			const streamData = streamDataResponse.data;
@@ -37,8 +37,10 @@ const handleAppNotifications = async (data, io) => {
 	io.in(`twitch-dscnotifications`).emit("stream-up", { stream, ...data });
 };
 
-const handleDiscordNotifications = async (data, channel, bots) => {
-	const serversToNotifyRef = firestore().collection("DiscordSettings").where("live-notification", "array-contains", data.id);
+const handleDiscordNotifications = async (data, bots) => {
+	const serversToNotifyRef = firestore()
+		.collection("DiscordSettings")
+		.where("live-notification", "array-contains", data.id);
 	const serversToNofiy = await serversToNotifyRef.get();
 	const serversToNofiyData = serversToNofiy.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
 
@@ -46,7 +48,9 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 
 	const embed = new MessageEmbed()
 		.setAuthor(stream.user_name, data.profile_image_url)
-		.setDescription(`[**${stream.title}**](https://www.twitch.tv/${stream.user_name.toLowerCase()})`)
+		.setDescription(
+			`[**${stream.title}**](https://www.twitch.tv/${stream.user_name.toLowerCase()})`
+		)
 		.setThumbnail(data.profile_image_url)
 		.addField("Game", stream.game_name, true)
 		.addField("Viewers", stream.viewer_count, true)
@@ -56,21 +60,18 @@ const handleDiscordNotifications = async (data, channel, bots) => {
 	for (const server of serversToNofiyData) {
 		try {
 			const notifyBot = bots.get(server.docId) || clientManager.discordClient;
-
 			const notifyChannelId = server["notification-channels"][data.id];
-
 			const guild = await notifyBot.guilds.fetch(server.docId);
-
 			const notifyChannel = guild.channels.resolve(notifyChannelId);
 
 			notifyChannel.send(embed);
 		} catch (err) {
-			log(err.message, { error: true });
+			Logger.error(err.message);
 		}
 	}
 };
 
-export default async (data, channel, io, bots) => {
+export default async (data, io, bots) => {
 	handleAppNotifications(data, io);
-	handleDiscordNotifications(data, channel, bots);
+	handleDiscordNotifications(data, bots);
 };

@@ -7,7 +7,7 @@ import { io } from "../app";
 import { DiscordMessageModel } from "../models/message.model";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
 import { sendMessage } from "../utils/sendMessage";
@@ -28,7 +28,7 @@ export default async (client: Client & any) => {
 				try {
 					await eventHandler(...params, client);
 				} catch (err) {
-					log(`Event Error: ${err.message}`);
+					Logger.log(`Event Error: ${err.message}`);
 				}
 			});
 		}
@@ -150,10 +150,10 @@ export default async (client: Client & any) => {
 				io.in(`channel-${message.channel.id}`).emit("chatmessage", messageObject);
 				sendMessage(messageObject, { channel: message.channel.id, platform: "channel" });
 			} catch (err) {
-				log(err.message, { error: true });
+				Logger.error(err.message);
 			}
 		} catch (err) {
-			log(`Error in discord message: ${err.message}`);
+			Logger.log(`Error in discord message: ${err.message}`);
 		}
 	});
 
@@ -161,7 +161,7 @@ export default async (client: Client & any) => {
 		try {
 			io.in(`channel-${message.channel.id}`).emit("deletemessage", message.id);
 		} catch (err) {
-			log(`Error deleting discord message: ${err.message}`);
+			Logger.log(`Error deleting discord message: ${err.message}`);
 		}
 	});
 
@@ -170,7 +170,7 @@ export default async (client: Client & any) => {
 			try {
 				io.in(`guild-${msg.guild.id}`).emit("deletemessage", msg.id);
 			} catch (err) {
-				log(`Error deleting discord message: ${err.message}`);
+				Logger.log(`Error deleting discord message: ${err.message}`);
 			}
 		});
 	});
@@ -189,7 +189,7 @@ export default async (client: Client & any) => {
 			};
 			io.in(`channel-${newMsg.channel.id}`).emit("updateMessage", updateMessage);
 		} catch (err) {
-			log(`Error updating discord message: ${err.message}`);
+			Logger.log(`Error updating discord message: ${err.message}`);
 		}
 	});
 };

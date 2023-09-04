@@ -1,3 +1,4 @@
+import { Message } from "discord.js";
 import fs from "fs";
 import path from "path";
 
@@ -21,26 +22,36 @@ commandFiles.forEach(async command => {
 	}
 });
 
-export default async (message, client) => {
+async function getPrefix(message: Message, client): Promise<string | undefined> {
+	if (EnvManager.BOT_DEV) return "?";
+	try {
+		const settings = await getDiscordSettings({ client, guild: message.guild.id });
+		return settings?.prefix ?? "!";
+	} catch (err) {}
+}
+
+function stripBotMentions(msg: string, botId: string): string {
+	return msg.replace(new RegExp(`<@!?${botId}> `, "g"), "");
+}
+
+export default async (message: Message, client) => {
 	if (!client.commands) {
 		client.commands = commands;
 	}
-	let prefix = "!";
-	try {
-		const settings = await getDiscordSettings({ client, guild: message.guild.id });
-		prefix = settings?.prefix || "!";
-	} catch (err) {}
-	if (EnvManager.BOT_DEV) prefix = "?";
-	client.prefix = prefix;
-	const isMention = message?.mentions?.users?.has(client.user.id);
-	const isCommand = message.content.startsWith(prefix) || isMention;
+
+	const prefix = await getPrefix(message, client);
+	const isBotMentioned = message?.mentions?.users?.has(client.user.id);
+	const isCommand = message.content.startsWith(prefix) || isBotMentioned;
+
 	if (!isCommand) return;
-	if (isMention) {
-		message.content = message.content.replace(new RegExp(`<@!?${client.user.id}> `), "");
+	if (isBotMentioned) {
+		message.content = stripBotMentions(message.content, client.user.id);
 	}
+
+	client.prefix = prefix;
 	const args = message.content.split(" ");
 	let command = args.shift();
-	if (!isMention) {
+	if (!isBotMentioned) {
 		command = command.slice(prefix.length);
 	}
 	const commandObj = commands[command];

@@ -1,4 +1,4 @@
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 import { userClientManager } from "./userClientManager";
 
 interface sendChatData {
@@ -9,7 +9,7 @@ interface sendChatData {
 }
 
 export async function sendChat(data: sendChatData): Promise<void> {
-	log(`send chat: ${data}`);
+	Logger.log(`send chat: ${data}`);
 	const { sender, message, channel, refreshToken } = data;
 	if (!refreshToken) {
 		throw new Error("no auth");
@@ -24,7 +24,7 @@ export async function sendChat(data: sendChatData): Promise<void> {
 				await UserClient.say(channel, message);
 			}
 		} catch (err) {
-			log(err.message, { error: true });
+			Logger.error(err.message);
 		}
 	}
 }

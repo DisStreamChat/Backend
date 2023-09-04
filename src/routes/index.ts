@@ -12,7 +12,7 @@ import { validateRequest } from "../middleware";
 import { Duration, setDurationTimeout } from "../utils/duration.util";
 import { EnvManager } from "../utils/envManager.util";
 import { generateRankCard } from "../utils/functions";
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 import {
 	getBttvEmotes,
 	getFfzEmotes,
@@ -73,7 +73,7 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		log(`Error getting channels: ${err}`);
+		Logger.log(`Error getting channels: ${err}`);
 		res.json([]);
 	}
 });
@@ -129,7 +129,7 @@ router.get("/discord/token/refresh", validateRequest, async (req, res, next) => 
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
 	} catch (err) {
-		log(err.message, { error: true });
+		Logger.error(err.message);
 		next(err);
 	}
 });
@@ -295,7 +295,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			log(`failed to join channel: ${err.message}`);
+			Logger.log(`failed to join channel: ${err.message}`);
 			let isMod = clientManager.twitchClient.isMod(channelName, userName);
 			const chatters = await clientManager.twitchApiClient.fetch(
 				`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`
@@ -544,7 +544,7 @@ router.get("/chatters", async (req, res, next) => {
 			try {
 				clientManager.twitchClient.join(req.query.user as string);
 			} catch (err) {
-				log(`Error getting channels: ${err}`);
+				Logger.log(`Error getting channels: ${err}`);
 			}
 		}, Duration.fromSeconds(1));
 		res.json({ message: err.message, status: 500 });
@@ -794,7 +794,7 @@ router.post("/discord/reactionmessage", validateRequest, async (req, res, next) 
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
-				log(`error in reacting to message: ${err.message}`);
+				Logger.log(`error in reacting to message: ${err.message}`);
 			}
 		}
 		res.json({ code: 200, message: "success", messageId: sentMessage.id });

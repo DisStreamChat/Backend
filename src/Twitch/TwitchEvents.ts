@@ -9,17 +9,17 @@ import ranks from "../ranks.json";
 import { Duration, setDurationInterval, setDurationTimeout } from "../utils/duration.util";
 import { exists } from "../utils/exists.util";
 import { isNumber, random } from "../utils/functions";
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 import { clientManager } from "../utils/initClients";
 import { formatMessage } from "../utils/messageManipulation";
 import { sendMessage } from "../utils/sendMessage";
 import CommandHandler from "./CommandHandler";
-import pubSub from "./pubsubEvents";
+import { setupTwitchPubsub } from "./pubsubEvents";
 
-const DisStreamChatProfile =
+export const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 
-function getInfoMessageObject(
+export function getInfoMessageObject(
 	partial: Partial<BaseMessageModel> & {
 		type: string;
 		id: string;
@@ -198,7 +198,7 @@ export default (TwitchClient: tmi.Client) => {
 					}
 				}
 			} catch (err) {
-				log(err.message, { error: true });
+				Logger.error(err.message);
 			}
 		}
 	};
@@ -277,7 +277,6 @@ export default (TwitchClient: tmi.Client) => {
 			id: tags.id,
 			badges,
 			sentAt: Number(tags["tmi-sent-ts"]),
-			// bits,
 		});
 
 		io.in(getTwitchIoRoom(channel)).emit("chatmessage", messageObject);
@@ -324,7 +323,7 @@ export default (TwitchClient: tmi.Client) => {
 
 	TwitchClient.on(
 		"subgift",
-		async (channel, username, streakMonths, recipient, { prime, plan, planName }, tags) => {
+		async (channel, username, streakMonths, recipient, { plan }, tags) => {
 			if (username == lastGifter) {
 				clearTimeout(giftTimeout);
 				lastGiftAmount++;
@@ -407,57 +406,51 @@ export default (TwitchClient: tmi.Client) => {
 		}
 	);
 
-	TwitchClient.on(
-		"subscription",
-		async (channel, username, { prime, plan, planName }, msg, tags) => {
-			let messageBody = "";
-			if (prime) {
-				messageBody = `Thanks for subscribing with Twitch Prime @${username}!`;
-			} else if (subTypes[plan]) {
-				messageBody = `Thanks for the ${subTypes[plan]} subscription @${username}!`;
-			} else {
-				messageBody = `Thanks for subscribing @${username}!`;
-			}
-
-			let HTMLCleanMessage = await formatMessage(msg || "", "twitch", tags, {
-				HTMLClean: true,
-			});
-
-			messageBody += `\n${HTMLCleanMessage}`;
-
-			const messageObject = getInfoMessageObject({
-				body: messageBody,
-				type: "subscription",
-				id: tags.id,
-				sentAt: Number(tags["tmi-sent-ts"]),
-			});
-
-			if (messageObject.body.length <= 0) return;
-			io.in(getTwitchIoRoom(channel)).emit("chatmessage", messageObject);
+	TwitchClient.on("subscription", async (channel, username, { prime, plan }, msg, tags) => {
+		let messageBody = "";
+		if (prime) {
+			messageBody = `Thanks for subscribing with Twitch Prime @${username}!`;
+		} else if (subTypes[plan]) {
+			messageBody = `Thanks for the ${subTypes[plan]} subscription @${username}!`;
+		} else {
+			messageBody = `Thanks for subscribing @${username}!`;
 		}
-	);
 
-	TwitchClient.on(
-		"primepaidupgrade",
-		async (channel, username, { prime, plan, planName }, tags) => {
-			let messageBody = "";
-			if (subTypes[plan]) {
-				messageBody = `@${username} has upgraded from a Twitch Prime Sub to a  ${subTypes[plan]} subscription!`;
-			} else {
-				messageBody = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
-			}
+		let HTMLCleanMessage = await formatMessage(msg || "", "twitch", tags, {
+			HTMLClean: true,
+		});
 
-			const messageObject = getInfoMessageObject({
-				body: messageBody,
-				type: "subscription",
-				id: tags.id,
-				sentAt: Number(tags["tmi-sent-ts"]),
-			});
+		messageBody += `\n${HTMLCleanMessage}`;
 
-			if (messageObject.body.length <= 0) return;
-			io.in(getTwitchIoRoom(channel)).emit("chatmessage", messageObject);
+		const messageObject = getInfoMessageObject({
+			body: messageBody,
+			type: "subscription",
+			id: tags.id,
+			sentAt: Number(tags["tmi-sent-ts"]),
+		});
+
+		if (messageObject.body.length <= 0) return;
+		io.in(getTwitchIoRoom(channel)).emit("chatmessage", messageObject);
+	});
+
+	TwitchClient.on("primepaidupgrade", async (channel, username, { plan }, tags) => {
+		let messageBody = "";
+		if (subTypes[plan]) {
+			messageBody = `@${username} has upgraded from a Twitch Prime Sub to a  ${subTypes[plan]} subscription!`;
+		} else {
+			messageBody = `@${username} has upgraded from a Twitch Prime to a Tier 1 subscription!`;
 		}
-	);
+
+		const messageObject = getInfoMessageObject({
+			body: messageBody,
+			type: "subscription",
+			id: tags.id,
+			sentAt: Number(tags["tmi-sent-ts"]),
+		});
+
+		if (messageObject.body.length <= 0) return;
+		io.in(getTwitchIoRoom(channel)).emit("chatmessage", messageObject);
+	});
 
 	// TODO: move to separate file
 	app.post("/webhooks/twitch", async (req, res) => {
@@ -480,7 +473,7 @@ export default (TwitchClient: tmi.Client) => {
 						const followerId = body.from_id;
 						const followedAt = body.followed_at;
 
-						log(`${follower} followed ${streamer}`);
+						Logger.log(`${follower} followed ${streamer}`);
 
 						// long term TODO: add follower count/goal overlay
 
@@ -526,13 +519,12 @@ export default (TwitchClient: tmi.Client) => {
 				res.status(401).json({ message: "Looks like You aren't twitch" });
 			}
 		} catch (err) {
-			log(err.messages, { error: true });
+			Logger.error(err.messages);
 			res.json({ message: "an error occured" });
 		}
 	});
 
-	// TODO: refactor so it doesn't fire on follow
-	// if (EnvManager.BOT_DEV != "true") {
-	pubSub(io);
-	// }
+	setupTwitchPubsub().catch(() => {
+		Logger.error("pubsub error");
+	});
 };

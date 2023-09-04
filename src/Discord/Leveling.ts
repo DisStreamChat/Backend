@@ -4,8 +4,15 @@ import admin from "firebase-admin";
 import Mustache from "mustache";
 
 import { Duration } from "../utils/duration.util";
-import { ArrayAny, getDiscordSettings, getLevelSettings, getRoleScaling, getXp, random } from "../utils/functions";
-import { log } from "../utils/functions/logging";
+import {
+	ArrayAny,
+	getDiscordSettings,
+	getLevelSettings,
+	getRoleScaling,
+	getXp,
+	random,
+} from "../utils/functions";
+import { Logger } from "../utils/functions/logging";
 import { escapePings, unescapeHTML } from "../utils/functions/stringManipulation";
 
 Mustache.tags = ["{", "}"];
@@ -44,7 +51,10 @@ export const handleLeveling = async (message, client) => {
 		}
 		const generalScaling = levelingSettings?.scaling?.general;
 
-		const roleScaling = getRoleScaling(member.roles.cache.array(), levelingSettings?.scaling?.roles || {});
+		const roleScaling = getRoleScaling(
+			member.roles.cache.array(),
+			levelingSettings?.scaling?.roles || {}
+		);
 
 		const finalScaling = roleScaling ?? generalScaling ?? 1;
 
@@ -52,7 +62,9 @@ export const handleLeveling = async (message, client) => {
 		const messageEnabled = levelingSettings.general?.announcement ?? levelingData.type === 3;
 		const levelingMessage = levelingSettings.general?.message ?? levelingData.message;
 
-		let userLevelingData = (await levelingRef.collection("users").doc(message.author.id).get()).data();
+		let userLevelingData = (
+			await levelingRef.collection("users").doc(message.author.id).get()
+		).data();
 		if (!userLevelingData) {
 			userLevelingData = { xp: 0, level: 0, cooldown: 0 };
 		}
@@ -73,21 +85,31 @@ export const handleLeveling = async (message, client) => {
 					const levelupMessage = unescapeHTML(Mustache.render(levelingMessage, view));
 
 					try {
-						const levelingChannel = await message.guild.channels.resolve(levelingChannelId);
+						const levelingChannel = await message.guild.channels.resolve(
+							levelingChannelId
+						);
 						if (levelingSettings?.general?.sendEmbed) {
 							const levelEmbed = new MessageEmbed()
 								.setAuthor(client.user.username, client.user.displayAvatarURL())
 								.setTitle("🎉 Level up!")
 								.setDescription(levelupMessage)
-								.addField(":arrow_down: Previous Level", `**${userLevelingData.level}**`, true)
-								.addField(":arrow_double_up: New Level", `**${userLevelingData.level + 1}**`, true)
+								.addField(
+									":arrow_down: Previous Level",
+									`**${userLevelingData.level}**`,
+									true
+								)
+								.addField(
+									":arrow_double_up: New Level",
+									`**${userLevelingData.level + 1}**`,
+									true
+								)
 								.addField(":1234: total xp", `**${userLevelingData.xp}**`, true);
 							levelingChannel.send(levelEmbed);
 						} else {
 							levelingChannel.send(levelupMessage);
 						}
 					} catch (err) {
-						log(err.message, { error: true });
+						Logger.error(err.message);
 					}
 				}
 			}
@@ -107,7 +129,11 @@ export const handleLeveling = async (message, client) => {
 				});
 		}
 	} else {
-		log(`no leveling for ${message.guild.id}`, { error: true });
-		await admin.firestore().collection("Leveling").doc(message.guild.id).set({}, { merge: true });
+		Logger.error(`no leveling for ${message.guild.id}`);
+		await admin
+			.firestore()
+			.collection("Leveling")
+			.doc(message.guild.id)
+			.set({}, { merge: true });
 	}
 };

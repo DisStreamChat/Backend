@@ -2,7 +2,7 @@ import { MessageEmbed } from "discord.js";
 
 import { Duration, setDurationTimeout } from "../../../utils/duration.util";
 import { getDiscordSettings, resolveUser } from "../../../utils/functions";
-import { log } from "../../../utils/functions/logging";
+import { Logger } from "../../../utils/functions/logging";
 
 const timeMap = {
 	s: 1000,
@@ -62,7 +62,7 @@ export default {
 				.setDescription(`Muted **${nickname}** for ${args[1]}`);
 			message.channel.send(embed);
 		} catch (err) {
-			log(err.message, { error: true });
+			Logger.error(err.message);
 		}
 	},
 };

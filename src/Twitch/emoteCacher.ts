@@ -2,7 +2,7 @@ import { firestore } from "firebase-admin";
 
 import { Duration, setDurationInterval, setDurationTimeout } from "../utils/duration.util";
 import { EnvManager } from "../utils/envManager.util";
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 import { getBttvEmotes, getFfzEmotes } from "../utils/functions/TwitchFunctions";
 
 interface EmoteSetData {
@@ -20,7 +20,7 @@ class EmoteCacher {
 	};
 
 	constructor() {
-		console.log("starting emote cacher");
+		Logger.log("starting emote cacher");
 		setDurationTimeout(() => {
 			this.refreshEmotes().then(() => {
 				setDurationInterval(this.refreshEmotes, refreshDuration);
@@ -38,15 +38,15 @@ class EmoteCacher {
 				const cachedBTTVEmotes = this.bttv.get(name);
 				const cachedFFZEmotes = this.ffz.get(name);
 				if (!cachedBTTVEmotes || (cachedBTTVEmotes && cachedBTTVEmotes.shouldRefresh)) {
-					log("refreshing bttv, " + name, { writeToConsole: true });
+					Logger.log(`refreshing bttv for channel: ${name}`);
 					this.bttv.set(name, { ...(await getBttvEmotes(name)), shouldRefresh: false });
 				}
 				if (!cachedFFZEmotes || (cachedFFZEmotes && cachedFFZEmotes.shouldRefresh)) {
-					log("refreshing ffz, " + name, { writeToConsole: true });
+					Logger.log(`refreshing ffz for channel: ${name}`);
 					this.ffz.set(name, { ...(await getFfzEmotes(name)), shouldRefresh: false });
 				}
 			} catch (err) {
-				log(err.message);
+				Logger.error(err.message);
 			}
 		}
 	}

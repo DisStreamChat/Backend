@@ -8,7 +8,7 @@ import TwitchApi from "twitchio-js";
 
 import { Duration, setDurationInterval } from "./duration.util";
 import { EnvManager } from "./envManager.util";
-import { log } from "./functions/logging";
+import { Logger } from "./functions/logging";
 
 class ClientManager {
 	twitchApiClient: TwitchApi;
@@ -32,7 +32,7 @@ class ClientManager {
 		this.discordClient.login(EnvManager.DISCORD_BOT_TOKEN);
 
 		this.discordClient.on("ready", async () => {
-			log("bot ready", { writeToConsole: true });
+			Logger.log("bot ready");
 			this.cycleDiscordClientStatuses(
 				[
 					{

@@ -1,12 +1,20 @@
 import admin from "firebase-admin";
 
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import { addRole } from "./misc";
 import setup from "./setup";
 
 export default async (member, DiscordClient) => {
-	let { rolesToGive, DMuser } = await setup({ message: { guild: member.guild, id: "member-join" } }, member, true);
-	const roleGuildRef = await admin.firestore().collection("roleManagement").doc(member.guild.id).get();
+	let { rolesToGive, DMuser } = await setup(
+		{ message: { guild: member.guild, id: "member-join" } },
+		member,
+		true
+	);
+	const roleGuildRef = await admin
+		.firestore()
+		.collection("roleManagement")
+		.doc(member.guild.id)
+		.get();
 	const roleData = roleGuildRef.data();
 	rolesToGive = [...(rolesToGive || []), ...(roleData?.join?.roles || [])];
 	if (!rolesToGive) return;
@@ -14,7 +22,7 @@ export default async (member, DiscordClient) => {
 		try {
 			await addRole({ member, role: roleToGive.id || roleToGive, DMuser, DiscordClient });
 		} catch (err) {
-			log(err.message, { error: true });
+			Logger.error(err.message);
 		}
 	}
 };

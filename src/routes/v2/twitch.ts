@@ -8,9 +8,11 @@ import TwitchApi from "twitchio-js";
 import { validateRequest } from "../../middleware";
 import { EnvManager } from "../../utils/envManager.util";
 import { refreshTwitchToken } from "../../utils/functions/auth";
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import {
-    getBttvEmotes, getFfzEmotes, subscribeToFollowers
+	getBttvEmotes,
+	getFfzEmotes,
+	subscribeToFollowers,
 } from "../../utils/functions/TwitchFunctions";
 import { getProfilePicture } from "../../utils/functions/users";
 import { clientManager } from "../../utils/initClients";
@@ -47,7 +49,7 @@ const followChannel = async (user, channel, method: "DELETE" | "PUT") => {
 			}
 		);
 	} catch (err) {
-		log(err.message);
+		Logger.log(err.message);
 		throw err;
 	}
 };
@@ -233,7 +235,7 @@ router.get("/checkmod", async (req, res, next) => {
 		}
 	} catch (err) {
 		try {
-			log(`failed to join channel: ${err.message}`);
+			Logger.log(`failed to join channel: ${err.message}`);
 			let isMod = clientManager.twitchClient.isMod(channelName, userName);
 			const chatters = await clientManager.twitchApiClient.fetch(
 				`https://api.disstreamchat.com/chatters?user=${channelName.substring(1)}`

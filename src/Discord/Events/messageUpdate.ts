@@ -1,7 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import setupLogging from "./utils/setupLogging";
 
 export default async (oldMessage, newMessage, client) => {
@@ -26,7 +26,9 @@ export default async (oldMessage, newMessage, client) => {
 
 		const embed = new MessageEmbed()
 			.setAuthor(newMessage.author.tag, newMessage.author.displayAvatarURL())
-			.setDescription(`message edited in ${newMessage.channel} by ${newMessage.author} [Jump to message](${newMessage.url})`)
+			.setDescription(
+				`message edited in ${newMessage.channel} by ${newMessage.author} [Jump to message](${newMessage.url})`
+			)
 			.addField("Before", oldMessage.content || "unknown content")
 			.addField("After", newMessage.content || "unknown content")
 			.setFooter(`User ID: ${newMessage.author.id}`)
@@ -38,6 +40,6 @@ export default async (oldMessage, newMessage, client) => {
 			logChannel.send(embed);
 		}
 	} catch (err) {
-		log(err.message, { error: true });
+		Logger.error(err.message);
 	}
 };

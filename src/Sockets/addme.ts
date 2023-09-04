@@ -1,7 +1,7 @@
 import Server from "socket.io";
 import Socket from "socketio-promises";
 
-import { log } from "../utils/functions/logging";
+import { Logger } from "../utils/functions/logging";
 import { clientManager } from "../utils/initClients";
 
 interface AddMeData {
@@ -11,7 +11,7 @@ interface AddMeData {
 }
 
 export async function addMe(message: AddMeData, socket: Server.Socket) {
-	log(`adding: ${JSON.stringify(message)} to: ${socket.id}`, { writeToConsole: true });
+	Logger.log(`adding: ${JSON.stringify(message)} to: ${socket.id}`);
 	const socketWrapper = new Socket(socket);
 	let { TwitchName, guildId, liveChatId } = message;
 	TwitchName = TwitchName?.toLowerCase?.();
@@ -20,10 +20,10 @@ export async function addMe(message: AddMeData, socket: Server.Socket) {
 		const channels = await clientManager.twitchClient.getChannels();
 		if (!channels.includes(TwitchName)) {
 			await clientManager.twitchClient.join(TwitchName);
-			console.log("joined channel");
+			Logger.log("joined channel");
 		}
 	} catch (err) {
-		log(err, { writeToConsole: true, error: true });
+		Logger.error(err);
 	}
 
 	try {
@@ -39,8 +39,8 @@ export async function addMe(message: AddMeData, socket: Server.Socket) {
 			}
 		}
 	} catch (err) {
-		log(err, { writeToConsole: true, error: true });
+		Logger.error(err);
 	} finally {
-		console.log("finally");
+		Logger.log("finally");
 	}
 }

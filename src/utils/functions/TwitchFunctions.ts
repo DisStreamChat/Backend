@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import { Duration, setDurationInterval } from "../duration.util";
 import { EnvManager } from "../envManager.util";
 import { clientManager } from "../initClients";
-import { log } from "./logging";
+import { Logger } from "./logging";
 
 export async function getBttvEmotes(channelName: string) {
 	const bttvEmotes = {};
@@ -74,10 +74,10 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 			}
 		);
 		if (!response.ok) {
-			log(await response.json());
+			Logger.log(await response.json());
 		}
 	} catch (err) {
-		log(err.message);
+		Logger.log(err.message);
 	}
 
 	return leaseSeconds;
@@ -101,7 +101,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 			},
 		});
 	} catch (err) {
-		log(err.message);
+		Logger.log(err.message);
 	}
 
 	return leaseSeconds;
@@ -147,6 +147,6 @@ export const initWebhooks = async () => {
 			setDurationInterval(updateConnections, tenDays);
 		}, timeUntilNextConnection);
 	} catch (err) {
-		log(err);
+		Logger.error(err);
 	}
 };

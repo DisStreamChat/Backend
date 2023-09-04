@@ -8,7 +8,7 @@ import { getUserInfo } from "../../Discord/DiscordClasses";
 import { validateRequest } from "../../middleware";
 import { EnvManager } from "../../utils/envManager.util";
 import { generateRankCard } from "../../utils/functions";
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
 import { clientManager } from "../../utils/initClients";
 
@@ -55,7 +55,7 @@ router.get("/getchannels", async (req, res, next) => {
 			res.json(channels);
 		}
 	} catch (err) {
-		log(`Error getting channels: ${err.message}`);
+		Logger.log(`Error getting channels: ${err.message}`);
 
 		res.json([]);
 	}
@@ -148,7 +148,7 @@ router.post("/reactionmessage", validateRequest, async (req, res, next) => {
 				}
 				await sentMessage.react(reaction);
 			} catch (err) {
-				log(`error in reacting to message: ${err.message}`);
+				Logger.log(`error in reacting to message: ${err.message}`);
 			}
 		}
 		res.json({ code: 200, message: "success", messageId: sentMessage.id });
@@ -174,7 +174,7 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 router.get("/token", async (req, res, next) => {
 	try {
 		const redirect_uri = req.query["redirect_uri"] || EnvManager.TWITCH_OAUTH_REDIRECT_URI;
-		log(`redirect uri: ${redirect_uri}/?discord=true`);
+		Logger.log(`redirect uri: ${redirect_uri}/?discord=true`);
 		const code = req.query.code;
 		if (!code) {
 			return res.status(401).json({

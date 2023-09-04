@@ -1,18 +1,26 @@
 import { firestore } from "firebase-admin";
 
-import { log } from "../../utils/functions/logging";
+import { Logger } from "../../utils/functions/logging";
 import { logUpdate } from "./utils";
 import setupLogging from "./utils/setupLogging";
 
 export default async (oldUser, newUser, DiscordClient) => {
-	const serversToLog = await firestore().collection("loggingChannel").where("activeEvents.userUpdate", "==", true).get();
+	const serversToLog = await firestore()
+		.collection("loggingChannel")
+		.where("activeEvents.userUpdate", "==", true)
+		.get();
 	const serversData = serversToLog.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 	const guilds = await Promise.all(
-		serversData.map(async doc => await DiscordClient.guilds.fetch(doc.id)).map(promise => promise.catch(log))
+		serversData
+			.map(async doc => await DiscordClient.guilds.fetch(doc.id))
+			.map(promise => promise.catch(Logger.error))
 	);
 	const channelsInfo = (
 		await Promise.all(
-			serversData.map(async doc => ({ id: doc.id, info: await setupLogging({ id: doc.id }, "userUpdate", DiscordClient) }))
+			serversData.map(async doc => ({
+				id: doc.id,
+				info: await setupLogging({ id: doc.id }, "userUpdate", DiscordClient),
+			}))
 		)
 	).filter(channel => {
 		const guild = guilds.find(guild => guild?.id === channel?.id);
@@ -28,7 +36,10 @@ export default async (oldUser, newUser, DiscordClient) => {
 			footer: `ID: ${newUser.id}`,
 			ignoredDifferences: ["flags", "LastMessageID", "LastMessageChannelID"],
 			valueMap: {
-				avatar: (value, isNew) => (isNew ? `[new](${newUser.displayAvatarURL()})` : `[old](${oldUser.displayAvatarURL()})`),
+				avatar: (value, isNew) =>
+					isNew
+						? `[new](${newUser.displayAvatarURL()})`
+						: `[old](${oldUser.displayAvatarURL()})`,
 			},
 		})
 	)
@@ -46,7 +57,7 @@ export default async (oldUser, newUser, DiscordClient) => {
 				await logChannel.send(changeEmbed);
 			}
 		} catch (err) {
-			log(err.message, { error: true });
+			Logger.error(err.message);
 		}
 	}
 };

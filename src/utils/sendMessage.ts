@@ -4,7 +4,7 @@ import cache from "memory-cache";
 import { io } from "../app";
 import { GenericMessageType, MessageMap } from "../models/message.model";
 import { Duration } from "./duration.util";
-import { log } from "./functions/logging";
+import { Logger } from "./functions/logging";
 
 interface SendMessageOptions {
 	channel: string;
@@ -54,6 +54,6 @@ export const sendMessage = async (
 			handleMessageTimeout
 		);
 	} catch (err) {
-		log(`Error in sending message to app: ${err.message}`);
+		Logger.log(`Error in sending message to app: ${err.message}`);
 	}
 };
