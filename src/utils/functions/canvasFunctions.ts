@@ -1,15 +1,10 @@
 import { GuildMember } from "discord.js";
-import svg2img from "svg2img";
+import svg2img, { svg2imgOptions } from "svg2img";
 
+import { promisify } from "../promisify.util";
 import { abs, floor, getXp } from "./levelingFunctions";
 
-const bufferifySVG = (svg: string, opts?: any): Promise<Buffer> => {
-	return new Promise((res, rej) =>
-		svg2img(svg, opts, (error, buffer) => {
-			res(buffer);
-		})
-	);
-};
+const bufferifySVG = promisify<Buffer, [string, svg2imgOptions?]>(svg2img);
 
 export const generateRankCard = async (userData, user: GuildMember, buffer = true) => {
 	const primaryColor = userData.primaryColor || "#c31503";

@@ -1,6 +1,7 @@
 import { firestore } from "firebase-admin";
 
 import { Duration, setDurationInterval, setDurationTimeout } from "../utils/duration.util";
+import { EnvManager } from "../utils/envManager.util";
 import { log } from "../utils/functions/logging";
 import { getBttvEmotes, getFfzEmotes } from "../utils/functions/TwitchFunctions";
 
@@ -28,7 +29,7 @@ class EmoteCacher {
 	}
 
 	async refreshEmotes() {
-		if (process.env.BOT_DEV == "true") return;
+		if (EnvManager.BOT_DEV) return;
 		const streamersRef = await firestore().collection("Streamers").get();
 		const streamers = streamersRef.docs.map(doc => doc.data());
 		const twitchNames = streamers.map(streamer => streamer.TwitchName).filter(name => name);

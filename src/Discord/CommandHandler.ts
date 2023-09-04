@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 
+import { EnvManager } from "../utils/envManager.util";
 import { getDiscordSettings, walkSync } from "../utils/functions";
 import { Command } from "./command";
 import customCommandHandler from "./Commands/CustomCommands";
@@ -29,10 +30,10 @@ export default async (message, client) => {
 		const settings = await getDiscordSettings({ client, guild: message.guild.id });
 		prefix = settings?.prefix || "!";
 	} catch (err) {}
-	if (process.env.BOT_DEV == "true") prefix = "?";
+	if (EnvManager.BOT_DEV) prefix = "?";
 	client.prefix = prefix;
 	const isMention = message?.mentions?.users?.has(client.user.id);
-	let isCommand = message.content.startsWith(prefix) || isMention;
+	const isCommand = message.content.startsWith(prefix) || isMention;
 	if (!isCommand) return;
 	if (isMention) {
 		message.content = message.content.replace(new RegExp(`<@!?${client.user.id}> `), "");

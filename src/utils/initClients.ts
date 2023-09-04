@@ -7,6 +7,7 @@ import tmi from "tmi.js";
 import TwitchApi from "twitchio-js";
 
 import { Duration, setDurationInterval } from "./duration.util";
+import { EnvManager } from "./envManager.util";
 import { log } from "./functions/logging";
 
 class ClientManager {
@@ -20,13 +21,15 @@ class ClientManager {
 
 	constructor() {
 		// get the serviceAccount details from the base64 string stored in environment variables
-		const serviceAccount = JSON.parse(Buffer.from(process.env.GOOGLE_CONFIG_BASE64, "base64").toString("ascii"));
+		const serviceAccount = JSON.parse(
+			Buffer.from(EnvManager.GOOGLE_SERVICE_ACCOUNT_BASE64, "base64").toString("ascii")
+		);
 
 		initializeApp({
 			credential: credential.cert(serviceAccount),
 		});
 
-		this.discordClient.login(process.env.BOT_TOKEN);
+		this.discordClient.login(EnvManager.DISCORD_BOT_TOKEN);
 
 		this.discordClient.on("ready", async () => {
 			log("bot ready", { writeToConsole: true });
@@ -34,11 +37,19 @@ class ClientManager {
 				[
 					{
 						status: "online",
-						activity: { type: "WATCHING", name: `🔴 Live Chat in ${this.discordClient.guilds.cache.array().length} servers` },
+						activity: {
+							type: "WATCHING",
+							name: `🔴 Live Chat in ${
+								this.discordClient.guilds.cache.array().length
+							} servers`,
+						},
 					},
 					{
 						status: "online",
-						activity: { type: "WATCHING", name: `@${this.discordClient.user.username} help` },
+						activity: {
+							type: "WATCHING",
+							name: `@${this.discordClient.user.username} help`,
+						},
 					},
 				],
 				Duration.fromMinutes(0.5)
@@ -46,7 +57,7 @@ class ClientManager {
 		});
 
 		this.twitchClient = new tmi.Client({
-			options: { debug: process.env.TWITCH_DEBUG == "true" },
+			options: { debug: EnvManager.TWITCH_DEBUG_MODE },
 			connection: {
 				// server: "irc.fdgt.dev",
 				secure: true,
@@ -54,26 +65,26 @@ class ClientManager {
 			},
 			identity: {
 				username: "disstreamchat",
-				password: process.env.TWITH_OAUTH_TOKEN,
+				password: EnvManager.TWITH_OAUTH_TOKEN,
 			},
-			channels: [process.env.DEBUG_CHANNEL || ""],
+			channels: [EnvManager.DEBUG_TWITCH_CHANNEL || ""],
 		});
 		this.twitchClient.connect();
 
 		this.twitchApiClient = new TwitchApi({
-			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
+			clientId: EnvManager.TWITCH_CLIENT_ID,
+			authorizationKey: EnvManager.TWITCH_ACCESS_TOKEN,
 		});
 
 		this.discordOauthClient = new DiscordOauth2({
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
-			redirectUri: process.env.REDIRECT_URI + "/?discord=true",
+			clientId: EnvManager.DISCORD_CLIENT_ID,
+			clientSecret: EnvManager.DISCORD_CLIENT_SECRET,
+			redirectUri: EnvManager.TWITCH_OAUTH_REDIRECT_URI + "/?discord=true",
 		});
 
 		this.krakenApiClient = new TwitchApi({
-			clientId: process.env.TWITCH_CLIENT_ID,
-			authorizationKey: process.env.TWITCH_ACCESS_TOKEN,
+			clientId: EnvManager.TWITCH_CLIENT_ID,
+			authorizationKey: EnvManager.TWITCH_ACCESS_TOKEN,
 			kraken: true,
 		});
 	}
@@ -101,7 +112,7 @@ class ClientManager {
 	}
 
 	async getCustomBots() {
-		if (process.env.BOT_DEV == "true") return new Map();
+		if (EnvManager.BOT_DEV) return new Map();
 		const botQuery = firestore().collection("customBot");
 		const botRef = await botQuery.get();
 		const bots: any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));

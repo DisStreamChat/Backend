@@ -1,5 +1,6 @@
 //@ts-ignore
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
+import { Client } from "discord.js";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
@@ -17,7 +18,11 @@ String.prototype.capitalize = function () {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
-export const walkSync = (files, fileDir, fileList = []) => {
+export const walkSync = (
+	files: string[],
+	fileDir: string,
+	fileList: { name: string; path: string }[] = []
+) => {
 	for (const file of files) {
 		const absolutePath = join(fileDir, file);
 		if (statSync(absolutePath).isDirectory()) {
@@ -34,7 +39,10 @@ export const escapeRegexSpecialCharacters = function (str) {
 	return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 };
 
-export function random(min, max?: number) {
+export function random(min: number, max: number): number;
+export function random(max: number): number;
+export function random<T>(items: T[]): T;
+export function random<T>(min: number | T[], max?: number): number | T {
 	if (Array.isArray(min)) {
 		return min[Math.floor(min.length * Math.random())];
 	}
@@ -44,17 +52,24 @@ export function random(min, max?: number) {
 	return Math.random() * (max - min) + min;
 }
 
-export const setArray = items => (items ? (Array.isArray(items) ? items : [items]) : []);
+export function setArray<T>(items: T[] | undefined | T): T[] {
+	return items ? (Array.isArray(items) ? items : [items]) : [];
+}
 
-export const isNumeric = value => {
+export const isNumeric = (value: string): boolean => {
 	return /^-?\d+[.\,]?\d*$/.test(value);
 };
 
-export const convertDiscordRoleColor = color => (color === "#000000" ? "#FFFFFF" : color);
+export function isNumber(value: unknown): value is number {
+	return value != null && !Number.isNaN(value);
+}
 
-export const formatFromNow = time => formatDistanceToNow(time, { addSuffix: true });
+export const convertDiscordRoleColor = (color: string) => (color === "#000000" ? "#FFFFFF" : color);
 
-export const cycleBotStatus = (bot, statuses, timeout: Duration) => {
+export const formatFromNow = (time: number | Date) =>
+	formatDistanceToNow(time, { addSuffix: true });
+
+export const cycleBotStatus = (bot: Client, statuses, timeout: Duration) => {
 	const setStatus = status => {
 		if (typeof status === "function") {
 			return bot.user.setPresence(status());
@@ -72,18 +87,24 @@ export const cycleBotStatus = (bot, statuses, timeout: Duration) => {
 	}, timeout);
 };
 
-export const isObject = val => typeof val === "object" && val; // required for "null" comparison
+export function isObject<T>(val: unknown): val is Record<string, T> {
+	return typeof val === "object" && !!val; // required for "null" comparison
+}
 
-export function compare(obj1 = {}, obj2 = {}, deep?: boolean) {
-	const output = {},
-		merged = { ...obj1, ...obj2 }; // has properties of both
+export function compareObjects(
+	obj1: Record<string, any> = {},
+	obj2: Record<string, any> = {},
+	deep?: boolean
+) {
+	const output = {};
+	const merged = { ...obj1, ...obj2 };
 
 	for (const key in merged) {
 		const value1 = obj1[key],
 			value2 = obj2[key];
 
-		if ((isObject(value1) || isObject(value2)) && deep) output[key] = compare(value1, value2);
-		// recursively call
+		if ((isObject(value1) || isObject(value2)) && deep)
+			output[key] = compareObjects(value1, value2);
 		else output[key] = value1 === value2;
 	}
 

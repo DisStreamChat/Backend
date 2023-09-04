@@ -6,6 +6,7 @@ import sha1 from "sha1";
 
 import { getUserInfo } from "../../Discord/DiscordClasses";
 import { validateRequest } from "../../middleware";
+import { EnvManager } from "../../utils/envManager.util";
 import { generateRankCard } from "../../utils/functions";
 import { log } from "../../utils/functions/logging";
 import { getProfilePicture } from "../../utils/functions/users";
@@ -31,13 +32,13 @@ router.get("/invite", (req, res) => {
 });
 
 router.get("/ismember", (req, res, next) => {
-	res.json({ result: !!clientManager.discordClient.guilds.resolve(req.query.guild) });
+	res.json({ result: !!clientManager.discordClient.guilds.resolve(req.query.guild as string) });
 });
 
 router.get("/getchannels", async (req, res, next) => {
 	try {
 		const id = req.query.guild;
-		const selectedGuild = await clientManager.discordClient.guilds.resolve(id);
+		const selectedGuild = await clientManager.discordClient.guilds.resolve(id as string);
 		const channelManger = selectedGuild.channels;
 		const channels = channelManger.cache
 			.array()
@@ -62,35 +63,37 @@ router.get("/getchannels", async (req, res, next) => {
 
 router.get("/resolvechannel", async (req, res, next) => {
 	const { guild, channel } = req.query;
-	const response = await fetch("https://api.disstreamchat.com/v2/discord/getchannels?guild=" + guild);
+	const response = await fetch(
+		"https://api.disstreamchat.com/v2/discord/getchannels?guild=" + guild
+	);
 	const json = await response.json();
 	res.json(json.filter(ch => ch.id == channel)[0]);
 });
 
 router.get("/resolveguild", async (req, res, next) => {
 	const { id } = req.query;
-	const selectedGuild = await clientManager.discordClient.guilds.resolve(id);
+	const selectedGuild = await clientManager.discordClient.guilds.resolve(id as string);
 	res.json(selectedGuild);
 });
 
 router.get("/resolveuser", async (req, res, next) => {
 	try {
-		res.json(await clientManager.discordClient.users.fetch(req.query.user));
+		res.json(await clientManager.discordClient.users.fetch(req.query.user as string));
 	} catch (err) {
 		next(err);
 	}
 });
 
 router.get("/token/refresh", validateRequest, async (req, res, next) => {
-	const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+	const redirect_uri = req.query["redirect_uri"] || EnvManager.TWITCH_OAUTH_REDIRECT_URI;
 	try {
 		const token = req.query.token;
 		const tokenData = await clientManager.discordOauthClient.tokenRequest({
-			refreshToken: token,
+			refreshToken: token as string,
 			scope: "identify guilds",
 			grantType: "refresh_token",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: EnvManager.DISCORD_CLIENT_ID,
+			clientSecret: EnvManager.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		});
 		res.json({ userData: await getUserInfo(tokenData), tokenData });
@@ -113,12 +116,20 @@ router.delete("/reactionmessage", validateRequest, async (req, res, next) => {
 });
 
 router.get("/rankcard", async (req, res, next) => {
-	const { user, guild } = req.query;
+	const { user, guild } = req.query as Record<string, string>;
 	const guildObj = clientManager.discordClient.guilds.cache.get(guild);
 	const member = await guildObj.members.fetch(user);
-	const userData = (await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()).data();
-	const customRankCardData = (await firestore().collection("Streamers").where("discordId", "==", user).get()).docs[0].data();
-	const rankcard = await generateRankCard({ ...userData, ...(customRankCardData || {}) }, member, false);
+	const userData = (
+		await firestore().collection("Leveling").doc(guild).collection("users").doc(user).get()
+	).data();
+	const customRankCardData = (
+		await firestore().collection("Streamers").where("discordId", "==", user).get()
+	).docs[0].data();
+	const rankcard = await generateRankCard(
+		{ ...userData, ...(customRankCardData || {}) },
+		member,
+		false
+	);
 	res.setHeader("content-type", "text/html");
 	res.send(rankcard);
 });
@@ -162,7 +173,7 @@ router.patch("/reactionmessage", validateRequest, async (req, res, next) => {
 
 router.get("/token", async (req, res, next) => {
 	try {
-		const redirect_uri = req.query["redirect_uri"] || process.env.REDIRECT_URI;
+		const redirect_uri = req.query["redirect_uri"] || EnvManager.TWITCH_OAUTH_REDIRECT_URI;
 		log(`redirect uri: ${redirect_uri}/?discord=true`);
 		const code = req.query.code;
 		if (!code) {
@@ -175,8 +186,8 @@ router.get("/token", async (req, res, next) => {
 			code: code,
 			scope: "identify guilds",
 			grantType: "authorization_code",
-			clientId: process.env.DISCORD_CLIENT_ID,
-			clientSecret: process.env.DISCORD_CLIENT_SECRET,
+			clientId: EnvManager.DISCORD_CLIENT_ID,
+			clientSecret: EnvManager.DISCORD_CLIENT_SECRET,
 			redirectUri: redirect_uri + "/?discord=true",
 		};
 		//@ts-ignore
@@ -250,7 +261,7 @@ router.get("/guildcount", async (req, res, next) => {
 router.get("/profilepicture", async (req, res, next) => {
 	try {
 		const user = req.query.user;
-		const profilePicture = await getProfilePicture("discord", user);
+		const profilePicture = await getProfilePicture("discord", user as string);
 		res.json(profilePicture);
 	} catch (err) {
 		next(err);
@@ -260,7 +271,7 @@ router.get("/profilepicture", async (req, res, next) => {
 router.get("/resolveemote", async (req, res, next) => {
 	try {
 		const { emote, guild } = req.query;
-		const emoteObject = clientManager.discordClient.emojis.resolve(emote);
+		const emoteObject = clientManager.discordClient.emojis.resolve(emote as string);
 		res.json(emoteObject);
 	} catch (err) {
 		next(err);
@@ -274,7 +285,7 @@ router.get("/emotes", async (req, res, next) => {
 router.get("/position", async (req, res, next) => {
 	try {
 		const { server } = req.query;
-		const guild = await clientManager.discordClient.guilds.fetch(server);
+		const guild = await clientManager.discordClient.guilds.fetch(server as string);
 		const member = guild.member(clientManager.discordClient.user);
 		const highestRole = member.roles.highest;
 		res.json({ position: highestRole.position, rawPosition: highestRole.rawPosition });
@@ -285,7 +296,13 @@ router.get("/position", async (req, res, next) => {
 
 router.post("/details", async (req, res, next) => {
 	const { id } = req.query;
-	await admin.firestore().collection("Streamers").doc(id).collection("discord").doc("data").set(req.body, { merge: true });
+	await admin
+		.firestore()
+		.collection("Streamers")
+		.doc(id as string)
+		.collection("discord")
+		.doc("data")
+		.set(req.body, { merge: true });
 	res.end();
 });
 

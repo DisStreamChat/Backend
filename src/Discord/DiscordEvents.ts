@@ -2,8 +2,8 @@ import { Client } from "discord.js";
 import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
-import Server from "socket.io";
 
+import { io } from "../app";
 import { DiscordMessageModel } from "../models/message.model";
 // TODO: move to firebase db
 import ranks from "../ranks.json";
@@ -18,7 +18,7 @@ import ReactionRoles from "./Reaction Manager";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
-export default async (client: Client & any, io: Server.Server) => {
+export default async (client: Client & any) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
@@ -115,12 +115,20 @@ export default async (client: Client & any, io: Server.Server) => {
 			let userHexColor = "#FFFFFF";
 
 			if (message.member) {
-				userHexColor = message.member.displayHexColor === "#000000" ? userHexColor : message.member.displayHexColor;
+				userHexColor =
+					message.member.displayHexColor === "#000000"
+						? userHexColor
+						: message.member.displayHexColor;
 			}
 
 			try {
 				const CleanMessage = message.cleanContent;
-				const HTMLCleanMessage = await formatMessage(CleanMessage, "discord", {}, { HTMLClean: true });
+				const HTMLCleanMessage = await formatMessage(
+					CleanMessage,
+					"discord",
+					{},
+					{ HTMLClean: true }
+				);
 
 				const messageObject: DiscordMessageModel = {
 					displayName: senderName,
@@ -129,7 +137,7 @@ export default async (client: Client & any, io: Server.Server) => {
 					avatar: message.author.displayAvatarURL(),
 					body: HTMLCleanMessage,
 					platform: "discord",
-					messageId: "",
+					type: "",
 					messageType: "chat",
 					id: message.id,
 					badges,
@@ -169,7 +177,12 @@ export default async (client: Client & any, io: Server.Server) => {
 
 	client.on("messageUpdate", async (oldMsg, newMsg) => {
 		try {
-			const HTMLCleanMessage = await formatMessage(newMsg.cleanContent, "discord", {}, { HTMLClean: true });
+			const HTMLCleanMessage = await formatMessage(
+				newMsg.cleanContent,
+				"discord",
+				{},
+				{ HTMLClean: true }
+			);
 			const updateMessage = {
 				body: HTMLCleanMessage,
 				id: newMsg.id,

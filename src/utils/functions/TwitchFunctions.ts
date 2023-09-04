@@ -2,6 +2,7 @@ import { firestore } from "firebase-admin";
 import fetch from "node-fetch";
 
 import { Duration, setDurationInterval } from "../duration.util";
+import { EnvManager } from "../envManager.util";
 import { clientManager } from "../initClients";
 import { log } from "./logging";
 
@@ -10,7 +11,9 @@ export async function getBttvEmotes(channelName: string) {
 	const bttvResponse = await fetch("https://api.betterttv.net/3/cached/emotes/global");
 	let emotes = await bttvResponse.json();
 	const channelInfo = await clientManager.twitchApiClient.getUserInfo(channelName);
-	const bttvChannelResponse = await fetch(`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`);
+	const bttvChannelResponse = await fetch(
+		`https://api.betterttv.net/3/cached/users/twitch/${channelInfo.id}`
+	);
 	const { channelEmotes, sharedEmotes } = await bttvChannelResponse.json();
 	if (channelEmotes) {
 		emotes = emotes.concat(channelEmotes);
@@ -21,7 +24,8 @@ export async function getBttvEmotes(channelName: string) {
 	let regexStr = "";
 	emotes.forEach(({ code, id }, i) => {
 		bttvEmotes[code] = id;
-		regexStr += code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
+		regexStr +=
+			code.replace(/\(/, "\\(").replace(/\)/, "\\)") + (i === emotes.length - 1 ? "" : "|");
 	});
 	const bttvRegex = new RegExp(`(?<=^|\\s)(${regexStr})(?=$|\\s)`, "g");
 
@@ -56,16 +60,19 @@ export const subscribeToFollowers = async (channelID, leaseSeconds = 864000) => 
 		"hub.mode": "subscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": EnvManager.TWITCH_WEBHOOK_SECRET,
 	};
 	try {
-		const response = await clientManager.twitchApiClient.fetch("https://api.twitch.tv/helix/webhooks/hub", {
-			method: "POST",
-			body: JSON.stringify(body),
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
+		const response = await clientManager.twitchApiClient.fetch(
+			"https://api.twitch.tv/helix/webhooks/hub",
+			{
+				method: "POST",
+				body: JSON.stringify(body),
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
 		if (!response.ok) {
 			log(await response.json());
 		}
@@ -83,7 +90,7 @@ export const unsubscribeFromFollowers = async (channelID, leaseSeconds = 864000)
 		"hub.mode": "unsubscribe",
 		"hub.topic": `https://api.twitch.tv/helix/users/follows?first=1&to_id=${channelID}`,
 		"hub.lease_seconds": leaseSeconds,
-		"hub.secret": process.env.WEBHOOK_SECRET,
+		"hub.secret": EnvManager.TWITCH_WEBHOOK_SECRET,
 	};
 	try {
 		await clientManager.twitchApiClient.fetch("https://api.twitch.tv/helix/webhooks/hub", {
@@ -115,7 +122,9 @@ export const initWebhooks = async () => {
 
 	await new Promise(resolve => setTimeout(resolve, 1000));
 	try {
-		const lastConnection: number = (await firestore().collection("webhookConnections").get()).docs
+		const lastConnection: number = (
+			await firestore().collection("webhookConnections").get()
+		).docs
 			.find(doc => doc.id === "lastConnection")
 			.data().value;
 

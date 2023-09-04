@@ -3,6 +3,7 @@ import cache from "memory-cache";
 
 import { io } from "../app";
 import { GenericMessageType, MessageMap } from "../models/message.model";
+import { Duration } from "./duration.util";
 import { log } from "./functions/logging";
 
 interface SendMessageOptions {
@@ -38,12 +39,20 @@ const handleMessageTimeout = async (key: string, value: MessageMap) => {
 	await batch.commit();
 };
 
-export const sendMessage = async (message: GenericMessageType, options: SendMessageOptions): Promise<void> => {
+export const sendMessage = async (
+	message: GenericMessageType,
+	options: SendMessageOptions
+): Promise<void> => {
 	try {
 		io.in(`${options.platform}-${options.channel}`).emit("chatmessage", message);
 		const messages: MessageMap = cacheInstance.get(options.channel) ?? new Map();
 		messages.set(message.id, message);
-		cacheInstance.put(options.channel, messages, 500, handleMessageTimeout);
+		cacheInstance.put(
+			options.channel,
+			messages,
+			Duration.fromHours(1).milliseconds,
+			handleMessageTimeout
+		);
 	} catch (err) {
 		log(`Error in sending message to app: ${err.message}`);
 	}

@@ -3,7 +3,7 @@ export interface BaseMessageModel {
 	avatar: string;
 	body: string;
 	platform: "twitch" | "discord";
-	messageId: string;
+	type: string;
 	id: string;
 	badges: {
 		[key: string]: {

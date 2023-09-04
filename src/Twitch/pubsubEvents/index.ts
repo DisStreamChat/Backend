@@ -4,6 +4,7 @@ import fs from "fs";
 import TPS from "twitchps";
 import uuidv1 from "uuidv1";
 
+import { EnvManager } from "../../utils/envManager.util";
 import { walkSync } from "../../utils/functions";
 import { refreshTwitchToken } from "../../utils/functions/auth";
 import { log } from "../../utils/functions/logging";
@@ -11,7 +12,9 @@ import { clientManager } from "../../utils/initClients";
 import { formatMessage } from "../../utils/messageManipulation";
 
 const commandPath = __dirname;
-const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(file => file.name !== "index.js");
+const commandFiles = [...walkSync(fs.readdirSync(commandPath), commandPath)].filter(
+	file => file.name !== "index.js"
+);
 const DisStreamChatProfile =
 	"https://media.discordapp.net/attachments/710157323456348210/710185505391902810/discotwitch_.png?width=100&height=100";
 const commands = commandFiles.reduce(
@@ -23,7 +26,7 @@ const commands = commandFiles.reduce(
 );
 
 const runIo = async io => {
-	if (process.env.BOT_DEV == "true") return;
+	if (EnvManager.BOT_DEV) return;
 
 	let pubsubbedChannels = [];
 
@@ -34,12 +37,16 @@ const runIo = async io => {
 			const allNotifyingChannels = [
 				...new Set(
 					//@ts-ignore
-					(await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))).reduce((acc, cur) => [...acc, ...cur])
+					(
+						await Promise.all(snapshot.docs.map(async doc => await doc.data().channels))
+					).reduce((acc, cur) => [...acc, ...cur])
 				),
 			].filter(channel => !pubsubbedChannels.find(subChannel => subChannel.id === channel));
 
 			for (const channel of allNotifyingChannels) {
-				const streamerData = await clientManager.twitchApiClient.getUserInfo(channel as string);
+				const streamerData = await clientManager.twitchApiClient.getUserInfo(
+					channel as string
+				);
 
 				const init_topics = [
 					{
@@ -58,7 +65,12 @@ const runIo = async io => {
 				pubsubbedChannels.push({ listener: pubSub, id: channel });
 
 				pubSub.on("stream-up", data =>
-					commands["stream-up"].exec({ ...data, id: channel, ...streamerData }, streamerData.login, io, clientManager.customBots)
+					commands["stream-up"].exec(
+						{ ...data, id: channel, ...streamerData },
+						streamerData.login,
+						io,
+						clientManager.customBots
+					)
 				);
 			}
 		});
@@ -75,19 +87,30 @@ const runIo = async io => {
 			if (!trulyAdded.length) return;
 
 			const allStreamersTwitchData = (
-				await Promise.all(trulyAdded.map(async doc => await doc.ref.collection("twitch").doc("data").get()))
+				await Promise.all(
+					trulyAdded.map(
+						async doc => await doc.ref.collection("twitch").doc("data").get()
+					)
+				)
 			).map(doc => (doc as any).data());
 
 			const authorizedStreamers = allStreamersTwitchData
 				.filter(s => s)
-				.filter(streamer => !pubsubbedChannels.find(subChannel => subChannel.id === streamer.user_id && subChannel.isUser));
+				.filter(
+					streamer =>
+						!pubsubbedChannels.find(
+							subChannel => subChannel.id === streamer.user_id && subChannel.isUser
+						)
+				);
 
 			log(`Authorized Streamers: ${authorizedStreamers.length}`);
 
 			authorizedStreamers.forEach(async streamer => {
 				if (!streamer.user_id) return;
 
-				const streamerData = await clientManager.twitchApiClient.getUserInfo(streamer.user_id);
+				const streamerData = await clientManager.twitchApiClient.getUserInfo(
+					streamer.user_id
+				);
 
 				const { access_token, scope } = await refreshTwitchToken(streamer.refresh_token);
 
@@ -120,7 +143,9 @@ const runIo = async io => {
 						const { redemption, channel_id } = data;
 						const user = await clientManager.twitchApiClient.getUserInfo(channel_id);
 						const channelName = user.login;
-						let message = `${redemption.user.display_name || redemption.user.login} has redeemed: ${redemption.reward.title} `;
+						let message = `${
+							redemption.user.display_name || redemption.user.login
+						} has redeemed: ${redemption.reward.title} `;
 						if (redemption.reward.prompt.length > 0) {
 							message = `${message} - ${redemption.reward.prompt}`;
 						}
@@ -149,7 +174,12 @@ const runIo = async io => {
 				pubSub.on("automod_rejected", async data => {
 					try {
 						const { channelName } = pubSub;
-						const theMessage = await formatMessage(data.message, "twitch", {}, { HTMLClean: true });
+						const theMessage = await formatMessage(
+							data.message,
+							"twitch",
+							{},
+							{ HTMLClean: true }
+						);
 						const id = uuidv1();
 						const messageObject = {
 							displayName: "AutoMod",

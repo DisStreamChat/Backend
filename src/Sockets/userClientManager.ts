@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import tmi from "tmi.js";
 
+import { EnvManager } from "../utils/envManager.util";
 import { ArrayAny } from "../utils/functions";
 
 class UserClientManager {
@@ -10,7 +11,7 @@ class UserClientManager {
 
 	async create(refreshToken: string, modName: string, twitchName: string) {
 		const response = await fetch(
-			`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${process.env.DSC_API_KEY}`
+			`https://api.disstreamchat.com/twitch/token/refresh?token=${refreshToken}&key=${EnvManager.DSC_API_KEY}`
 		);
 		const data = await response.json();
 		if (!data) {

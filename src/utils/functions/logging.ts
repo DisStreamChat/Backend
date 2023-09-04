@@ -12,15 +12,24 @@ export interface logOptions {
 	DM?: boolean;
 }
 
-export const log = async (loggingString, { file, writeToConsole, error, DM }: logOptions = {}) => {
-	const loggingFilePath = join(loggingPath, file || `${new Date().toLocaleDateString().replace(/\//g, "-")}.log`);
+export const log = async (
+	loggingString: any,
+	{ file, writeToConsole, error, DM }: logOptions = {}
+) => {
+	const loggingFilePath = join(
+		loggingPath,
+		file || `${new Date().toLocaleDateString().replace(/\//g, "-")}.log`
+	);
 	if (!fs.existsSync(loggingPath)) {
 		console.log("creating directory");
 		await promises.mkdir(loggingPath, { recursive: true });
 		await promises.writeFile(loggingFilePath, "");
 	}
 
-	loggingString = `${new Date().toLocaleTimeString("en-us", { timeZone: "America/New_York", timeZoneName: "short" })}: ${loggingString}`;
+	loggingString = `${new Date().toLocaleTimeString("en-us", {
+		timeZone: "America/New_York",
+		timeZoneName: "short",
+	})}: ${loggingString}`;
 	if (error) {
 		loggingString = `An Error Occured: ${loggingString}`;
 	}

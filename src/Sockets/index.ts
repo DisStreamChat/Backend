@@ -24,12 +24,19 @@ export const sockets = (io: Server.Server) => {
 			let id = data.id || data;
 			const rooms = [...Object.keys(socket.rooms)];
 			const guildId = rooms.find(room => room.includes("guild"))?.split?.("-")?.[1];
-			const liveChatId = rooms.filter(room => room.includes("channel"))?.map(id => id.split("-")[1]);
+			const liveChatId = rooms
+				.filter(room => room.includes("channel"))
+				?.map(id => id.split("-")[1]);
 
 			const modId = data.mod_id;
 			const refreshToken = data.refresh_token;
 
-			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
+			const modRef = admin
+				.firestore()
+				.collection("Streamers")
+				.doc(modId)
+				.collection("discord")
+				.doc("data");
 			const modData: any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
@@ -54,13 +61,20 @@ export const sockets = (io: Server.Server) => {
 
 		socket.on("banuser - discord", async data => {
 			let user = data.user || data;
-			const guildId = [...Object.keys(socket.rooms)].find(room => room.includes("guild"))?.split?.("-")?.[1];
+			const guildId = [...Object.keys(socket.rooms)]
+				.find(room => room.includes("guild"))
+				?.split?.("-")?.[1];
 			const connectGuild = clientManager.discordClient.guilds.resolve(guildId);
 
 			const modId = data.mod_id;
 			const refreshToken = data.refresh_token;
 
-			const modRef = admin.firestore().collection("Streamers").doc(modId).collection("discord").doc("data");
+			const modRef = admin
+				.firestore()
+				.collection("Streamers")
+				.doc(modId)
+				.collection("discord")
+				.doc("data");
 			const modData: any = await modRef.get();
 			const modRefreshToken = modData.refreshToken;
 
@@ -74,9 +88,11 @@ export const sockets = (io: Server.Server) => {
 		});
 
 		socket.on("deletemsg - twitch", async data => {
-			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)]
+				.find(room => room.includes("twitch"))
+				?.split?.("-")?.[1];
 
-			function botDelete(id) {
+			function botDelete(id: string) {
 				try {
 					clientManager.twitchClient.deletemessage(TwitchName, id);
 				} catch (err) {
@@ -94,7 +110,11 @@ export const sockets = (io: Server.Server) => {
 					botDelete(id);
 				} else {
 					try {
-						let UserClient = await userClientManager.getOrCreate(refreshToken, modName, TwitchName);
+						let UserClient = await userClientManager.getOrCreate(
+							refreshToken,
+							modName,
+							TwitchName
+						);
 						await UserClient.deletemessage(TwitchName, id);
 						UserClient = null;
 					} catch (err) {
@@ -106,7 +126,9 @@ export const sockets = (io: Server.Server) => {
 		});
 
 		socket.on("timeoutuser - twitch", async data => {
-			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)]
+				.find(room => room.includes("twitch"))
+				?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botTimeout(user) {
@@ -128,7 +150,11 @@ export const sockets = (io: Server.Server) => {
 					botTimeout(user);
 				} else {
 					try {
-						let UserClient = await userClientManager.getOrCreate(refreshToken, modName, TwitchName);
+						let UserClient = await userClientManager.getOrCreate(
+							refreshToken,
+							modName,
+							TwitchName
+						);
 						await UserClient.timeout(TwitchName, user, data.time ?? 300);
 						UserClient = null;
 					} catch (err) {
@@ -140,7 +166,9 @@ export const sockets = (io: Server.Server) => {
 		});
 
 		socket.on("banuser - twitch", async data => {
-			const TwitchName = [...Object.keys(socket.rooms)].find(room => room.includes("twitch"))?.split?.("-")?.[1];
+			const TwitchName = [...Object.keys(socket.rooms)]
+				.find(room => room.includes("twitch"))
+				?.split?.("-")?.[1];
 
 			let user = data.user;
 			async function botBan(user) {
@@ -160,7 +188,11 @@ export const sockets = (io: Server.Server) => {
 				botBan(user);
 			} else {
 				try {
-					let UserClient = await userClientManager.getOrCreate(refreshToken, modName, TwitchName);
+					let UserClient = await userClientManager.getOrCreate(
+						refreshToken,
+						modName,
+						TwitchName
+					);
 					await UserClient.ban(TwitchName, user);
 					UserClient = null;
 				} catch (err) {
@@ -170,7 +202,7 @@ export const sockets = (io: Server.Server) => {
 			}
 		});
 
-		socket.on("sendchat", async data => sendChat(data, socket));
+		socket.on("sendchat", sendChat);
 
 		socket.on("disconnect", () => {
 			log("a user disconnected");

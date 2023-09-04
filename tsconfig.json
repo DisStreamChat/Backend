@@ -11,6 +11,7 @@
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
 		"downlevelIteration": true,
+		"lib": ["ESNext"]
 	},
 	"allowSyntheticDefaultImports": true,
 	"esModuleInterop": true,

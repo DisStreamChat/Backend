@@ -1,7 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { firestore } from "firebase-admin";
 
-import { compare } from "../../../utils/functions";
+import { compareObjects } from "../../../utils/functions";
 
 export const logMessageDelete = (message, channelIds, executor, guild) => {
 	checkDeleteReactionMessage(guild.id, message);
@@ -37,11 +37,21 @@ export const checkDeleteReactionMessage = async (guildId, message) => {
 	}
 };
 
-export const logUpdate = async (newItem, oldItem, { keyMap = {}, valueMap = {}, ignoredDifferences = [], title, footer }) => {
-	const differences = compare(oldItem, newItem);
-	const differenceKeys = Object.keys(differences).filter(key => !differences[key] && !ignoredDifferences.includes(key));
+export const logUpdate = async (
+	newItem,
+	oldItem,
+	{ keyMap = {}, valueMap = {}, ignoredDifferences = [], title, footer }
+) => {
+	const differences = compareObjects(oldItem, newItem);
+	const differenceKeys = Object.keys(differences).filter(
+		key => !differences[key] && !ignoredDifferences.includes(key)
+	);
 
-	const embed = new MessageEmbed().setTitle(title).setFooter(footer).setTimestamp(new Date()).setColor("#faa51b");
+	const embed = new MessageEmbed()
+		.setTitle(title)
+		.setFooter(footer)
+		.setTimestamp(new Date())
+		.setColor("#faa51b");
 
 	for (const change of differenceKeys) {
 		const newValue = valueMap[change]?.(newItem[change], true) || newItem[change] || "None";

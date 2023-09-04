@@ -7,9 +7,9 @@ export function generateMustacheView({ message, args = [] }) {
 		toString: () => fullArgs,
 	};
 	const view = {
-		random: () => (val: number) => {
+		random: () => (val: string | number) => {
 			if (!val) val = 1;
-			if (!isNumeric(val)) val = 1;
+			if (!isNumeric(val as string)) val = 1;
 			return random(Number(val));
 		},
 		member: message.member,
