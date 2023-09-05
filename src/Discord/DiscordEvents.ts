@@ -1,4 +1,3 @@
-import { Client } from "discord.js";
 import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
@@ -11,6 +10,7 @@ import { Logger } from "../utils/functions/logging";
 // get functions used to do things like strip html and replace custom discord emojis with the url to the image
 import { formatMessage } from "../utils/messageManipulation";
 import { sendMessage } from "../utils/sendMessage";
+import { DisStreamClient } from "./client";
 import CommandHandler from "./CommandHandler";
 import { handleLeveling } from "./Leveling";
 import ReactionRoles from "./Reaction Manager";
@@ -18,7 +18,7 @@ import ReactionRoles from "./Reaction Manager";
 const eventPath = path.join(__dirname, "./Events");
 const eventFiles = fs.readdirSync(eventPath);
 
-export default async (client: Client & any) => {
+export default async (client: DisStreamClient) => {
 	ReactionRoles(client);
 	// TODO: move discord events to separate file
 	eventFiles.forEach(event => {
@@ -37,7 +37,7 @@ export default async (client: Client & any) => {
 	client.settings = {};
 	client.logging = {};
 	client.leveling = {};
-	client.listeners = {};
+	client.listening = {};
 
 	admin
 		.firestore()

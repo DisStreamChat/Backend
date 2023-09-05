@@ -160,7 +160,7 @@ export default {
 			filter = input;
 			input = args[1];
 		}
-		let amount = +input + 1;
+		let amount = Number(input) + 1;
 		if (input.length > 5) {
 			amount = await fetchAmountfromId(message, input);
 			if (!amount) return;

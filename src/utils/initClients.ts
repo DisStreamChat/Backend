@@ -6,6 +6,7 @@ import tmi from "tmi.js";
 //@ts-ignore
 import TwitchApi from "twitchio-js";
 
+import { DisStreamClient } from "../Discord/client";
 import { Duration, setDurationInterval } from "./duration.util";
 import { EnvManager } from "./envManager.util";
 import { Logger } from "./functions/logging";
@@ -14,9 +15,9 @@ class ClientManager {
 	twitchApiClient: TwitchApi;
 	krakenApiClient: TwitchApi;
 	discordOauthClient: DiscordOauth2;
-	customBots: Map<string, Client>;
+	customBots: Map<string, DisStreamClient>;
 
-	discordClient: Client;
+	discordClient: DisStreamClient;
 	twitchClient: tmi.Client;
 
 	constructor() {
@@ -29,6 +30,7 @@ class ClientManager {
 			credential: credential.cert(serviceAccount),
 		});
 
+		this.discordClient = new DisStreamClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 		this.discordClient.login(EnvManager.DISCORD_BOT_TOKEN);
 
 		this.discordClient.on("ready", async () => {
@@ -118,7 +120,7 @@ class ClientManager {
 		const bots: any[] = botRef.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 		const customBots = new Map();
 		for (const bot of bots) {
-			const botClient = new Client({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
+			const botClient = new DisStreamClient({ partials: ["MESSAGE", "CHANNEL", "REACTION"] });
 			await botClient.login(bot.token);
 			botClient.once("ready", async () => {
 				if (bot.status) {

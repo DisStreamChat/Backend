@@ -49,12 +49,12 @@ export default {
 
 			const muteTime: string = args[args.length - 1];
 			const unit = muteTime.slice(-1);
-			const duration = +muteTime.slice(0, -1);
-			const muteTimeMillis = Duration.fromMilliseconds(duration).multiply(timeMap[unit]);
+			const duration = Number(muteTime.slice(0, -1));
+			const muteTimeDuration = Duration.fromMilliseconds(duration).multiply(timeMap[unit]);
 
 			setDurationTimeout(() => {
 				member.roles.remove(mutedRole);
-			}, muteTimeMillis);
+			}, muteTimeDuration);
 
 			const embed = new MessageEmbed()
 				.setTitle("Muted user")

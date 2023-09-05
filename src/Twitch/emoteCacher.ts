@@ -51,11 +51,16 @@ class EmoteCacher {
 		}
 	}
 
-	invalidate(set: "bttv" | "ffz", name: string) {
+	temporarilyInvalidate(set: "bttv" | "ffz", name: string) {
 		this._cache[set].get(name).shouldRefresh = true;
 		setDurationTimeout(() => {
 			this._cache[set].get(name).shouldRefresh = false;
 		}, refreshDuration);
+	}
+
+	temporarilyInvalidateAll(name: string) {
+		this.temporarilyInvalidate("bttv", name);
+		this.temporarilyInvalidate("ffz", name);
 	}
 
 	get bttv() {

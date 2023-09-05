@@ -15,7 +15,7 @@ const funcRegex = /\((\w+)\s?([\w\s+-/<>]*)\)/gi;
 
 const replaceFunc = text => text.replace(funcRegex, (match, p1, p2, offset, string) => `{#${p1}}${p2 || ""}{/${p1}}`);
 
-const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, offset, string) => "" + args[+p1 - 1]);
+const replaceArgs = (text, args) => text.replace(/{(\d+)}/gm, (match, p1, p2, offset, string) => "" + args[Number(p1) - 1]);
 
 export default async ({ command, args, message, client }) => {
 	const view = generateMustacheView({ message, args });

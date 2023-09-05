@@ -15,5 +15,3 @@ export function promisify<T, A extends any[]>(
 		});
 	};
 }
-
-//
